@@ -1,4 +1,9 @@
 *.class
+target/*
+
+# Eclipse Project Files #
+.metadata/*
+.*
 
 # Package Files #
 *.jar

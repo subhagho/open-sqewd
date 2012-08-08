@@ -11,14 +11,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sqewd.open.dal.core.persistence.AbstractEntity;
-import com.sqewd.open.dal.core.persistence.AttributeReflection;
-import com.sqewd.open.dal.core.persistence.Entity;
-import com.sqewd.open.dal.core.persistence.EnumPrimitives;
-import com.sqewd.open.dal.core.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.EnumPrimitives;
+import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.persistence.db.SQLDataType;
 import com.sqewd.open.dal.core.persistence.db.SqlConditionTransformer;
-import com.sqewd.open.dal.utils.KeyValuePair;
 
 /**
  * Class encapsulates the Query definition for a JDBC compliant Database.

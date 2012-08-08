@@ -9,8 +9,8 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import com.sqewd.open.dal.api.utils.DateUtils;
 import com.sqewd.open.dal.core.persistence.query.DummyEntitiesData.EntityMatchRoot;
-import com.sqewd.open.dal.utils.DateUtils;
 
 /**
  * @author subhagho

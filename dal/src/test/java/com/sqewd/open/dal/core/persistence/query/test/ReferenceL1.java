@@ -5,8 +5,8 @@ package com.sqewd.open.dal.core.persistence.query.test;
 
 import java.util.Date;
 
-import com.sqewd.open.dal.core.persistence.Attribute;
-import com.sqewd.open.dal.core.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.Attribute;
+import com.sqewd.open.dal.api.persistence.Entity;
 
 /**
  * @author subhagho

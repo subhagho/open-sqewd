@@ -3,7 +3,7 @@
  */
 package com.sqewd.open.dal.core.persistence.query;
 
-import com.sqewd.open.dal.core.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.Entity;
 
 /**
  * @author subhagho

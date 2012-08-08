@@ -8,12 +8,12 @@ import java.util.Date;
 
 import org.apache.commons.beanutils.PropertyUtils;
 
-import com.sqewd.open.dal.core.persistence.AbstractEntity;
-import com.sqewd.open.dal.core.persistence.AttributeReflection;
-import com.sqewd.open.dal.core.persistence.CustomFieldDataHandler;
-import com.sqewd.open.dal.core.persistence.EnumPrimitives;
-import com.sqewd.open.dal.core.persistence.ReflectionUtils;
-import com.sqewd.open.dal.utils.DateUtils;
+import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.CustomFieldDataHandler;
+import com.sqewd.open.dal.api.persistence.EnumPrimitives;
+import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.utils.DateUtils;
 
 /**
  * @author subhagho

@@ -15,15 +15,18 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import com.sqewd.open.dal.core.EnumInstanceState;
+import com.sqewd.open.dal.api.EnumInstanceState;
+import com.sqewd.open.dal.api.InitializedHandle;
+import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AbstractPersister;
+import com.sqewd.open.dal.api.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.EnumEntityState;
+import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.utils.InstanceParam;
+import com.sqewd.open.dal.api.utils.ListParam;
+import com.sqewd.open.dal.api.utils.LogUtils;
+import com.sqewd.open.dal.api.utils.XMLUtils;
 import com.sqewd.open.dal.core.Env;
-import com.sqewd.open.dal.core.InitializedHandle;
-import com.sqewd.open.dal.core.persistence.AbstractEntity;
-import com.sqewd.open.dal.core.persistence.EnumEntityState;
-import com.sqewd.open.dal.utils.InstanceParam;
-import com.sqewd.open.dal.utils.ListParam;
-import com.sqewd.open.dal.utils.LogUtils;
-import com.sqewd.open.dal.utils.XMLUtils;
 
 /**
  * The DataManager class manages persistence and data query.
@@ -110,6 +113,7 @@ public class DataManager implements InitializedHandle {
 				.getTypesAnnotatedWith(Entity.class);
 		if (annotated != null && annotated.size() > 0) {
 			for (Class<?> type : annotated) {
+				log.debug("Found entity : [" + type.getCanonicalName() + "]");
 				ReflectionUtils.get().load(type);
 			}
 		}

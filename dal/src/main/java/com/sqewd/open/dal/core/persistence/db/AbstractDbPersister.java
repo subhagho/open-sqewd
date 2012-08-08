@@ -17,14 +17,14 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sqewd.open.dal.core.EnumInstanceState;
-import com.sqewd.open.dal.core.persistence.AbstractEntity;
-import com.sqewd.open.dal.core.persistence.AbstractPersister;
-import com.sqewd.open.dal.core.persistence.AttributeReflection;
-import com.sqewd.open.dal.core.persistence.Entity;
-import com.sqewd.open.dal.core.persistence.EnumEntityState;
-import com.sqewd.open.dal.core.persistence.EnumPrimitives;
-import com.sqewd.open.dal.core.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.EnumInstanceState;
+import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AbstractPersister;
+import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.EnumEntityState;
+import com.sqewd.open.dal.api.persistence.EnumPrimitives;
+import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.core.persistence.query.SimpleDbQuery;
 
 /**

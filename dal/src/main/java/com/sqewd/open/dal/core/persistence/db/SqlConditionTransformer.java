@@ -6,10 +6,12 @@ package com.sqewd.open.dal.core.persistence.db;
 import java.lang.reflect.Field;
 import java.util.Date;
 
-import com.sqewd.open.dal.core.persistence.AttributeReflection;
-import com.sqewd.open.dal.core.persistence.Entity;
-import com.sqewd.open.dal.core.persistence.EnumPrimitives;
-import com.sqewd.open.dal.core.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.EnumPrimitives;
+import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.utils.DateUtils;
+import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.persistence.query.AbstractCondition;
 import com.sqewd.open.dal.core.persistence.query.AbstractConditionPredicate;
 import com.sqewd.open.dal.core.persistence.query.ColumnConditionPredicate;
@@ -18,8 +20,6 @@ import com.sqewd.open.dal.core.persistence.query.EnumConditionType;
 import com.sqewd.open.dal.core.persistence.query.EnumOperator;
 import com.sqewd.open.dal.core.persistence.query.FilterCondition;
 import com.sqewd.open.dal.core.persistence.query.ValueConditionPredicate;
-import com.sqewd.open.dal.utils.DateUtils;
-import com.sqewd.open.dal.utils.KeyValuePair;
 
 /**
  * @author subhagho

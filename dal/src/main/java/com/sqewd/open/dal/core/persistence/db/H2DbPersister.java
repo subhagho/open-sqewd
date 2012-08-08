@@ -19,19 +19,19 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import com.sqewd.open.dal.core.EnumInstanceState;
-import com.sqewd.open.dal.core.persistence.AbstractEntity;
-import com.sqewd.open.dal.core.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.EnumInstanceState;
+import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.EnumPrimitives;
+import com.sqewd.open.dal.api.utils.AbstractParam;
+import com.sqewd.open.dal.api.utils.KeyValuePair;
+import com.sqewd.open.dal.api.utils.ListParam;
+import com.sqewd.open.dal.api.utils.LogUtils;
+import com.sqewd.open.dal.api.utils.ValueParam;
+import com.sqewd.open.dal.api.utils.XMLUtils;
 import com.sqewd.open.dal.core.persistence.DataManager;
-import com.sqewd.open.dal.core.persistence.Entity;
-import com.sqewd.open.dal.core.persistence.EnumPrimitives;
 import com.sqewd.open.dal.core.persistence.query.SimpleDbQuery;
-import com.sqewd.open.dal.utils.AbstractParam;
-import com.sqewd.open.dal.utils.KeyValuePair;
-import com.sqewd.open.dal.utils.ListParam;
-import com.sqewd.open.dal.utils.LogUtils;
-import com.sqewd.open.dal.utils.ValueParam;
-import com.sqewd.open.dal.utils.XMLUtils;
 
 /**
  * @author subhagho

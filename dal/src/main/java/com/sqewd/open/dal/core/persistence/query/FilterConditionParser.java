@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.sqewd.open.dal.core.persistence.Entity;
-import com.sqewd.open.dal.core.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 
 /**
  * @author subhagho

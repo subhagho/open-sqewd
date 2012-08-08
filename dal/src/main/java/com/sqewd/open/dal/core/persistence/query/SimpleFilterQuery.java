@@ -6,7 +6,7 @@ package com.sqewd.open.dal.core.persistence.query;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sqewd.open.dal.core.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AbstractEntity;
 
 /**
  * Simple Object Query. All specified conditions are used to filter the input

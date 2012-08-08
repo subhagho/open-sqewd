@@ -5,7 +5,7 @@ package com.sqewd.open.dal.core.persistence.db;
 
 import java.util.Date;
 
-import com.sqewd.open.dal.core.persistence.EnumPrimitives;
+import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 
 /**
  * @author subhagho

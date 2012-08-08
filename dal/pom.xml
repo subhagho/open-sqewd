@@ -170,6 +170,11 @@
 			<artifactId>reflections</artifactId>
 			<version>0.9.8</version>
 		</dependency>
+		<dependency>
+			<groupId>com.sqewd.open</groupId>
+			<artifactId>dal-api</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<build>

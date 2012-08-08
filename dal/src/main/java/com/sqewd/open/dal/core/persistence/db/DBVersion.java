@@ -3,9 +3,9 @@
  */
 package com.sqewd.open.dal.core.persistence.db;
 
-import com.sqewd.open.dal.core.persistence.AbstractEntity;
-import com.sqewd.open.dal.core.persistence.Attribute;
-import com.sqewd.open.dal.core.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.Attribute;
+import com.sqewd.open.dal.api.persistence.Entity;
 
 /**
  * @author subhagho

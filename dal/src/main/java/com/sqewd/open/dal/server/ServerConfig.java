@@ -11,9 +11,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.sqewd.open.dal.api.utils.KeyValuePair;
+import com.sqewd.open.dal.api.utils.XMLUtils;
 import com.sqewd.open.dal.core.Env;
-import com.sqewd.open.dal.utils.KeyValuePair;
-import com.sqewd.open.dal.utils.XMLUtils;
 
 /**
  * @author subhagho

@@ -18,20 +18,20 @@ import org.slf4j.LoggerFactory;
 
 import au.com.bytecode.opencsv.CSVReader;
 
-import com.sqewd.open.dal.core.EnumInstanceState;
-import com.sqewd.open.dal.core.persistence.AbstractEntity;
-import com.sqewd.open.dal.core.persistence.AbstractPersister;
-import com.sqewd.open.dal.core.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.EnumInstanceState;
+import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AbstractPersister;
+import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.EnumPrimitives;
+import com.sqewd.open.dal.api.persistence.EnumRefereceType;
+import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.utils.AbstractParam;
+import com.sqewd.open.dal.api.utils.DateUtils;
+import com.sqewd.open.dal.api.utils.ListParam;
+import com.sqewd.open.dal.api.utils.ValueParam;
 import com.sqewd.open.dal.core.persistence.DataManager;
-import com.sqewd.open.dal.core.persistence.Entity;
-import com.sqewd.open.dal.core.persistence.EnumPrimitives;
-import com.sqewd.open.dal.core.persistence.EnumRefereceType;
-import com.sqewd.open.dal.core.persistence.ReflectionUtils;
 import com.sqewd.open.dal.core.persistence.query.SimpleFilterQuery;
-import com.sqewd.open.dal.utils.AbstractParam;
-import com.sqewd.open.dal.utils.DateUtils;
-import com.sqewd.open.dal.utils.ListParam;
-import com.sqewd.open.dal.utils.ValueParam;
 
 /**
  * @author subhagho

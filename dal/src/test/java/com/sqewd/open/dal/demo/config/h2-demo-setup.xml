@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<h2>
+	<db version="1.0">
+		<entities>
+			<entity>com.wookler.entities.users.Profile</entity>
+			<index name="INDX_PR_01" entity="com.wookler.entities.users.Profile"
+				columns="EMAIL" />
+		</entities>
+	</db>
+</h2>

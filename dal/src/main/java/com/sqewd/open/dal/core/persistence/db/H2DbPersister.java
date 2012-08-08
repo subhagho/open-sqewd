@@ -242,7 +242,7 @@ public class H2DbPersister extends AbstractDbPersister {
 				if (nl != null && nl.getLength() > 0) {
 					for (int ii = 0; ii < nl.getLength(); ii++) {
 						Element elm = (Element) nl.item(ii);
-						String eclass = elm.getTextContent();
+						String eclass = elm.getNodeValue();
 						if (eclass != null && !eclass.isEmpty()) {
 							Class<?> cls = Class.forName(eclass);
 							createsql = dbq.getCreateTableDDL(cls);

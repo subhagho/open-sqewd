@@ -87,48 +87,55 @@ public class JettyServer {
 					|| cmd.compareToIgnoreCase("start") == 0) {
 				Server server = new Server(serverConfig.getPort());
 				Map<String, Object> initMap = new HashMap<String, Object>();
-				initMap.put("com.sun.jersey.api.json.POJOMappingFeature",
-						"true");
-				initMap.put("com.sun.jersey.config.property.packages",
-						"com.wookler.services");
-				initMap.put(
-						"com.sun.jersey.config.property.resourceConfigClass",
-						"com.sun.jersey.api.core.PackagesResourceConfig");
-
-				ServletHolder sh = new ServletHolder(new ServletContainer(
-						new PackagesResourceConfig(initMap)));
-
-				String jettyhome = serverConfig.getJettyHome();
-				if (jettyhome != null && !jettyhome.isEmpty()) {
-					System.setProperty("jetty.home", jettyhome);
-				}
 
 				log.info("Starting Jetty Server:");
 				log.info("\tPort : " + serverConfig.getPort());
 				log.info("\tThreads : " + serverConfig.getNumThreads());
 				log.info("\tWeb Root : " + serverConfig.getWebRoot());
 
-				// un-comment these to enable tracing of requests and responses
+				String jettyhome = serverConfig.getJettyHome();
+				if (jettyhome != null && !jettyhome.isEmpty()) {
+					System.setProperty("jetty.home", jettyhome);
+				}
 
-				// sh.setInitParameter("com.sun.jersey.config.feature.Debug",
-				// "true");
-				// sh.setInitParameter("com.sun.jersey.config.feature.Trace",
-				// "true");
-				//
-				// sh.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
-				// "com.sun.jersey.api.container.filter.LoggingFilter");
-				// sh.setInitParameter("com.sun.jersey.spi.container.ContainerResponseFilters",
-				// "com.sun.jersey.api.container.filter.LoggingFilter");
 				ContextHandlerCollection ctxs = new ContextHandlerCollection();
 				server.setHandler(ctxs);
 
 				List<Handler> handlers = new ArrayList<Handler>();
 
-				ServletContextHandler restctx = new ServletContextHandler(
-						ServletContextHandler.SESSIONS);
-				restctx.setContextPath("/rest");
-				restctx.addServlet(sh, "/*");
-				handlers.add(restctx);
+				String serpack = serverConfig.getServicesPackage();
+				if (serpack != null && !serpack.isEmpty()) {
+					initMap.put("com.sun.jersey.api.json.POJOMappingFeature",
+							"true");
+					initMap.put("com.sun.jersey.config.property.packages",
+							serpack);
+
+					initMap.put(
+							"com.sun.jersey.config.property.resourceConfigClass",
+							"com.sun.jersey.api.core.PackagesResourceConfig");
+
+					ServletHolder sh = new ServletHolder(new ServletContainer(
+							new PackagesResourceConfig(initMap)));
+
+					// un-comment these to enable tracing of requests and
+					// responses
+
+					// sh.setInitParameter("com.sun.jersey.config.feature.Debug",
+					// "true");
+					// sh.setInitParameter("com.sun.jersey.config.feature.Trace",
+					// "true");
+					//
+					// sh.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
+					// "com.sun.jersey.api.container.filter.LoggingFilter");
+					// sh.setInitParameter("com.sun.jersey.spi.container.ContainerResponseFilters",
+					// "com.sun.jersey.api.container.filter.LoggingFilter");
+
+					ServletContextHandler restctx = new ServletContextHandler(
+							ServletContextHandler.SESSIONS);
+					restctx.setContextPath("/rest");
+					restctx.addServlet(sh, "/*");
+					handlers.add(restctx);
+				}
 
 				if (serverConfig.getWebapps() != null) {
 					for (KeyValuePair<String> webapp : serverConfig
@@ -166,6 +173,9 @@ public class JettyServer {
 				thread.start();
 
 				log.info("Jetty Server running...");
+				if (serpack != null)
+					log.info("Loaded services from package [" + serpack + "]");
+
 				log.info("Root directory [" + new File(".").getAbsolutePath()
 						+ "]");
 				server.join();

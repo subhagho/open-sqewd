@@ -63,7 +63,14 @@ public class ReflectionUtils {
 	public HashMap<String, AttributeReflection> getEntityMetadata(Class<?> type)
 			throws Exception {
 		if (!metacache.containsKey(type.getName())) {
-			synchronized (metacache) {
+			load(type);
+		}
+		return metacache.get(type.getName());
+	}
+
+	public void load(Class<?> type) throws Exception {
+		synchronized (metacache) {
+			if (!metacache.containsKey(type.getName())) {
 				if (!type.isAnnotationPresent(Entity.class))
 					throw new Exception("Class [" + type.getCanonicalName()
 							+ "] does not implement Entity annotation.");
@@ -125,7 +132,6 @@ public class ReflectionUtils {
 				typecahce.put(eann.recordset(), type);
 			}
 		}
-		return metacache.get(type.getName());
 	}
 
 	public Class<?> getType(String table) {

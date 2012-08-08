@@ -8,11 +8,40 @@
 	<packaging>jar</packaging>
 
 	<name>dal</name>
-	<url>http://maven.apache.org</url>
+	<url>https://github.com/subhagho/open-sqewd</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+	
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>sonatype-nexus-snapshots</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+		</snapshotRepository>
+		<repository>
+			<id>sonatype-nexus-staging</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<scm>
+		<url>https://github.com/subhagho/open-sqewd.git</url>
+	</scm>
 
 	<dependencies>
 		<dependency>
@@ -136,6 +165,11 @@
 			<artifactId>jersey-multipart</artifactId>
 			<version>1.8</version>
 		</dependency>
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>0.9.8</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -146,7 +180,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.wookler.server.JettyServer</mainClass>
+							<mainClass>com.sqewd.open.dal.server.JettyServer</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -176,7 +210,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.wookler.server.JettyServer</mainClass>
+							<mainClass>com.sqewd.open.dal.server.JettyServer</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
@@ -191,4 +225,5 @@
 			</resource>
 		</resources>
 	</build>
+	<description>Lightweight implementation of a Data Access Layer. Also includes a preconfigured Jetty Server to expose the Data as Services.</description>
 </project>

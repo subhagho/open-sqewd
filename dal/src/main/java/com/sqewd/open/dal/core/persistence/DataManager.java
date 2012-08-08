@@ -6,8 +6,10 @@ package com.sqewd.open.dal.core.persistence;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -35,6 +37,7 @@ public class DataManager implements InitializedHandle {
 	public static final String _CONFIG_PERSISTER_XPATH_ = "./persister";
 	public static final String _CONFIG_PERSISTMAP_XPATH_ = "./classmap";
 	public static final String _CONFIG_ATTR_PERSISTER_ = "persister";
+	public static final String _CONFIG_ENTITY_PACKAGES_ = "packages/jar";
 
 	private static final Logger log = LoggerFactory
 			.getLogger(DataManager.class);
@@ -43,6 +46,7 @@ public class DataManager implements InitializedHandle {
 
 	private HashMap<String, AbstractPersister> persistmap = new HashMap<String, AbstractPersister>();
 	private HashMap<String, AbstractPersister> persisters = new HashMap<String, AbstractPersister>();
+	private HashMap<String, List<String>> scanjars = new HashMap<String, List<String>>();
 
 	private void init(XMLConfiguration config) throws Exception {
 		try {
@@ -60,11 +64,54 @@ public class DataManager implements InitializedHandle {
 			if (pernl != null && pernl.getLength() > 0) {
 				initPersisters((Element) pernl.item(0));
 			}
+			NodeList packnl = XMLUtils.search(_CONFIG_ENTITY_PACKAGES_, dmroot);
+			if (packnl != null && packnl.getLength() > 0) {
+				Element jelm = (Element) pernl.item(0);
+				String jar = jelm.getAttribute("name");
+				if (jar != null && !jar.isEmpty()) {
+					String pack = jelm.getAttribute("package");
+					if (pack != null && !pack.isEmpty()) {
+						List<String> packs = null;
+						if (scanjars.containsKey(jar)) {
+							packs = scanjars.get(pack);
+						} else {
+							packs = new ArrayList<String>();
+							scanjars.put(jar, packs);
+						}
+						packs.add(pack);
+					}
+				}
+				scanEntities();
+			}
 			log.debug("DataManager initialzied...");
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage());
 			state = EnumInstanceState.Exception;
 			LogUtils.stacktrace(log, e);
+		}
+	}
+
+	private void scanEntities() throws Exception {
+		if (scanjars.size() > 0) {
+			for (String key : scanjars.keySet()) {
+				List<String> packs = scanjars.get(key);
+				if (packs.size() > 0) {
+					for (String pack : packs) {
+						scanEntities(key, pack);
+					}
+				}
+			}
+		}
+	}
+
+	private void scanEntities(String jar, String pack) throws Exception {
+		Reflections reflections = new Reflections(pack);
+		Set<Class<?>> annotated = reflections
+				.getTypesAnnotatedWith(Entity.class);
+		if (annotated != null && annotated.size() > 0) {
+			for (Class<?> type : annotated) {
+				ReflectionUtils.get().load(type);
+			}
 		}
 	}
 

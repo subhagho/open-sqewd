@@ -25,12 +25,14 @@ public class ServerConfig {
 	public static final String _SERVER_CONFIG_KEY_ = "SERVER-CONFIG";
 
 	public static final String _CONFIG_SERVER_WEBROOT_ = "server.web[@directory]";
-	public static final String _CONFIG_SERVER_WEBAPPS_ = "/wookler/server/web/webapps/app";
+	public static final String _CONFIG_SERVER_WEBAPPS_ = Env._CONFIG_XPATH_ROOT_
+			+ "/server/web/webapps/app";
 
 	public static final String _CONFIG_SERVER_PORT_ = "server[@port]";
 	public static final String _CONFIG_SERVER_STOPPORT_ = "server[@monitorport]";
 	public static final String _CONFIG_SERVER_NTHREADS_ = "server[@numthreads]";
 	public static final String _CONFIG_JETTY_HOME_ = "server.home";
+	public static final String _CONFIG_SERVICES_PACKAGE_ = "server.services[@package]";
 
 	private int port = 8080;
 	private int monitorPort = 8099;
@@ -40,6 +42,12 @@ public class ServerConfig {
 	private List<KeyValuePair<String>> webapps = null;
 
 	private String jettyHome = null;
+
+	private String servicesPackage = null;
+
+	public String getServicesPackage() {
+		return servicesPackage;
+	}
 
 	/**
 	 * Initialize the Server Configuration.
@@ -71,6 +79,11 @@ public class ServerConfig {
 		value = config.getString(_CONFIG_SERVER_STOPPORT_);
 		if (value != null && !value.isEmpty())
 			monitorPort = Integer.parseInt(value);
+
+		value = config.getString(_CONFIG_SERVICES_PACKAGE_);
+		if (value != null && !value.isEmpty()) {
+			servicesPackage = value;
+		}
 
 		loadWebApps(config.getDocument());
 

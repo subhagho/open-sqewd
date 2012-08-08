@@ -19,7 +19,7 @@ import com.sqewd.open.dal.core.persistence.DataManager;
  * 
  */
 public class Env {
-	public static final String _CONFIG_XPATH_ROOT_ = "/wookler";
+	public static final String _CONFIG_XPATH_ROOT_ = "/configuration";
 
 	public static final String _CONFIG_DIR_WORK_ = "env.work[@directory]";
 	public static final String _CONFIG_DIR_TEMP_ = "env.temp[@directory]";

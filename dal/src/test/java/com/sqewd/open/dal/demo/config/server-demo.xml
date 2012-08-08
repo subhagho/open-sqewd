@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<env>
+		<work directory="/tmp/sqewd/work/" />
+		<temp directory="/tmp/sqewd/temp/" />
+	</env>
+	<server port="8080" numhtreads="5" home="/tmp/sqewd/work/jetty">
+		<web directory="/tmp/sqewd/work/web">
+			<webapps>
+				<app context="/home" war="web.war" />
+			</webapps>
+		</web>
+		<services package="com.sqewd.services" />
+	</server>
+	<core>
+		<datamanager>
+			<packages>
+				<jar name="demo-entities.jar" package="com.sqewd.open.dal.entities" />
+			</packages>
+			<persistence>
+				<persister name="CSVPERSISTER"
+					class="com.sqewd.open.dal.core.persistence.csv.CSVPersister">
+					<params>
+						<param type="Value" name="key" value="CSVPERSISTER" />
+						<param type="Value" name="datadir" value="/var/sqewd/data/" />
+					</params>
+				</persister>
+
+				<persister name="DEMOPERSISTER"
+					class="com.sqewd.open.dal.core.persistence.db.H2DbPersister">
+					<params>
+						<param type="Value" name="key" value="USERPERSISTER" />
+						<param type="Value" name="url"
+							value="jdbc:h2:/var/sqewd/data/h2/sqewd/demo" />
+						<param type="Value" name="poolsize" value="10" />
+						<param type="Value" name="user" value="sqewd" />
+						<param type="Value" name="password" value="sQewD" />
+						<param type="Value" name="setup"
+							value="/var/sqewd/config/h2/h2-demo-setup.xml" />
+					</params>
+				</persister>
+				<classmap class="com.sqewd.entities.demo" persister="DEMOPERSISTER" />
+			</persistence>
+		</datamanager>
+	</core>
+</configuration>

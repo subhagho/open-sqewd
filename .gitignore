@@ -9,3 +9,5 @@
 *.jar
 *.war
 *.ear
+
+dal/target/maven-archiver/pom.properties

@@ -57,7 +57,7 @@ public class H2DbPersister extends AbstractDbPersister {
 
 	public static final String _CONFIG_SETUP_ENTITIES_ = "/h2/db/entities/entity";
 
-	public static final String _CONFIG_SETUP_INDEXES_ = "/h2/db/entities/index";
+	public static final String _CONFIG_SETUP_INDEXES_ = "./index";
 
 	private int cpoolsize = 10;
 
@@ -242,7 +242,7 @@ public class H2DbPersister extends AbstractDbPersister {
 				if (nl != null && nl.getLength() > 0) {
 					for (int ii = 0; ii < nl.getLength(); ii++) {
 						Element elm = (Element) nl.item(ii);
-						String eclass = elm.getNodeValue();
+						String eclass = elm.getAttribute("class");
 						if (eclass != null && !eclass.isEmpty()) {
 							Class<?> cls = Class.forName(eclass);
 							createsql = dbq.getCreateTableDDL(cls);
@@ -250,41 +250,11 @@ public class H2DbPersister extends AbstractDbPersister {
 								log.debug("TABLE SQL [" + sql + "]");
 								stmnt.execute(sql);
 							}
+							createIndex(elm, cls, dbq, stmnt);
 						}
 					}
 				}
-				nl = XMLUtils.search(_CONFIG_SETUP_INDEXES_, config
-						.getDocument().getDocumentElement());
-				if (nl != null && nl.getLength() > 0) {
-					for (int ii = 0; ii < nl.getLength(); ii++) {
-						Element elm = (Element) nl.item(ii);
-						String iclass = elm.getAttribute("entity");
-						if (iclass == null || iclass.isEmpty())
-							throw new Exception(
-									"Invalid Configuration : Missing or empty attribute [entity]");
-						Class<?> cls = Class.forName(iclass);
 
-						String iname = elm.getAttribute("name");
-						if (iname == null || iname.isEmpty())
-							throw new Exception(
-									"Invalid Configuration : Missing or empty attribute [name]");
-						String icolumns = elm.getAttribute("columns");
-						if (icolumns == null || icolumns.isEmpty())
-							throw new Exception(
-									"Invalid Configuration : Missing or empty attribute [columns]");
-						List<KeyValuePair<String>> columns = new ArrayList<KeyValuePair<String>>();
-						KeyValuePair<String> cp = new KeyValuePair<String>();
-						cp.setKey(iname);
-						cp.setValue(icolumns);
-						columns.add(cp);
-
-						createsql = dbq.getCreateIndexDDL(cls, columns);
-						for (String sql : createsql) {
-							log.debug("INDEX SQL [" + sql + "]");
-							stmnt.execute(sql);
-						}
-					}
-				}
 			} finally {
 				if (stmnt != null && !stmnt.isClosed())
 					stmnt.close();
@@ -305,6 +275,36 @@ public class H2DbPersister extends AbstractDbPersister {
 										+ version + "], current DB version ["
 										+ dbv.getVersion() + "]");
 					}
+				}
+			}
+		}
+	}
+
+	private void createIndex(Element parent, Class<?> cls, SimpleDbQuery dbq,
+			Statement stmnt) throws Exception {
+		NodeList nl = XMLUtils.search(_CONFIG_SETUP_INDEXES_, parent);
+		if (nl != null && nl.getLength() > 0) {
+			for (int ii = 0; ii < nl.getLength(); ii++) {
+				Element elm = (Element) nl.item(ii);
+
+				String iname = elm.getAttribute("name");
+				if (iname == null || iname.isEmpty())
+					throw new Exception(
+							"Invalid Configuration : Missing or empty attribute [name]");
+				String icolumns = elm.getAttribute("columns");
+				if (icolumns == null || icolumns.isEmpty())
+					throw new Exception(
+							"Invalid Configuration : Missing or empty attribute [columns]");
+				List<KeyValuePair<String>> columns = new ArrayList<KeyValuePair<String>>();
+				KeyValuePair<String> cp = new KeyValuePair<String>();
+				cp.setKey(iname);
+				cp.setValue(icolumns);
+				columns.add(cp);
+
+				List<String> createsql = dbq.getCreateIndexDDL(cls, columns);
+				for (String sql : createsql) {
+					log.debug("INDEX SQL [" + sql + "]");
+					stmnt.execute(sql);
 				}
 			}
 		}

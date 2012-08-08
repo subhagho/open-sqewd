@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.Env;
+import com.sqewd.open.dal.core.persistence.DataManager;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
@@ -85,6 +86,9 @@ public class JettyServer {
 			}
 			if (cmd == null || cmd.isEmpty()
 					|| cmd.compareToIgnoreCase("start") == 0) {
+				// Initialize the DataManager
+				DataManager.create(Env.get().getConfig());
+				
 				Server server = new Server(serverConfig.getPort());
 				Map<String, Object> initMap = new HashMap<String, Object>();
 

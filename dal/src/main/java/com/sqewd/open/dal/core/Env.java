@@ -43,8 +43,6 @@ public class Env {
 		if (tempdir == null || tempdir.isEmpty())
 			tempdir = System.getProperty("java.io.tmpdir");
 
-		// Initialized the DataManager
-		DataManager.create(config);
 	}
 
 	/**

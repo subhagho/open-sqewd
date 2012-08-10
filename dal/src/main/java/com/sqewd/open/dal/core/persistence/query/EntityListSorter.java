@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
-import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.utils.LogUtils;
@@ -61,7 +61,7 @@ public class EntityListSorter implements Comparator<AbstractEntity> {
 
 	private int compare(AbstractEntity esrc, AbstractEntity etgt,
 			SortColumn column) throws Exception {
-		AttributeReflection attr = ReflectionUtils.get().getAttribute(
+		StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
 				esrc.getClass(), column.getColumn());
 
 		Object vsrc = PropertyUtils.getProperty(esrc, attr.Field.getName());

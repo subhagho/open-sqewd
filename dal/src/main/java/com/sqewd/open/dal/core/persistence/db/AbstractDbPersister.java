@@ -20,11 +20,12 @@ import org.slf4j.LoggerFactory;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
-import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.core.persistence.query.SimpleDbQuery;
 
 /**
@@ -103,7 +104,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	private void setEntity(AbstractEntity entity, ResultSet rs,
 			List<Field> fields) throws Exception {
 		for (Field field : fields) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(
+			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
 					entity.getClass(), field.getName());
 			if (attr == null)
 				continue;
@@ -117,7 +118,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void setColumnValue(String tabprefix, ResultSet rs,
-			AttributeReflection attr, AbstractEntity entity) throws Exception {
+			StructAttributeReflect attr, AbstractEntity entity)
+			throws Exception {
 
 		if (EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
 			EnumPrimitives prim = EnumPrimitives.type(attr.Field.getType());
@@ -246,11 +248,11 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 	private String getQueryByKey(AbstractEntity entity) throws Exception {
 		StringBuffer buff = new StringBuffer();
-		List<Field> fields = ReflectionUtils.get().getFields(entity.getClass());
 		boolean first = true;
-		for (Field field : fields) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(
-					entity.getClass(), field.getName());
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				entity.getClass());
+		for (String key : enref.Attributes.keySet()) {
+			StructAttributeReflect attr = enref.get(key);
 			if (attr == null || !attr.IsKeyColumn)
 				continue;
 
@@ -261,26 +263,26 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 			String value = null;
 			if (attr.Reference == null) {
-				if (field.getType().equals(Date.class)) {
+				if (attr.Field.getType().equals(Date.class)) {
 					Date dt = (Date) PropertyUtils.getSimpleProperty(entity,
 							attr.Field.getName());
 					value = String.valueOf(dt.getTime());
 				} else {
 					value = String.valueOf(PropertyUtils.getSimpleProperty(
 							entity, attr.Field.getName()));
-					if (!EnumPrimitives.isPrimitiveType(field.getType())) {
+					if (!EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
 						value = "'" + value + "'";
 					}
 				}
 			} else {
 				Object dvalue = PropertyUtils.getSimpleProperty(entity,
 						attr.Field.getName());
-				AttributeReflection rattr = ReflectionUtils.get().getAttribute(
-						Class.forName(attr.Reference.Class),
-						attr.Reference.Field);
+				StructAttributeReflect rattr = ReflectionUtils.get()
+						.getAttribute(Class.forName(attr.Reference.Class),
+								attr.Reference.Field);
 				value = String.valueOf(PropertyUtils.getSimpleProperty(dvalue,
 						rattr.Field.getName()));
-				if (!EnumPrimitives.isPrimitiveType(field.getType())) {
+				if (!EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
 					value = "'" + value + "'";
 				}
 			}
@@ -318,8 +320,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		List<Field> fields = ReflectionUtils.get().getFields(type);
 		int index = 1;
 		for (Field field : fields) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
-					field.getName());
+			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
+					type, field.getName());
 			if (attr == null)
 				continue;
 
@@ -334,8 +336,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			}
 			if (attr.Reference != null) {
 				save((AbstractEntity) value, conn);
-				AttributeReflection rattr = ReflectionUtils.get().getAttribute(
-						value.getClass(), attr.Reference.Field);
+				StructAttributeReflect rattr = ReflectionUtils.get()
+						.getAttribute(value.getClass(), attr.Reference.Field);
 				value = PropertyUtils.getProperty(value, rattr.Field.getName());
 			} else if (attr.Column
 					.compareTo(AbstractEntity._TX_TIMESTAMP_COLUMN_) == 0) {
@@ -351,10 +353,10 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	}
 
 	protected abstract Object getSequenceValue(Entity entity,
-			AttributeReflection attr, Connection conn) throws Exception;
+			StructAttributeReflect attr, Connection conn) throws Exception;
 
 	private void setPreparedValue(PreparedStatement pstmnt, int index,
-			AttributeReflection attr, Object value, AbstractEntity entity)
+			StructAttributeReflect attr, Object value, AbstractEntity entity)
 			throws Exception {
 		Class<?> type = attr.Field.getType();
 		if (EnumPrimitives.isPrimitiveType(type)) {
@@ -399,8 +401,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 								attr.Field.getName()));
 			} else if (attr.Reference != null) {
 				Class<?> cls = Class.forName(attr.Reference.Class);
-				AttributeReflection rattr = ReflectionUtils.get().getAttribute(
-						cls, attr.Reference.Field);
+				StructAttributeReflect rattr = ReflectionUtils.get()
+						.getAttribute(cls, attr.Reference.Field);
 				Object refval = PropertyUtils.getSimpleProperty(entity,
 						attr.Field.getName());
 				value = PropertyUtils.getSimpleProperty(refval,
@@ -427,13 +429,13 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		PreparedStatement pstmnt = conn.prepareStatement(sql);
 
-		List<AttributeReflection> keyattrs = new ArrayList<AttributeReflection>();
+		List<StructAttributeReflect> keyattrs = new ArrayList<StructAttributeReflect>();
 
 		List<Field> fields = ReflectionUtils.get().getFields(type);
 		int index = 1;
 		for (Field field : fields) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
-					field.getName());
+			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
+					type, field.getName());
 			if (attr == null)
 				continue;
 
@@ -446,8 +448,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 					field.getName());
 			if (attr.Reference != null) {
 				save((AbstractEntity) value, conn);
-				AttributeReflection rattr = ReflectionUtils.get().getAttribute(
-						value.getClass(), attr.Reference.Field);
+				StructAttributeReflect rattr = ReflectionUtils.get()
+						.getAttribute(value.getClass(), attr.Reference.Field);
 				value = PropertyUtils.getProperty(value, rattr.Field.getName());
 			} else if (attr.Column
 					.compareTo(AbstractEntity._TX_TIMESTAMP_COLUMN_) == 0) {
@@ -529,12 +531,12 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		PreparedStatement pstmnt = conn.prepareStatement(sql);
 
-		List<AttributeReflection> keyattrs = new ArrayList<AttributeReflection>();
+		List<StructAttributeReflect> keyattrs = new ArrayList<StructAttributeReflect>();
 
 		List<Field> fields = ReflectionUtils.get().getFields(type);
 		for (Field field : fields) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
-					field.getName());
+			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
+					type, field.getName());
 			if (attr == null)
 				continue;
 			if (attr.IsKeyColumn) {

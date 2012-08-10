@@ -14,7 +14,7 @@ import com.sqewd.open.dal.api.persistence.Reference;
 @Entity(recordset = "REFROOT")
 public class ReferenceRoot {
 	@Attribute(name = "REF")
-	@Reference(target = "com.wookler.core.persistence.query.test.ReferenceL1", attribute = "LV")
+	@Reference(target = "com.sqewd.open.dal.core.persistence.query.test.ReferenceL1", attribute = "LV")
 	private ReferenceL1 ref;
 
 	@Attribute(name = "STR")

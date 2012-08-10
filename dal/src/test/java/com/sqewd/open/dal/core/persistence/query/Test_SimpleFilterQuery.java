@@ -31,7 +31,7 @@ public class Test_SimpleFilterQuery {
 			boolean retval = query.doSelect(entity);
 			assertEquals(true, retval);
 
-			qstring = "FORReference.FORReference.FORint=987666;FORDate > "
+			qstring = "ROOT.FORReference.FORReference.FORint=987666;FORDate > "
 					+ new Date(0).getTime();
 			query.parse(new Class<?>[] { EntityMatchRoot.class }, qstring);
 			retval = query.doSelect(entity);

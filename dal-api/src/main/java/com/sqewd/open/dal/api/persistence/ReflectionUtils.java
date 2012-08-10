@@ -4,6 +4,7 @@
 package com.sqewd.open.dal.api.persistence;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +16,7 @@ import com.sqewd.open.dal.api.persistence.CustomFieldDataHandler;
  * 
  */
 public class ReflectionUtils {
-	private HashMap<String, HashMap<String, AttributeReflection>> metacache = new HashMap<String, HashMap<String, AttributeReflection>>();
-	private HashMap<String, List<Field>> fieldscache = new HashMap<String, List<Field>>();
+	private HashMap<String, StructEntityReflect> metacache = new HashMap<String, StructEntityReflect>();
 	private HashMap<String, Class<?>> typecahce = new HashMap<String, Class<?>>();
 
 	/**
@@ -43,10 +43,10 @@ public class ReflectionUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public AttributeReflection getAttribute(Class<?> type, String column)
+	public StructAttributeReflect getAttribute(Class<?> type, String column)
 			throws Exception {
-		HashMap<String, AttributeReflection> map = getEntityMetadata(type);
-		if (map.containsKey(column)) {
+		StructEntityReflect map = getEntityMetadata(type);
+		if (map.Attributes.containsKey(column)) {
 			return map.get(column);
 		}
 		return null;
@@ -60,7 +60,7 @@ public class ReflectionUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public HashMap<String, AttributeReflection> getEntityMetadata(Class<?> type)
+	public StructEntityReflect getEntityMetadata(Class<?> type)
 			throws Exception {
 		if (!metacache.containsKey(type.getName())) {
 			load(type);
@@ -76,16 +76,21 @@ public class ReflectionUtils {
 							+ "] does not implement Entity annotation.");
 
 				Entity eann = type.getAnnotation(Entity.class);
-				HashMap<String, AttributeReflection> map = new HashMap<String, AttributeReflection>();
 
-				List<Field> fields = getFields(type);
+				StructEntityReflect entity = new StructEntityReflect();
+				entity.Classname = type.getName();
+				entity.Entity = eann.recordset();
+
+				List<Field> fields = new ArrayList<Field>();
+				getFields(type, fields);
+				entity.Fields = fields;
 				if (fields != null && fields.size() > 0) {
 					for (Field fd : fields) {
 						if (!fd.isAnnotationPresent(Attribute.class))
 							continue;
 						Attribute attr = (Attribute) fd
 								.getAnnotation(Attribute.class);
-						AttributeReflection ar = new AttributeReflection();
+						StructAttributeReflect ar = new StructAttributeReflect();
 						ar.Field = fd;
 						ar.Column = attr.name();
 						ar.IsKeyColumn = attr.keyattribute();
@@ -124,11 +129,11 @@ public class ReflectionUtils {
 												+ "]");
 							}
 						}
-						map.put(ar.Column, ar);
-						map.put(ar.Field.getName(), ar);
+						entity.add(ar);
 					}
 				}
-				metacache.put(type.getName(), map);
+				metacache.put(entity.Classname, entity);
+				metacache.put(entity.Entity, entity);
 				typecahce.put(eann.recordset(), type);
 			}
 		}
@@ -142,24 +147,35 @@ public class ReflectionUtils {
 	}
 
 	public List<Field> getFields(Class<?> type) {
-		if (!fieldscache.containsKey(type.getCanonicalName())) {
-			synchronized (fieldscache) {
-				List<Field> array = new ArrayList<Field>();
-				getFields(type, array);
-				fieldscache.put(type.getCanonicalName(), array);
-			}
+		if (metacache.containsKey(type.getName())) {
+			return metacache.get(type.getName()).Fields;
 		}
-
-		return fieldscache.get(type.getCanonicalName());
+		return null;
 	}
 
 	private void getFields(Class<?> type, List<Field> array) {
-		if (type.equals(Object.class))
+		if (type.equals(Object.class)) {
+			// TODO : Need to investigate why there are null fields.
+			// Temporary Quickfix 
+			List<Integer> toremove = new ArrayList<Integer>();
+			for (int ii = 0; ii < array.size(); ii++) {
+				Field fd = array.get(ii);
+				if (fd == null) {
+					toremove.add(ii);
+				}
+			}
+			if (toremove.size() > 0) {
+				for (int ii : toremove) {
+					array.remove(ii);
+				}
+			}
 			return;
+		}
 		Field[] fields = type.getDeclaredFields();
 		if (fields != null && fields.length > 0) {
 			for (Field field : fields) {
-				array.add(field);
+				if (field != null && !Modifier.isStatic(field.getModifiers()))
+					array.add(field);
 			}
 		}
 		Class<?> suptype = type.getSuperclass();

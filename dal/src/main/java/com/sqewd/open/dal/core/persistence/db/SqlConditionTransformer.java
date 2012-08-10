@@ -6,10 +6,11 @@ package com.sqewd.open.dal.core.persistence.db;
 import java.lang.reflect.Field;
 import java.util.Date;
 
-import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.DateUtils;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.persistence.query.AbstractCondition;
@@ -116,9 +117,18 @@ public class SqlConditionTransformer implements ConditionTransformer {
 		if (type != null) {
 			if (ccp.getColumn().indexOf('.') > 0) {
 				String[] refpath = ccp.getColumn().split("\\.");
-				KeyValuePair<Class<?>> kvp = getJoinCondition(refpath, 1, type);
-				column = kvp.getKey();
-				type = kvp.getValue();
+				int index = 1;
+				if (isEntityPrefix(type, refpath[0])) {
+					index++;
+				}
+				if (index < refpath.length) {
+					KeyValuePair<Class<?>> kvp = getJoinCondition(refpath,
+							index, type);
+					column = kvp.getKey();
+					type = kvp.getValue();
+				} else {
+					column = ccp.getColumn();
+				}
 			} else {
 				String table = null;
 
@@ -132,6 +142,15 @@ public class SqlConditionTransformer implements ConditionTransformer {
 			column = ccp.getColumn();
 		}
 		return column;
+	}
+
+	private boolean isEntityPrefix(Class<?> type, String prefix)
+			throws Exception {
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+		if (prefix.compareTo(enref.Entity) == 0)
+			return true;
+		return false;
 	}
 
 	private String transformValueCondition(FilterCondition fc,
@@ -191,7 +210,7 @@ public class SqlConditionTransformer implements ConditionTransformer {
 	private KeyValuePair<Class<?>> getJoinCondition(String[] reference,
 			int offset, Class<?> type) throws Exception {
 		String column = reference[offset];
-		AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
+		StructAttributeReflect attr = ReflectionUtils.get().getAttribute(type,
 				column);
 		if (attr == null)
 			throw new Exception("No attribute found for column [" + column
@@ -231,7 +250,7 @@ public class SqlConditionTransformer implements ConditionTransformer {
 			String[] parts = column.split("\\.");
 			column = parts[parts.length - 1];
 		}
-		AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
+		StructAttributeReflect attr = ReflectionUtils.get().getAttribute(type,
 				column);
 		if (vcp.getValue() instanceof String) {
 			String value = (String) vcp.getValue();

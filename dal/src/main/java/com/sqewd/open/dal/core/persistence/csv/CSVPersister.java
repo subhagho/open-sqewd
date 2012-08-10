@@ -21,7 +21,7 @@ import au.com.bytecode.opencsv.CSVReader;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
-import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.EnumRefereceType;
@@ -186,7 +186,7 @@ public class CSVPersister extends AbstractPersister {
 		AbstractEntity entity = (AbstractEntity) type.newInstance();
 
 		for (int ii = 0; ii < header.length; ii++) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
+			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(type,
 					header[ii]);
 			if (attr != null) {
 				if (attr.Convertor != null) {

@@ -9,7 +9,7 @@ import java.util.Date;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
-import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.CustomFieldDataHandler;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
@@ -31,7 +31,7 @@ public class StringArrayConvertor implements CustomFieldDataHandler {
 	 */
 	public void load(AbstractEntity entity, String field, Object data)
 			throws Exception {
-		AttributeReflection attr = ReflectionUtils.get().getAttribute(
+		StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
 				entity.getClass(), field);
 		String sdata = (String) data;
 		String[] spdata = sdata.split(_SPLIT_REGEX_);
@@ -161,7 +161,7 @@ public class StringArrayConvertor implements CustomFieldDataHandler {
 	 * core.persistence.AbstractEntity, java.lang.String, java.lang.Object)
 	 */
 	public Object save(AbstractEntity entity, String field) throws Exception {
-		AttributeReflection attr = ReflectionUtils.get().getAttribute(
+		StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
 				entity.getClass(), field);
 		if (attr.Field.getType().isArray()) {
 			Object data = PropertyUtils.getSimpleProperty(entity,

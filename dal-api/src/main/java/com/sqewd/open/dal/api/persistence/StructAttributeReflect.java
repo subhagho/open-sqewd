@@ -14,7 +14,7 @@ import com.sqewd.open.dal.api.persistence.CustomFieldDataHandler;
  * @author subhagho
  * 
  */
-public class AttributeReflection {
+public class StructAttributeReflect {
 	public java.lang.reflect.Field Field;
 	public String Column;
 	public Method Getter;

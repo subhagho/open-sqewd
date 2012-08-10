@@ -12,10 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
-import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.persistence.db.SQLDataType;
 import com.sqewd.open.dal.core.persistence.db.SqlConditionTransformer;
@@ -85,8 +86,9 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 			return isql;
 
 		// Get table name
-		Entity eann = (Entity) type.getAnnotation(Entity.class);
-		String table = eann.recordset();
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+		String table = enref.Entity;
 
 		StringBuffer query = new StringBuffer();
 		query.append("insert into ").append(table).append(" ( ");
@@ -94,13 +96,12 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		values.append(" values (");
 
 		// Get Columns
-		List<Field> fields = ReflectionUtils.get().getFields(type);
+		List<Field> fields = enref.Fields;
 
 		boolean first = true;
 
 		for (Field field : fields) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
-					field.getName());
+			StructAttributeReflect attr = enref.get(field.getName());
 			if (attr == null)
 				continue;
 			if (first)
@@ -141,22 +142,22 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 			return isql;
 
 		// Get table name
-		Entity eann = (Entity) type.getAnnotation(Entity.class);
-		String table = eann.recordset();
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+		String table = enref.Entity;
 
 		StringBuffer query = new StringBuffer();
 		query.append("update ").append(table).append(" set ");
 		StringBuffer where = null;
 
 		// Get Columns
-		List<Field> fields = ReflectionUtils.get().getFields(type);
+		List<Field> fields = enref.Fields;
 
 		boolean first = true;
 		boolean wfirst = true;
 
 		for (Field field : fields) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
-					field.getName());
+			StructAttributeReflect attr = enref.get(field.getName());
 			if (attr == null)
 				continue;
 			if (attr.IsKeyColumn
@@ -198,21 +199,21 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 			return isql;
 
 		// Get table name
-		Entity eann = (Entity) type.getAnnotation(Entity.class);
-		String table = eann.recordset();
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+		String table = enref.Entity;
 
 		StringBuffer query = new StringBuffer();
 		query.append("delete from ").append(table);
 		StringBuffer where = null;
 
 		// Get Columns
-		List<Field> fields = ReflectionUtils.get().getFields(type);
+		List<Field> fields = enref.Fields;
 
 		boolean wfirst = true;
 
 		for (Field field : fields) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
-					field.getName());
+			StructAttributeReflect attr = enref.get(field.getName());
 			if (attr == null)
 				continue;
 			if (attr.IsKeyColumn) {
@@ -353,40 +354,37 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 	private void getColumns(Class<?> type, HashMap<String, String> tables,
 			List<String> columns) throws Exception {
 		// Get table name
-		Entity eann = (Entity) type.getAnnotation(Entity.class);
-		String table = eann.recordset();
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+		String table = enref.Entity;
 		if (tables.containsKey(table))
 			return;
 
 		tables.put(table, table);
 
 		// Get Columns
-		List<Field> fields = ReflectionUtils.get().getFields(type);
+		List<Field> fields = enref.Fields;
 
-		List<AttributeReflection> refs = null;
+		List<StructAttributeReflect> refs = null;
 
 		for (Field field : fields) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
-					field.getName());
+			StructAttributeReflect attr = enref.get(field.getName());
 			if (attr == null)
 				continue;
 			if (attr.Reference != null) {
 				if (refs == null)
-					refs = new ArrayList<AttributeReflection>();
+					refs = new ArrayList<StructAttributeReflect>();
 				refs.add(attr);
 			} else
 				columns.add(table.concat(".").concat(attr.Column));
 
 		}
 		if (refs != null && refs.size() > 0) {
-			for (AttributeReflection ref : refs) {
+			for (StructAttributeReflect ref : refs) {
 				Class<?> rtype = Class.forName(ref.Reference.Class);
-				Entity reann = (Entity) rtype.getAnnotation(Entity.class);
-				String rtable = reann.recordset();
-				// FilterCondition cond = new FilterCondition(rtype, rtable
-				// .concat(".").concat(ref.Reference.Field),
-				// EnumOperator.Equal, table.concat(".")
-				// .concat(ref.Column));
+				StructEntityReflect renref = ReflectionUtils.get()
+						.getEntityMetadata(rtype);
+				String rtable = renref.Entity;
 				FilterCondition jcond = new FilterCondition(type, ref.Column,
 						EnumOperator.Equal, rtype, ref.Reference.Field);
 
@@ -422,17 +420,17 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		String table = null;
 
 		// Get table name
-		Entity eann = (Entity) type.getAnnotation(Entity.class);
-		table = eann.recordset();
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+		table = enref.Entity;
 
 		// Drop table statement
 		stmnts.add("drop table if exists " + table + " cascade");
 
 		// Get Columns
-		List<Field> fields = ReflectionUtils.get().getFields(type);
+		List<Field> fields = enref.Fields;
 		for (Field field : fields) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(type,
-					field.getName());
+			StructAttributeReflect attr = enref.get(field.getName());
 			if (attr == null)
 				continue;
 			columns.add(getColumnDDL(attr));
@@ -446,6 +444,8 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 								.getType());
 						if (prim == EnumPrimitives.ELong
 								|| prim == EnumPrimitives.EInteger) {
+							Entity eann = (Entity) type
+									.getAnnotation(Entity.class);
 							List<String> ddls = createSequenceDDL(eann, attr);
 							if (ddls.size() > 0) {
 								stmnts.addAll(ddls);
@@ -491,7 +491,7 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 	}
 
 	private List<String> createSequenceDDL(Entity entity,
-			AttributeReflection attr) throws Exception {
+			StructAttributeReflect attr) throws Exception {
 		List<String> ddls = new ArrayList<String>();
 		String name = getSequenceName(entity, attr);
 		ddls.add("drop sequence if exists " + name);
@@ -499,7 +499,8 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		return ddls;
 	}
 
-	public static String getSequenceName(Entity entity, AttributeReflection attr) {
+	public static String getSequenceName(Entity entity,
+			StructAttributeReflect attr) {
 		StringBuffer buff = new StringBuffer();
 		buff.append("SEQ_").append(entity.recordset()).append("_")
 				.append(attr.Column);
@@ -526,8 +527,9 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		String table = null;
 
 		// Get table name
-		Entity eann = (Entity) type.getAnnotation(Entity.class);
-		table = eann.recordset();
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+		table = enref.Entity;
 
 		for (KeyValuePair<String> keys : keycolumns) {
 			String idxname = keys.getKey();
@@ -551,8 +553,7 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 				else
 					buff.append(",");
 				String cname = column.trim();
-				AttributeReflection attr = ReflectionUtils.get().getAttribute(
-						type, cname);
+				StructAttributeReflect attr = enref.get(cname);
 				if (attr == null)
 					throw new Exception(
 							"No column definition found for column [" + column
@@ -566,15 +567,15 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		return stmnts;
 	}
 
-	private String getColumnDDL(AttributeReflection attr) throws Exception {
+	private String getColumnDDL(StructAttributeReflect attr) throws Exception {
 		Class<?> type = attr.Field.getType();
-		AttributeReflection tattr = attr;
+		StructAttributeReflect tattr = attr;
 		StringBuffer coldef = new StringBuffer();
 		if (attr.Convertor != null) {
 			type = attr.Convertor.getDataType();
 		} else if (attr.Reference != null) {
 			Class<?> rtype = Class.forName(attr.Reference.Class);
-			AttributeReflection rattr = ReflectionUtils.get().getAttribute(
+			StructAttributeReflect rattr = ReflectionUtils.get().getAttribute(
 					rtype, attr.Reference.Field);
 			type = rattr.Field.getType();
 			tattr = rattr;

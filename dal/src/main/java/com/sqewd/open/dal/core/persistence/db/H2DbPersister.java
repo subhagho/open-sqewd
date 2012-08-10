@@ -21,7 +21,7 @@ import org.w3c.dom.NodeList;
 
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
-import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.utils.AbstractParam;
@@ -356,7 +356,7 @@ public class H2DbPersister extends AbstractDbPersister {
 	 * com.wookler.core.persistence.AttributeReflection, java.sql.Connection)
 	 */
 	@Override
-	protected Object getSequenceValue(Entity entity, AttributeReflection attr,
+	protected Object getSequenceValue(Entity entity, StructAttributeReflect attr,
 			Connection conn) throws Exception {
 		if (EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
 			EnumPrimitives prim = EnumPrimitives.type(attr.Field.getType());

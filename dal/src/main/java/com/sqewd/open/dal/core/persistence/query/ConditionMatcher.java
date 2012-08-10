@@ -10,9 +10,10 @@ import java.util.regex.Pattern;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
-import com.sqewd.open.dal.api.persistence.AttributeReflection;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.DateUtils;
 
 /**
@@ -40,7 +41,7 @@ public class ConditionMatcher {
 	public boolean match(AbstractEntity entity, String column,
 			EnumOperator operator, Object value) throws Exception {
 		if (column.indexOf('.') < 0) {
-			AttributeReflection attr = ReflectionUtils.get().getAttribute(
+			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
 					entity.getClass(), column);
 			Object src = PropertyUtils
 					.getProperty(entity, attr.Field.getName());
@@ -52,19 +53,24 @@ public class ConditionMatcher {
 			Object src = null;
 			Class<?> type = null;
 			StringBuffer coffset = new StringBuffer();
+			StructEntityReflect enref = ReflectionUtils.get()
+					.getEntityMetadata(entity.getClass());
 			for (String var : vars) {
 				if (src != null)
 					coffset.append('.');
 				coffset.append(var);
-
+				if (var.compareTo(enref.Entity) == 0) {
+					coffset.append(".");
+					continue;
+				}
 				if (src == null) {
-					AttributeReflection attr = ReflectionUtils.get()
+					StructAttributeReflect attr = ReflectionUtils.get()
 							.getAttribute(entity.getClass(), var);
 					src = PropertyUtils.getProperty(entity,
 							attr.Field.getName());
 					type = attr.Field.getType();
 				} else {
-					AttributeReflection attr = ReflectionUtils.get()
+					StructAttributeReflect attr = ReflectionUtils.get()
 							.getAttribute(src.getClass(), var);
 					src = PropertyUtils.getProperty(src, attr.Field.getName());
 					type = attr.Field.getType();
@@ -200,8 +206,8 @@ public class ConditionMatcher {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static <T extends Enum> boolean compareEnum(Object src,
-			Object tgt) throws Exception {
+	private static <T extends Enum> boolean compareEnum(Object src, Object tgt)
+			throws Exception {
 		String name = ((T) src).name();
 		if (name.compareToIgnoreCase((String) tgt) == 0)
 			return true;

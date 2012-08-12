@@ -12,36 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sqewd.open.dal.core.persistence.query;
-public class ValueConditionPredicate extends AbstractConditionPredicate {
-	private Object value;
+package com.sqewd.open.dal.test;
+import com.sqewd.open.dal.core.Env;
 
-	public ValueConditionPredicate(Object value) {
-		this.value = value;
+/**
+ * @author subhagho
+ *
+ */
+public class EnvSetup {
+	public static final String _CONFIG_FILE_ = "src/test/java/com/sqewd/open/dal/demo/config/server-demo.xml";
+	
+	public static void setup() throws Exception {
+		Env.create(_CONFIG_FILE_);
+		
 	}
-
-	/**
-	 * @return the value
-	 */
-	public Object getValue() {
-		return value;
-	}
-
-	/**
-	 * @param value
-	 *            the value to set
-	 */
-	public void setValue(Object value) {
-		this.value = value;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return value.toString();
+	
+	public void dispose() {
+		Env.dispose();
+		
 	}
 }

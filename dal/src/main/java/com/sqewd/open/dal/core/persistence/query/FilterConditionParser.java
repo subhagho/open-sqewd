@@ -1,8 +1,18 @@
 /**
+ * Copyright 2012 Subho Ghosh (subho dot ghosh at outlook dot com)
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.query;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +21,7 @@ import java.util.regex.Pattern;
 
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 
 /**
  * @author subhagho
@@ -118,9 +129,9 @@ public class FilterConditionParser {
 					parts[1] = quoted.get(parts[1]);
 				}
 				EnumOperator eoper = EnumOperator.parse(oper);
-				FilterCondition cond = new FilterCondition(getTableType(
-						tables.get(0), parts[0].trim()), parts[0].trim(),
-						eoper, parts[1]);
+				FilterCondition cond = new FilterCondition(
+						getTableType(parts[0].trim()), parts[0].trim(), eoper,
+						parts[1]);
 				return cond;
 			}
 		}
@@ -138,8 +149,8 @@ public class FilterConditionParser {
 				switch (eoper) {
 				case Like:
 				case Contains:
-					FilterCondition cond = new FilterCondition(getTableType(
-							tables.get(0), column), column, eoper, value);
+					FilterCondition cond = new FilterCondition(
+							getTableType(column), column, eoper, value);
 					return cond;
 				case Between:
 					String vregx = "\\[(.*),(.*)\\]";
@@ -155,8 +166,7 @@ public class FilterConditionParser {
 							values[1] = quoted.get(values[1]);
 
 						FilterCondition bcond = new FilterCondition(
-								getTableType(tables.get(0), column), column,
-								eoper, values);
+								getTableType(column), column, eoper, values);
 						return bcond;
 					}
 				case In:
@@ -174,8 +184,7 @@ public class FilterConditionParser {
 							}
 						}
 						FilterCondition bcond = new FilterCondition(
-								getTableType(tables.get(0), column), column,
-								eoper, values);
+								getTableType(column), column, eoper, values);
 						return bcond;
 					}
 				}
@@ -184,14 +193,40 @@ public class FilterConditionParser {
 		throw new Exception("Error parsing filter condition [" + filter + "]");
 	}
 
-	private Class<?> getTableType(Class<?> type, String column) {
-		Entity eann = type.getAnnotation(Entity.class);
-		String table = eann.recordset();
-		if (column.indexOf('.') > 0) {
-			String[] parts = column.split("\\.");
-			table = parts[0];
+	private Class<?> getTableType(String column) throws Exception {
+		String prefix = null;
+		String tabcol = null;
+
+		String[] parts = column.split("\\.");
+		if (parts.length > 1) {
+			prefix = parts[0];
+			tabcol = parts[1];
+		} else {
+			tabcol = parts[0];
 		}
-		return ReflectionUtils.get().getType(table);
+		for (Class<?> type : tables) {
+			StructEntityReflect enref = ReflectionUtils.get()
+					.getEntityMetadata(type);
+			if (prefix == null) {
+				if (hasColumn(enref, tabcol))
+					return type;
+			} else {
+				if (enref.Entity.compareTo(prefix) == 0
+						&& hasColumn(enref, tabcol)) {
+					return type;
+				} else if (hasColumn(enref, prefix)) {
+					return type;
+				}
+			}
+		}
+		return null;
+	}
+
+	private boolean hasColumn(StructEntityReflect enref, String column) {
+		if (enref.Attributes.containsKey(column)) {
+			return true;
+		}
+		return false;
 	}
 
 	private String parseQuoted(String condition) {

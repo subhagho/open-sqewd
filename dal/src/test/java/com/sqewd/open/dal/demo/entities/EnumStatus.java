@@ -12,36 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sqewd.open.dal.core.persistence.query;
-public class ValueConditionPredicate extends AbstractConditionPredicate {
-	private Object value;
-
-	public ValueConditionPredicate(Object value) {
-		this.value = value;
-	}
-
-	/**
-	 * @return the value
-	 */
-	public Object getValue() {
-		return value;
-	}
-
-	/**
-	 * @param value
-	 *            the value to set
-	 */
-	public void setValue(Object value) {
-		this.value = value;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return value.toString();
-	}
+package com.sqewd.open.dal.demo.entities;
+public enum EnumStatus {
+	Active, Pending, Removed
 }

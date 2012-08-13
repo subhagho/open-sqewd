@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.demo.entities;
+
 public enum EnumStatus {
 	Active, Pending, Removed
 }

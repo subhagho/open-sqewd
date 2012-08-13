@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.query;
+
 import static org.junit.Assert.*;
 
 import org.junit.AfterClass;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.core.persistence.query.test.ReferenceRoot;
+import com.sqewd.open.dal.test.EnvSetup;
 
 /**
  * @author subhagho
@@ -37,6 +39,8 @@ public class Test_SimpleDbQuery {
 	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		EnvSetup.setup();
+		EnvSetup.doimport();
 	}
 
 	/**
@@ -44,6 +48,7 @@ public class Test_SimpleDbQuery {
 	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
+		EnvSetup.dispose();
 	}
 
 	@Test

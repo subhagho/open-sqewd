@@ -13,22 +13,60 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.test;
+
+import java.io.File;
+
+import com.sqewd.open.dal.api.persistence.AbstractPersister;
+import com.sqewd.open.dal.api.utils.FileUtils;
 import com.sqewd.open.dal.core.Env;
+import com.sqewd.open.dal.core.persistence.DataImport;
+import com.sqewd.open.dal.core.persistence.DataManager;
 
 /**
  * @author subhagho
- *
+ * 
  */
 public class EnvSetup {
 	public static final String _CONFIG_FILE_ = "src/test/java/com/sqewd/open/dal/demo/config/server-demo.xml";
-	
+	private static final String _SETUP_ROOTDIR_ = "src/test/java/com/sqewd/open/dal/demo/data";
+	private static final String _SETUP_TEMP_ = "/tmp/sqewd/";
+
 	public static void setup() throws Exception {
 		Env.create(_CONFIG_FILE_);
-		
+
+		// Check the temp folders
+		File tdi = new File(_SETUP_TEMP_);
+		if (!tdi.exists()) {
+			tdi.mkdirs();
+		}
+		cleanup();
+
+		File wdi = new File(_SETUP_ROOTDIR_ + "/run/h2/");
+		wdi.mkdirs();
+
+		DataManager.create(Env.get().getConfig());
 	}
-	
-	public void dispose() {
+
+	public static void doimport() throws Exception {
+		AbstractPersister persister = DataManager.get().getPersisterByName(
+				"CSVPERSISTER");
+		DataImport importer = new DataImport(persister);
+		importer.load(new String[] { "ROLE", "EMPLOYEE", "TEAM", "MEMBERSHIP" });
+	}
+
+	private static void cleanup() throws Exception {
+		File wdi = new File(_SETUP_ROOTDIR_ + "/run/");
+		if (wdi.exists()) {
+			FileUtils.delete(wdi);
+		}
+	}
+
+	public static void dispose() {
 		Env.dispose();
-		
+		try {
+			cleanup();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

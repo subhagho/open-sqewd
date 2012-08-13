@@ -2,23 +2,16 @@
 <h2>
 	<db version="1.0">
 		<entities>
-			<entity class="com.wookler.entities.users.Profile">
-				<index name="INDX_PR_01" columns="EMAIL" />
+			<entity class="com.sqewd.open.dal.demo.entities.Role">
 			</entity>
-			<entity class="com.wookler.entities.users.Subscription">
-				<index name="INDX_SU_01" columns="PROFILE" />
-				<index name="INDX_SU_02" columns="TAXONOMY" />
-				<index name="INDX_SU_03" columns="VALUE" />
+			<entity class="com.sqewd.open.dal.demo.entities.Employee">
+				<index name="INDX_EM_01" columns="FIRSTNAME,LASTNAME" />
 			</entity>
-			<entity class="com.wookler.entities.users.Contribution">
-				<index name="INDX_CON_01" columns="PROFILE, CONTRIBSTATE" />
+			<entity class="com.sqewd.open.dal.demo.entities.Team">
+				<index name="INDX_TM_01" columns="NAME" />
 			</entity>
-			<entity class="com.wookler.entities.users.Notification">
-				<index name="INDX_NOT_01" columns="PROFILE, NOTIFYSTATE" />
-			</entity>
-			<entity class="com.wookler.entities.interactions.Activity">
-				<index name="INDX_ACT_01" columns="PROFILEID,ACTIVITYTYPE" />
-				<index name="INDX_ACT_02" columns="PROFILEID,TX_TIMESTAMP" />
+			<entity class="com.sqewd.open.dal.demo.entities.TeamMember">
+				<index name="INDX_ME_01" columns="STATUS" />
 			</entity>
 		</entities>
 	</db>

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.demo.entities;
+
 import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -36,6 +37,10 @@ public class Team extends AbstractEntity {
 	@Attribute(name = "ID", keyattribute = true, size = 256)
 	@XmlElement(name = "id")
 	private String id;
+
+	@Attribute(name = "NAME", size = 256)
+	@XmlElement(name = "name")
+	private String name;
 
 	@Attribute(name = "MANAGER", size = 256)
 	@XmlElement(name = "manager")
@@ -70,16 +75,35 @@ public class Team extends AbstractEntity {
 		return status;
 	}
 
-	public void setState(EnumStatus status) {
-		this.status = status;
-	}
-
 	public Date getCreatedOn() {
 		return createdOn;
 	}
 
 	public void setCreatedOn(Date createdOn) {
 		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @param name
+	 *            the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * @param status
+	 *            the status to set
+	 */
+	public void setStatus(EnumStatus status) {
+		this.status = status;
 	}
 
 }

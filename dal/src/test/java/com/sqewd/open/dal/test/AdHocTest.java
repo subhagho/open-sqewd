@@ -13,12 +13,9 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.test;
-import org.apache.commons.configuration.XMLConfiguration;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import com.sqewd.open.dal.api.utils.XMLUtils;
-import com.sqewd.open.dal.core.persistence.db.H2DbPersister;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 
@@ -26,7 +23,7 @@ import com.sqewd.open.dal.core.persistence.db.H2DbPersister;
 
 /**
  * @author subhagho
- *
+ * 
  */
 public class AdHocTest {
 
@@ -35,20 +32,12 @@ public class AdHocTest {
 	 */
 	public static void main(String[] args) {
 		try {
-			XMLConfiguration config = new XMLConfiguration(args[0]);
-			
-			NodeList nl = XMLUtils.search(H2DbPersister._CONFIG_SETUP_ENTITIES_, config
-					.getDocument().getDocumentElement());
-			if (nl != null && nl.getLength() > 0) {
-				for (int ii = 0; ii < nl.getLength(); ii++) {
-					Element elm = (Element) nl.item(ii);
-					String eclass = elm.getNodeValue();
-					if (eclass != null && !eclass.isEmpty()) {
-						Class<?> cls = Class.forName(eclass);
-						
-					}
-				}
-			}
+			String dtstr = "23-07-2012";
+
+			SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
+			Date dt = format.parse(dtstr);
+
+			System.out.println("TIMESTAMP : " + dt.getTime());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.demo.entities;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;

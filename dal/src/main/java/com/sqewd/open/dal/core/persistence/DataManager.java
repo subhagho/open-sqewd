@@ -58,7 +58,6 @@ public class DataManager implements InitializedHandle {
 	private EnumInstanceState state = EnumInstanceState.Unknown;
 
 	private HashMap<String, AbstractPersister> persistmap = new HashMap<String, AbstractPersister>();
-	private HashMap<String, AbstractPersister> persisters = new HashMap<String, AbstractPersister>();
 	private HashMap<String, List<String>> scanjars = new HashMap<String, List<String>>();
 
 	private void init(XMLConfiguration config) throws Exception {
@@ -145,8 +144,8 @@ public class DataManager implements InitializedHandle {
 				if (pobj instanceof AbstractPersister) {
 					AbstractPersister ap = (AbstractPersister) pobj;
 					ap.init(ip.getParams());
-					persisters.put(cls.getCanonicalName(), ap);
-					persisters.put(ap.key(), ap);
+					persistmap.put(cls.getCanonicalName(), ap);
+					persistmap.put(ap.key(), ap);
 					pers.add(ap);
 				} else {
 					throw new Exception(
@@ -175,8 +174,8 @@ public class DataManager implements InitializedHandle {
 							"Invalid Configuration : Missing map parameter ["
 									+ _CONFIG_ATTR_PERSISTER_ + "]");
 				}
-				if (persisters.containsKey(persister)) {
-					persistmap.put(classname, persisters.get(persister));
+				if (persistmap.containsKey(persister)) {
+					persistmap.put(classname, persistmap.get(persister));
 				} else {
 					throw new Exception(
 							"Invalid Configuration : Persister class ["
@@ -319,9 +318,9 @@ public class DataManager implements InitializedHandle {
 	 * @see com.wookler.core.InitializedHandle#dispose()
 	 */
 	public void dispose() {
-		if (persisters != null && persisters.size() > 0) {
-			for (String key : persisters.keySet()) {
-				AbstractPersister pers = persisters.get(key);
+		if (persistmap != null && persistmap.size() > 0) {
+			for (String key : persistmap.keySet()) {
+				AbstractPersister pers = persistmap.get(key);
 				if (pers != null)
 					pers.dispose();
 			}

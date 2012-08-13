@@ -22,16 +22,16 @@
 					class="com.sqewd.open.dal.core.persistence.csv.CSVPersister">
 					<params>
 						<param type="Value" name="key" value="CSVPERSISTER" />
-						<param type="Value" name="datadir" value="tmp/sqewd/data/" />
+						<param type="Value" name="datadir" value="src/test/java/com/sqewd/open/dal/demo/data/" />
 					</params>
 				</persister>
 
 				<persister name="DEMOPERSISTER"
 					class="com.sqewd.open.dal.core.persistence.db.H2DbPersister">
 					<params>
-						<param type="Value" name="key" value="USERPERSISTER" />
+						<param type="Value" name="key" value="DEMOPERSISTER" />
 						<param type="Value" name="url"
-							value="jdbc:h2:/sqewd/data/h2/sqewd/demo" />
+							value="jdbc:h2:src/test/java/com/sqewd/open/dal/demo/data/run/h2" />
 						<param type="Value" name="poolsize" value="10" />
 						<param type="Value" name="user" value="sqewd" />
 						<param type="Value" name="password" value="sQewD" />

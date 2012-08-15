@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.db;
+
 import java.lang.reflect.Field;
 import java.util.Date;
 
@@ -127,7 +128,7 @@ public class SqlConditionTransformer implements ConditionTransformer {
 		if (type != null) {
 			if (ccp.getColumn().indexOf('.') > 0) {
 				String[] refpath = ccp.getColumn().split("\\.");
-				int index = 1;
+				int index = 0;
 				if (isEntityPrefix(type, refpath[0])) {
 					index++;
 				}
@@ -142,10 +143,13 @@ public class SqlConditionTransformer implements ConditionTransformer {
 			} else {
 				String table = null;
 
-				// Get table name
-				Entity eann = (Entity) type.getAnnotation(Entity.class);
-				table = eann.recordset();
-
+				if (ccp.getAlias() == null) {
+					// Get table name
+					Entity eann = (Entity) type.getAnnotation(Entity.class);
+					table = eann.recordset();
+				} else {
+					table = ccp.getAlias();
+				}
 				column = table + "." + ccp.getColumn();
 			}
 		} else {
@@ -229,7 +233,7 @@ public class SqlConditionTransformer implements ConditionTransformer {
 			Entity eann = (Entity) type.getAnnotation(Entity.class);
 			String table = eann.recordset();
 			String cleft = table.concat(".").concat(attr.Column);
-			;
+
 			return new KeyValuePair<Class<?>>(cleft, type);
 		} else {
 			if (attr.Reference == null)
@@ -259,9 +263,17 @@ public class SqlConditionTransformer implements ConditionTransformer {
 		if (column.indexOf('.') > 0) {
 			String[] parts = column.split("\\.");
 			column = parts[parts.length - 1];
+
+			KeyValuePair<Class<?>> cls = getJoinCondition(parts, 0, type);
+			type = cls.getValue();
 		}
 		StructAttributeReflect attr = ReflectionUtils.get().getAttribute(type,
 				column);
+		if (attr.Reference != null) {
+			column = attr.Reference.Field;
+			type = Class.forName(attr.Reference.Class);
+			attr = ReflectionUtils.get().getAttribute(type, column);
+		}
 		if (vcp.getValue() instanceof String) {
 			String value = (String) vcp.getValue();
 			if (fc.getConditionType() == EnumConditionType.Value)

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.csv;
+
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
@@ -123,8 +124,13 @@ public class CSVPersister extends AbstractPersister {
 	 * @see com.wookler.core.persistence.AbstractPersister#read(java.util.List)
 	 */
 	@Override
-	public List<AbstractEntity> read(String query, Class<?> type)
+	public List<AbstractEntity> read(String query, Class<?>... types)
 			throws Exception {
+		if (types.length > 1)
+			throw new Exception("CSVPersister doesnot support JOIN(s)");
+
+		Class<?> type = types[0];
+
 		List<AbstractEntity> result = null;
 		String cname = type.getCanonicalName();
 		if (!cache.containsKey(cname)) {
@@ -196,8 +202,8 @@ public class CSVPersister extends AbstractPersister {
 		AbstractEntity entity = (AbstractEntity) type.newInstance();
 
 		for (int ii = 0; ii < header.length; ii++) {
-			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(type,
-					header[ii]);
+			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
+					type, header[ii]);
 			if (attr != null) {
 				if (attr.Convertor != null) {
 					attr.Convertor.load(entity, attr.Column, data[ii]);
@@ -215,7 +221,7 @@ public class CSVPersister extends AbstractPersister {
 						}
 					} else {
 						throw new Exception(
-								"Not record found for reference key : [QUERY:"
+								"No record found for reference key : [QUERY:"
 										+ query + "]");
 					}
 				}
@@ -232,7 +238,7 @@ public class CSVPersister extends AbstractPersister {
 	 * persistence.AbstractEntity)
 	 */
 	@Override
-	public int save(AbstractEntity record) throws Exception {
+	public int save(AbstractEntity record, boolean overwrite) throws Exception {
 		throw new NotImplementedException(
 				"This is a dummy persister. Write operations are not supported.");
 	}
@@ -243,7 +249,8 @@ public class CSVPersister extends AbstractPersister {
 	 * @see com.wookler.core.persistence.AbstractPersister#save(java.util.List)
 	 */
 	@Override
-	public int save(List<AbstractEntity> records) throws Exception {
+	public int save(List<AbstractEntity> records, boolean overwrite)
+			throws Exception {
 		throw new NotImplementedException(
 				"This is a dummy persister. Write operations are not supported.");
 	}

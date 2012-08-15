@@ -16,14 +16,18 @@ package com.sqewd.open.dal.core.persistence.query;
 
 import static org.junit.Assert.*;
 
+import java.util.List;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.utils.LogUtils;
-import com.sqewd.open.dal.core.persistence.query.test.ReferenceRoot;
+import com.sqewd.open.dal.core.persistence.DataManager;
+import com.sqewd.open.dal.demo.entities.TeamMember;
 import com.sqewd.open.dal.test.EnvSetup;
 
 /**
@@ -54,15 +58,27 @@ public class Test_SimpleDbQuery {
 	@Test
 	public void testSelect() {
 		try {
+			String query = "MEMBERSHIP.MEMBER.ID = '1000'";
+
 			SimpleDbQuery dbq = new SimpleDbQuery();
 
-			dbq.parse(new Class<?>[] { ReferenceRoot.class },
-					"XYZ.REF.STR like %STRING%");
-			String sql = dbq.getSelectQuery(ReferenceRoot.class);
+			dbq.parse(new Class<?>[] { TeamMember.class }, query);
+			String sql = dbq.getSelectQuery(TeamMember.class);
 			log.info("SQL[" + sql + "]");
 
+			List<AbstractEntity> entities = DataManager.get().read(query,
+					TeamMember.class);
+			assertEquals((entities.size() == 1), true);
+			TeamMember member = (TeamMember) entities.get(0);
+			assertEquals(member.getMember().getFirstname(), "Subho");
+			assertEquals(member.getTeam().getManager().getLastname(), "Doe");
+
+			query = "MEMBERSHIP.TEAM.MANAGER.FIRSTNAME like '%on%'";
+			entities = DataManager.get().read(query, TeamMember.class);
+			assertEquals((entities.size() > 1), true);
 		} catch (Exception e) {
 			LogUtils.stacktrace(log, e);
+			e.printStackTrace();
 			fail(e.getLocalizedMessage());
 		}
 	}

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.db;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -245,7 +246,7 @@ public class H2DbPersister extends AbstractDbPersister {
 				DBVersion dbv = (DBVersion) DataManager
 						.newInstance(DBVersion.class);
 				dbv.setVersion(version);
-				save(dbv);
+				save(dbv, false);
 
 				NodeList nl = XMLUtils.search(_CONFIG_SETUP_ENTITIES_, config
 						.getDocument().getDocumentElement());
@@ -366,8 +367,8 @@ public class H2DbPersister extends AbstractDbPersister {
 	 * com.wookler.core.persistence.AttributeReflection, java.sql.Connection)
 	 */
 	@Override
-	protected Object getSequenceValue(Entity entity, StructAttributeReflect attr,
-			Connection conn) throws Exception {
+	protected Object getSequenceValue(Entity entity,
+			StructAttributeReflect attr, Connection conn) throws Exception {
 		if (EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
 			EnumPrimitives prim = EnumPrimitives.type(attr.Field.getType());
 			if (prim == EnumPrimitives.ELong || prim == EnumPrimitives.EInteger) {

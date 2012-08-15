@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -249,10 +250,13 @@ public class DataManager implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<AbstractEntity> read(String query, Class<?> type)
+	public List<AbstractEntity> read(String query, Class<?>... types)
 			throws Exception {
-		AbstractPersister persister = getPersister(type);
-		return persister.read(query, type);
+		if (types.length == 1) {
+			AbstractPersister persister = getPersister(types[0]);
+			return persister.read(query, types[0]);
+		}
+		throw new Exception("JOIN Conditions not yet implemented");
 	}
 
 	/**
@@ -268,9 +272,9 @@ public class DataManager implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<AbstractEntity> read(String query, Class<?> type,
-			AbstractPersister persister) throws Exception {
-		return persister.read(query, type);
+	public List<AbstractEntity> read(String query, AbstractPersister persister,
+			Class<?>... types) throws Exception {
+		return persister.read(query, types);
 	}
 
 	/**
@@ -282,7 +286,7 @@ public class DataManager implements InitializedHandle {
 	 */
 	public int save(AbstractEntity entity) throws Exception {
 		AbstractPersister persister = getPersister(entity.getClass());
-		return persister.save(entity);
+		return persister.save(entity, false);
 	}
 
 	/*

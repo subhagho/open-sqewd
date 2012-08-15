@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.persistence;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -54,4 +55,20 @@ public @interface Reference {
 	 * @return
 	 */
 	boolean lazyload() default false;
+
+	/**
+	 * Cascade Updates and Deletes.
+	 * 
+	 * Default is false
+	 * 
+	 * @return
+	 */
+	boolean cascade() default false;
+
+	/**
+	 * Join Conditions are native to the data source.
+	 * 
+	 * @return
+	 */
+	boolean nativejoin() default true;
 }

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.persistence;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -56,14 +57,11 @@ public class ReflectionUtils {
 	public StructAttributeReflect getAttribute(Class<?> type, String column)
 			throws Exception {
 		StructEntityReflect map = getEntityMetadata(type);
-		if (map.Attributes.containsKey(column)) {
-			return map.get(column);
-		}
-		return null;
+		return map.get(column);
 	}
 
 	/**
-	 * Get/Load the type metadata.
+	 * Get the type metadata.
 	 * 
 	 * @param type
 	 *            - Class type
@@ -76,6 +74,18 @@ public class ReflectionUtils {
 			load(type);
 		}
 		return metacache.get(type.getName());
+	}
+
+	/**
+	 * Get the Entity metadata based on the Entity name.
+	 * 
+	 * @param type
+	 *            - Entity Name
+	 * @return
+	 * @throws Exception
+	 */
+	public StructEntityReflect getEntityMetadata(String type) throws Exception {
+		return metacache.get(type);
 	}
 
 	public void load(Class<?> type) throws Exception {
@@ -93,7 +103,6 @@ public class ReflectionUtils {
 
 				List<Field> fields = new ArrayList<Field>();
 				getFields(type, fields);
-				entity.Fields = fields;
 				if (fields != null && fields.size() > 0) {
 					for (Field fd : fields) {
 						if (!fd.isAnnotationPresent(Attribute.class))
@@ -119,6 +128,8 @@ public class ReflectionUtils {
 							ar.Reference.Class = ref.target();
 							ar.Reference.Field = ref.attribute();
 							ar.Reference.Type = ref.association();
+							ar.Reference.CascadeUpdate = ref.cascade();
+							ar.Reference.NativeJoin = ref.nativejoin();
 						}
 						if (attr.handler() != null && !attr.handler().isEmpty()) {
 							String handler = attr.handler();
@@ -156,17 +167,10 @@ public class ReflectionUtils {
 		return null;
 	}
 
-	public List<Field> getFields(Class<?> type) {
-		if (metacache.containsKey(type.getName())) {
-			return metacache.get(type.getName()).Fields;
-		}
-		return null;
-	}
-
 	private void getFields(Class<?> type, List<Field> array) {
 		if (type.equals(Object.class)) {
 			// TODO : Need to investigate why there are null fields.
-			// Temporary Quickfix 
+			// Temporary Quickfix
 			List<Integer> toremove = new ArrayList<Integer>();
 			for (int ii = 0; ii < array.size(); ii++) {
 				Field fd = array.get(ii);

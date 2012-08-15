@@ -13,6 +13,12 @@
 			<entity class="com.sqewd.open.dal.demo.entities.TeamMember">
 				<index name="INDX_ME_01" columns="STATUS" />
 			</entity>
+			<entity class="com.sqewd.open.dal.demo.entities.Department">
+				<index name="INDX_DE_01" columns="NAME" />
+			</entity>
+			<entity class="com.sqewd.open.dal.demo.entities.Organization">
+				<index name="INDX_OR_01" columns="MANAGER" />
+			</entity>
 		</entities>
 	</db>
 </h2>

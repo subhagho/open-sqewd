@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.persistence;
-import java.lang.reflect.Field;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -24,23 +25,28 @@ import java.util.List;
 public class StructEntityReflect {
 	public String Classname;
 	public String Entity;
-	public HashMap<String, StructAttributeReflect> Attributes = new HashMap<String, StructAttributeReflect>();
-	public List<Field> Fields = null;
+	public HashMap<String, StructAttributeReflect> FieldMaps = new HashMap<String, StructAttributeReflect>();
+	public HashMap<String, StructAttributeReflect> ColumnMaps = new HashMap<String, StructAttributeReflect>();
+	public List<StructAttributeReflect> Attributes = new ArrayList<StructAttributeReflect>();
 
 	public void add(StructAttributeReflect attr) {
-		if (Attributes.containsKey(attr.Field.getName())) {
-			Attributes.remove(attr.Field.getName());
+		if (FieldMaps.containsKey(attr.Field.getName())) {
+			FieldMaps.remove(attr.Field.getName());
 		}
-		Attributes.put(attr.Field.getName(), attr);
-		if (Attributes.containsKey(attr.Column)) {
-			Attributes.remove(attr.Column);
+		FieldMaps.put(attr.Field.getName(), attr);
+		if (ColumnMaps.containsKey(attr.Column)) {
+			ColumnMaps.remove(attr.Column);
 		}
-		Attributes.put(attr.Column, attr);
+		ColumnMaps.put(attr.Column, attr);
+		Attributes.add(attr);
 	}
 
 	public StructAttributeReflect get(String name) {
-		if (Attributes.containsKey(name)) {
-			return Attributes.get(name);
+		if (FieldMaps.containsKey(name)) {
+			return FieldMaps.get(name);
+		}
+		if (ColumnMaps.containsKey(name)) {
+			return ColumnMaps.get(name);
 		}
 		return null;
 	}

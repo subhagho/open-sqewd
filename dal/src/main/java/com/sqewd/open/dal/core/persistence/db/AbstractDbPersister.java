@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.db;
-import java.lang.reflect.Field;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -22,6 +22,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Stack;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
@@ -36,6 +37,7 @@ import com.sqewd.open.dal.api.persistence.EnumEntityState;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.persistence.query.SimpleDbQuery;
 
 /**
@@ -63,20 +65,24 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 * java.lang.Class)
 	 */
 	@Override
-	public List<AbstractEntity> read(String query, Class<?> type)
+	public List<AbstractEntity> read(String query, Class<?>... types)
 			throws Exception {
 
-		if (!type.isAnnotationPresent(Entity.class))
-			throw new Exception("Class [" + type.getCanonicalName()
-					+ "] has not been annotated as an Entity.");
+		if (types.length == 1) {
+			Class<?> type = types[0];
+			if (!type.isAnnotationPresent(Entity.class))
+				throw new Exception("Class [" + type.getCanonicalName()
+						+ "] has not been annotated as an Entity.");
 
-		Connection conn = getConnection(true);
-		try {
-			return read(query, type, conn);
-		} finally {
-			if (conn != null)
-				releaseConnection(conn);
+			Connection conn = getConnection(true);
+			try {
+				return read(query, type, conn);
+			} finally {
+				if (conn != null)
+					releaseConnection(conn);
+			}
 		}
+		throw new Exception("JOIN Conditions not yet implemented");
 	}
 
 	private List<AbstractEntity> read(String query, Class<?> type,
@@ -93,15 +99,20 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		try {
 			log.debug("SELECT SQL [" + selectsql + "]");
 			ResultSet rs = stmnt.executeQuery(selectsql);
+			JoinGraph gr = JoinGraph.lookup(type);
+
 			List<AbstractEntity> entities = new ArrayList<AbstractEntity>();
-			List<Field> fields = ReflectionUtils.get().getFields(type);
 			while (rs.next()) {
 				Object obj = type.newInstance();
 				if (!(obj instanceof AbstractEntity))
 					throw new Exception("Unsupported Entity type ["
 							+ type.getCanonicalName() + "]");
 				AbstractEntity entity = (AbstractEntity) obj;
-				setEntity(entity, rs, fields);
+				Stack<KeyValuePair<Class<?>>> path = new Stack<KeyValuePair<Class<?>>>();
+				KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
+				cls.setValue(entity.getClass());
+				path.push(cls);
+				setEntity(entity, rs, gr, path);
 				entities.add(entity);
 			}
 			return entities;
@@ -111,25 +122,25 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		}
 	}
 
-	private void setEntity(AbstractEntity entity, ResultSet rs,
-			List<Field> fields) throws Exception {
-		for (Field field : fields) {
-			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
-					entity.getClass(), field.getName());
+	private void setEntity(AbstractEntity entity, ResultSet rs, JoinGraph gr,
+			Stack<KeyValuePair<Class<?>>> path) throws Exception {
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				entity.getClass());
+
+		for (StructAttributeReflect attr : enref.Attributes) {
 			if (attr == null)
 				continue;
-			Entity eann = (Entity) entity.getClass()
-					.getAnnotation(Entity.class);
-			String table = eann.recordset();
-			setColumnValue(table, rs, attr, entity);
-
+			setColumnValue(rs, attr, entity, gr, path);
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void setColumnValue(String tabprefix, ResultSet rs,
-			StructAttributeReflect attr, AbstractEntity entity)
-			throws Exception {
+	private void setColumnValue(ResultSet rs, StructAttributeReflect attr,
+			AbstractEntity entity, JoinGraph gr,
+			Stack<KeyValuePair<Class<?>>> path) throws Exception {
+
+		KeyValuePair<String> alias = gr.getAliasFor(path, attr.Column, 0);
+		String tabprefix = alias.getKey();
 
 		if (EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
 			EnumPrimitives prim = EnumPrimitives.type(attr.Field.getType());
@@ -213,10 +224,15 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				throw new Exception("Unsupported Entity type ["
 						+ rt.getCanonicalName() + "]");
 			AbstractEntity rentity = (AbstractEntity) obj;
-			List<Field> fields = ReflectionUtils.get().getFields(rt);
-			setEntity(rentity, rs, fields);
+			path.peek().setKey(attr.Column);
+
+			KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
+			cls.setValue(rentity.getClass());
+			path.push(cls);
+			setEntity(rentity, rs, gr, path);
 			PropertyUtils.setSimpleProperty(entity, attr.Field.getName(),
 					rentity);
+			path.pop();
 		}
 	}
 
@@ -228,10 +244,10 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 * persistence.AbstractEntity)
 	 */
 	@Override
-	public int save(AbstractEntity record) throws Exception {
+	public int save(AbstractEntity record, boolean overwrite) throws Exception {
 		Connection conn = getConnection(true);
 		try {
-			return save(record, conn);
+			return save(record, conn, overwrite);
 
 		} finally {
 			if (conn != null)
@@ -261,7 +277,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		boolean first = true;
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				entity.getClass());
-		for (String key : enref.Attributes.keySet()) {
+		for (String key : enref.FieldMaps.keySet()) {
 			StructAttributeReflect attr = enref.get(key);
 			if (attr == null || !attr.IsKeyColumn)
 				continue;
@@ -301,7 +317,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return buff.toString();
 	}
 
-	private int save(AbstractEntity record, Connection conn) throws Exception {
+	private int save(AbstractEntity record, Connection conn, boolean overwrite)
+			throws Exception {
 		if (record == null)
 			throw new Exception("Invalid entity record : Null record");
 
@@ -312,9 +329,12 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		else if (record.getState() == EnumEntityState.Loaded)
 			return update(record, conn);
 		else {
-			if (recordExists(record))
-				return update(record, conn);
-			else
+			if (recordExists(record)) {
+				if (overwrite)
+					return update(record, conn);
+				else
+					return -1;
+			} else
 				return insert(record, conn);
 		}
 	}
@@ -327,16 +347,16 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		String sql = parser.getInsertQuery(type);
 		PreparedStatement pstmnt = conn.prepareStatement(sql);
 
-		List<Field> fields = ReflectionUtils.get().getFields(type);
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+
 		int index = 1;
-		for (Field field : fields) {
-			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
-					type, field.getName());
+		for (StructAttributeReflect attr : enref.Attributes) {
 			if (attr == null)
 				continue;
 
 			Object value = PropertyUtils.getSimpleProperty(record,
-					field.getName());
+					attr.Field.getName());
 			if (value == null) {
 				if (attr.IsKeyColumn && attr.AutoIncrement) {
 					Entity entity = record.getClass().getAnnotation(
@@ -345,7 +365,11 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				}
 			}
 			if (attr.Reference != null) {
-				save((AbstractEntity) value, conn);
+				boolean overwrite = false;
+				if (attr.Reference.CascadeUpdate) {
+					overwrite = true;
+				}
+				save((AbstractEntity) value, conn, overwrite);
 				StructAttributeReflect rattr = ReflectionUtils.get()
 						.getAttribute(value.getClass(), attr.Reference.Field);
 				value = PropertyUtils.getProperty(value, rattr.Field.getName());
@@ -441,11 +465,11 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		List<StructAttributeReflect> keyattrs = new ArrayList<StructAttributeReflect>();
 
-		List<Field> fields = ReflectionUtils.get().getFields(type);
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+
 		int index = 1;
-		for (Field field : fields) {
-			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
-					type, field.getName());
+		for (StructAttributeReflect attr : enref.Attributes) {
 			if (attr == null)
 				continue;
 
@@ -455,9 +479,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			}
 
 			Object value = PropertyUtils.getSimpleProperty(record,
-					field.getName());
-			if (attr.Reference != null) {
-				save((AbstractEntity) value, conn);
+					attr.Field.getName());
+			if (attr.Reference != null && attr.Reference.CascadeUpdate) {
+				save((AbstractEntity) value, conn, true);
 				StructAttributeReflect rattr = ReflectionUtils.get()
 						.getAttribute(value.getClass(), attr.Reference.Field);
 				value = PropertyUtils.getProperty(value, rattr.Field.getName());
@@ -511,7 +535,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 * @see com.wookler.core.persistence.AbstractPersister#save(java.util.List)
 	 */
 	@Override
-	public int save(List<AbstractEntity> records) throws Exception {
+	public int save(List<AbstractEntity> records, boolean overwrite)
+			throws Exception {
 
 		Connection conn = getConnection(true);
 		int count = 0;
@@ -522,7 +547,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 							+ record.getClass().getCanonicalName()
 							+ "] has not been annotated as an Entity.");
 
-				count += save(record, conn);
+				count += save(record, conn, overwrite);
 			}
 			return count;
 		} finally {
@@ -543,10 +568,10 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		List<StructAttributeReflect> keyattrs = new ArrayList<StructAttributeReflect>();
 
-		List<Field> fields = ReflectionUtils.get().getFields(type);
-		for (Field field : fields) {
-			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
-					type, field.getName());
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+
+		for (StructAttributeReflect attr : enref.Attributes) {
 			if (attr == null)
 				continue;
 			if (attr.IsKeyColumn) {

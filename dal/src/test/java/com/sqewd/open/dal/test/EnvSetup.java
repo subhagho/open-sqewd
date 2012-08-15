@@ -51,7 +51,8 @@ public class EnvSetup {
 		AbstractPersister persister = DataManager.get().getPersisterByName(
 				"CSVPERSISTER");
 		DataImport importer = new DataImport(persister);
-		importer.load(new String[] { "ROLE", "EMPLOYEE", "TEAM", "MEMBERSHIP" });
+		importer.load(new String[] { "ROLE", "EMPLOYEE", "TEAM", "MEMBERSHIP",
+				"DEPARTMENT", "ORGANIZATION" });
 	}
 
 	private static void cleanup() throws Exception {

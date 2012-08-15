@@ -13,8 +13,11 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.persistence;
+
 public class ReferenceReflection {
 	public String Class;
 	public String Field;
 	public EnumRefereceType Type = EnumRefereceType.One2One;
+	public boolean CascadeUpdate = false;
+	public boolean NativeJoin = true;
 }

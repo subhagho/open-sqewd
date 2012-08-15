@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.query;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 
@@ -129,7 +129,7 @@ public class FilterConditionParser {
 					parts[1] = quoted.get(parts[1]);
 				}
 				EnumOperator eoper = EnumOperator.parse(oper);
-				FilterCondition cond = new FilterCondition(
+				FilterCondition cond = new FilterCondition(null,
 						getTableType(parts[0].trim()), parts[0].trim(), eoper,
 						parts[1]);
 				return cond;
@@ -149,7 +149,7 @@ public class FilterConditionParser {
 				switch (eoper) {
 				case Like:
 				case Contains:
-					FilterCondition cond = new FilterCondition(
+					FilterCondition cond = new FilterCondition(null,
 							getTableType(column), column, eoper, value);
 					return cond;
 				case Between:
@@ -165,7 +165,7 @@ public class FilterConditionParser {
 						if (quoted.containsKey(values[1]))
 							values[1] = quoted.get(values[1]);
 
-						FilterCondition bcond = new FilterCondition(
+						FilterCondition bcond = new FilterCondition(null,
 								getTableType(column), column, eoper, values);
 						return bcond;
 					}
@@ -183,7 +183,7 @@ public class FilterConditionParser {
 								}
 							}
 						}
-						FilterCondition bcond = new FilterCondition(
+						FilterCondition bcond = new FilterCondition(null,
 								getTableType(column), column, eoper, values);
 						return bcond;
 					}
@@ -223,7 +223,7 @@ public class FilterConditionParser {
 	}
 
 	private boolean hasColumn(StructEntityReflect enref, String column) {
-		if (enref.Attributes.containsKey(column)) {
+		if (enref.get(column) != null) {
 			return true;
 		}
 		return false;

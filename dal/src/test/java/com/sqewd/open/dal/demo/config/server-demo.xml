@@ -39,7 +39,7 @@
 							value="src/test/java/com/sqewd/open/dal/demo/config/h2-demo-setup.xml" />
 					</params>
 				</persister>
-				<classmap class="com.sqewd.entities.demo" persister="DEMOPERSISTER" />
+				<classmap class="com.sqewd.open.dal.demo.entities" persister="DEMOPERSISTER" />
 			</persistence>
 		</datamanager>
 	</core>

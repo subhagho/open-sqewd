@@ -1,20 +1,24 @@
 /**
- * Copyright 2012 Subho Ghosh (subho dot ghosh at outlook dot com)
+ * Copyright 2012 Subho Ghosh (subho.ghosh at outlook dot com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * @filename Department.java
+ * @created Aug 15, 2012
+ * @author subhagho
+ *
  */
 package com.sqewd.open.dal.demo.entities;
-
-import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -24,16 +28,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.Attribute;
 import com.sqewd.open.dal.api.persistence.Entity;
-import com.sqewd.open.dal.api.persistence.Reference;
 
 /**
  * @author subhagho
  * 
+ *         TODO: <comment>
+ * 
  */
-@Entity(recordset = "TEAM")
-@XmlRootElement(name = "team")
+@Entity(recordset = "DEPARTMENT")
+@XmlRootElement(name = "department")
 @XmlAccessorType(XmlAccessType.NONE)
-public class Team extends AbstractEntity {
+public class Department extends AbstractEntity {
 	@Attribute(name = "ID", keyattribute = true, size = 256)
 	@XmlElement(name = "id")
 	private String id;
@@ -42,50 +47,23 @@ public class Team extends AbstractEntity {
 	@XmlElement(name = "name")
 	private String name;
 
-	@Attribute(name = "MANAGER", size = 256)
-	@XmlElement(name = "manager")
-	@Reference(target = "com.sqewd.open.dal.demo.entities.Employee", attribute = "ID")
-	private Employee manager;
-
-	@Attribute(name = "ADMIN", size = 256)
-	@XmlElement(name = "admin")
-	@Reference(target = "com.sqewd.open.dal.demo.entities.Employee", attribute = "ID")
-	private Employee admin;
-
 	@Attribute(name = "STATUS", size = 256)
 	@XmlElement(name = "STATUS")
 	private EnumStatus status;
 
-	@Attribute(name = "CREATEDON", size = 256)
-	@XmlElement(name = "createdon")
-	private Date createdOn;
-
+	/**
+	 * @return the id
+	 */
 	public String getId() {
 		return id;
 	}
 
+	/**
+	 * @param id
+	 *            the id to set
+	 */
 	public void setId(String id) {
 		this.id = id;
-	}
-
-	public Employee getManager() {
-		return manager;
-	}
-
-	public void setManager(Employee manager) {
-		this.manager = manager;
-	}
-
-	public EnumStatus getStatus() {
-		return status;
-	}
-
-	public Date getCreatedOn() {
-		return createdOn;
-	}
-
-	public void setCreatedOn(Date createdOn) {
-		this.createdOn = createdOn;
 	}
 
 	/**
@@ -104,26 +82,17 @@ public class Team extends AbstractEntity {
 	}
 
 	/**
+	 * @return the status
+	 */
+	public EnumStatus getStatus() {
+		return status;
+	}
+
+	/**
 	 * @param status
 	 *            the status to set
 	 */
 	public void setStatus(EnumStatus status) {
 		this.status = status;
 	}
-
-	/**
-	 * @return the admin
-	 */
-	public Employee getAdmin() {
-		return admin;
-	}
-
-	/**
-	 * @param admin
-	 *            the admin to set
-	 */
-	public void setAdmin(Employee admin) {
-		this.admin = admin;
-	}
-
 }

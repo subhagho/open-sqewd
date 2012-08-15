@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.query;
+
 public class FilterCondition extends AbstractCondition {
 	public static final String _STRING_DEFAULT_ = "DEFAULT";
 	public static final String _STRING_NULL_ = "NULL";
@@ -28,19 +29,20 @@ public class FilterCondition extends AbstractCondition {
 		this.right = right;
 	}
 
-	public FilterCondition(Class<?> type, String column,
+	public FilterCondition(String alias, Class<?> type, String column,
 			EnumOperator comparator, Object value) {
-		this.left = new ColumnConditionPredicate(type, column);
+		this.left = new ColumnConditionPredicate(alias, type, column);
 		this.comparator = comparator;
 		this.right = new ValueConditionPredicate(value);
 		this.conditiontype = EnumConditionType.Value;
 	}
 
-	public FilterCondition(Class<?> ltype, String lcolumn,
-			EnumOperator comparator, Class<?> rtype, String rcolumn) {
-		this.left = new ColumnConditionPredicate(ltype, lcolumn);
+	public FilterCondition(String lalias, Class<?> ltype, String lcolumn,
+			EnumOperator comparator, String ralias, Class<?> rtype,
+			String rcolumn) {
+		this.left = new ColumnConditionPredicate(lalias, ltype, lcolumn);
 		this.comparator = comparator;
-		this.right = new ColumnConditionPredicate(rtype, rcolumn);
+		this.right = new ColumnConditionPredicate(ralias, rtype, rcolumn);
 		this.conditiontype = EnumConditionType.Join;
 	}
 

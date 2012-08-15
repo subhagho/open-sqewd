@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence;
+
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -21,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
+import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 
 /**
  * Utility class to import data from one source to another.
@@ -51,7 +54,9 @@ public class DataImport {
 	 */
 	public void load(String[] entities) throws Exception {
 		for (String entity : entities) {
-			Class<?> cls = Class.forName(entity);
+			StructEntityReflect enref = ReflectionUtils.get()
+					.getEntityMetadata(entity);
+			Class<?> cls = Class.forName(enref.Classname);
 			List<AbstractEntity> data = source.read("", cls);
 			if (data != null && data.size() > 0) {
 				AbstractPersister dest = DataManager.get().getPersister(cls);
@@ -62,7 +67,7 @@ public class DataImport {
 						continue;
 					}
 					en.setState(EnumEntityState.Overwrite);
-					dest.save(en);
+					dest.save(en, true);
 				}
 			}
 		}

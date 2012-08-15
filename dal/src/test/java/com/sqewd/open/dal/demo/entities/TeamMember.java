@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.demo.entities;
+
 import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -33,10 +34,10 @@ import com.sqewd.open.dal.api.persistence.Reference;
 @XmlRootElement(name = "membership")
 @XmlAccessorType(XmlAccessType.NONE)
 public class TeamMember extends AbstractEntity {
-	@Attribute(name = "ID", keyattribute = true, size = 256)
-	@XmlElement(name = "id")
+	@Attribute(name = "TEAM", keyattribute = true, size = 256)
+	@XmlElement(name = "team")
 	@Reference(target = "com.sqewd.open.dal.demo.entities.Team", attribute = "ID")
-	private String team;
+	private Team team;
 
 	@Attribute(name = "MEMBER", keyattribute = true, size = 256)
 	@XmlElement(name = "member")
@@ -46,7 +47,7 @@ public class TeamMember extends AbstractEntity {
 	@Attribute(name = "ROLE", keyattribute = true, size = 256)
 	@XmlElement(name = "role")
 	@Reference(target = "com.sqewd.open.dal.demo.entities.Role", attribute = "NAME")
-	private String role;
+	private Role role;
 
 	@Attribute(name = "STATUS", size = 256)
 	@XmlElement(name = "STATUS")
@@ -55,21 +56,6 @@ public class TeamMember extends AbstractEntity {
 	@Attribute(name = "CREATEDON", size = 256)
 	@XmlElement(name = "createdon")
 	private Date createdOn;
-
-	/**
-	 * @return the team
-	 */
-	public String getTeam() {
-		return team;
-	}
-
-	/**
-	 * @param team
-	 *            the team to set
-	 */
-	public void setTeam(String team) {
-		this.team = team;
-	}
 
 	/**
 	 * @return the member
@@ -84,21 +70,6 @@ public class TeamMember extends AbstractEntity {
 	 */
 	public void setMember(Employee member) {
 		this.member = member;
-	}
-
-	/**
-	 * @return the role
-	 */
-	public String getRole() {
-		return role;
-	}
-
-	/**
-	 * @param role
-	 *            the role to set
-	 */
-	public void setRole(String role) {
-		this.role = role;
 	}
 
 	/**
@@ -129,6 +100,36 @@ public class TeamMember extends AbstractEntity {
 	 */
 	public void setCreatedOn(Date createdOn) {
 		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the team
+	 */
+	public Team getTeam() {
+		return team;
+	}
+
+	/**
+	 * @param team
+	 *            the team to set
+	 */
+	public void setTeam(Team team) {
+		this.team = team;
+	}
+
+	/**
+	 * @return the role
+	 */
+	public Role getRole() {
+		return role;
+	}
+
+	/**
+	 * @param role
+	 *            the role to set
+	 */
+	public void setRole(Role role) {
+		this.role = role;
 	}
 
 }

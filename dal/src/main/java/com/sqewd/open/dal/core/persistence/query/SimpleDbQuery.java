@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.query;
-import java.lang.reflect.Field;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +28,7 @@ import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
+import com.sqewd.open.dal.core.persistence.db.JoinGraph;
 import com.sqewd.open.dal.core.persistence.db.SQLDataType;
 import com.sqewd.open.dal.core.persistence.db.SqlConditionTransformer;
 
@@ -46,8 +47,6 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 			.getLogger(SimpleDbQuery.class);
 
 	private ConditionTransformer transformer = null;
-
-	private List<FilterCondition> joinconditions = null;
 
 	private List<FilterCondition> postconditions = null;
 
@@ -106,12 +105,9 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		values.append(" values (");
 
 		// Get Columns
-		List<Field> fields = enref.Fields;
-
 		boolean first = true;
 
-		for (Field field : fields) {
-			StructAttributeReflect attr = enref.get(field.getName());
+		for (StructAttributeReflect attr : enref.Attributes) {
 			if (attr == null)
 				continue;
 			if (first)
@@ -161,13 +157,10 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		StringBuffer where = null;
 
 		// Get Columns
-		List<Field> fields = enref.Fields;
-
 		boolean first = true;
 		boolean wfirst = true;
 
-		for (Field field : fields) {
-			StructAttributeReflect attr = enref.get(field.getName());
+		for (StructAttributeReflect attr : enref.Attributes) {
 			if (attr == null)
 				continue;
 			if (attr.IsKeyColumn
@@ -217,13 +210,9 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		query.append("delete from ").append(table);
 		StringBuffer where = null;
 
-		// Get Columns
-		List<Field> fields = enref.Fields;
-
 		boolean wfirst = true;
 
-		for (Field field : fields) {
-			StructAttributeReflect attr = enref.get(field.getName());
+		for (StructAttributeReflect attr : enref.Attributes) {
 			if (attr == null)
 				continue;
 			if (attr.IsKeyColumn) {
@@ -259,18 +248,17 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
 
-		HashMap<String, String> tables = new HashMap<String, String>();
+		JoinGraph graph = JoinGraph.lookup(type);
+		
+		HashMap<String, String> tables = graph.getTableAliases();
+
 		int limit = parser.getLimit();
 		StringBuffer sort = new StringBuffer();
 		StringBuffer where = new StringBuffer();
 
-		/*
-		 * String columnstr = getCachedQuery(EnumQueryType.SELECT, type); if
-		 * (columnstr == null) {
-		 */
-		List<String> columns = new ArrayList<String>();
+		List<String> columns = graph.getColumns();
 
-		getColumns(type, tables, columns);
+		String table = null;
 
 		boolean first = true;
 		StringBuffer cbuff = new StringBuffer();
@@ -279,15 +267,18 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 				first = false;
 			else
 				cbuff.append(',');
-			cbuff.append(' ').append(column);
+			cbuff.append(' ').append(column).append(" as \"").append(column)
+					.append("\"");
 		}
 		String columnstr = cbuff.toString();
-		/*
-		 * addToCache(EnumQueryType.SELECT, type, columnstr); }
-		 */
 
 		// Get Where Clause
 		first = true;
+		if (graph.hasJoins()) {
+			where.append(graph.getJoinCondition());
+			first = false;
+		}
+
 		if (conditions != null && conditions.size() > 0) {
 			for (AbstractCondition condition : conditions) {
 				if (condition instanceof FilterCondition) {
@@ -306,19 +297,7 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 				}
 			}
 		}
-		if (joinconditions != null && joinconditions.size() > 0) {
-			for (AbstractCondition condition : joinconditions) {
-				if (condition instanceof FilterCondition) {
-					FilterCondition fc = (FilterCondition) condition;
-					String strcond = transformer.transform(fc);
-					if (first)
-						first = false;
-					else
-						where.append(" and ");
-					where.append(strcond);
-				}
-			}
-		}
+
 		// Get Sort
 		if (parser.getSort() != null && parser.getSort().size() > 0) {
 			first = true;
@@ -344,13 +323,14 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		qbuff.append(columnstr);
 
 		first = true;
-		for (String table : tables.keySet()) {
+		for (String tab : tables.keySet()) {
+			table = tables.get(tab);
 			if (first) {
 				first = false;
 				qbuff.append(" from ");
 			} else
-				qbuff.append(",");
-			qbuff.append(table).append(' ');
+				qbuff.append(", ");
+			qbuff.append(table).append(' ').append(tab);
 		}
 		if (where.length() > 0) {
 			qbuff.append(" where ").append(where);
@@ -359,53 +339,6 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 			qbuff.append(" order by ").append(sort);
 		}
 		return qbuff.toString();
-	}
-
-	private void getColumns(Class<?> type, HashMap<String, String> tables,
-			List<String> columns) throws Exception {
-		// Get table name
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
-		String table = enref.Entity;
-		if (tables.containsKey(table))
-			return;
-
-		tables.put(table, table);
-
-		// Get Columns
-		List<Field> fields = enref.Fields;
-
-		List<StructAttributeReflect> refs = null;
-
-		for (Field field : fields) {
-			StructAttributeReflect attr = enref.get(field.getName());
-			if (attr == null)
-				continue;
-			if (attr.Reference != null) {
-				if (refs == null)
-					refs = new ArrayList<StructAttributeReflect>();
-				refs.add(attr);
-			} else
-				columns.add(table.concat(".").concat(attr.Column));
-
-		}
-		if (refs != null && refs.size() > 0) {
-			for (StructAttributeReflect ref : refs) {
-				Class<?> rtype = Class.forName(ref.Reference.Class);
-				StructEntityReflect renref = ReflectionUtils.get()
-						.getEntityMetadata(rtype);
-				String rtable = renref.Entity;
-				FilterCondition jcond = new FilterCondition(type, ref.Column,
-						EnumOperator.Equal, rtype, ref.Reference.Field);
-
-				if (joinconditions == null)
-					joinconditions = new ArrayList<FilterCondition>();
-
-				joinconditions.add(jcond);
-				if (!tables.containsKey(rtable))
-					getColumns(rtype, tables, columns);
-			}
-		}
 	}
 
 	/**
@@ -438,9 +371,7 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		stmnts.add("drop table if exists " + table + " cascade");
 
 		// Get Columns
-		List<Field> fields = enref.Fields;
-		for (Field field : fields) {
-			StructAttributeReflect attr = enref.get(field.getName());
+		for (StructAttributeReflect attr : enref.Attributes) {
 			if (attr == null)
 				continue;
 			columns.add(getColumnDDL(attr));

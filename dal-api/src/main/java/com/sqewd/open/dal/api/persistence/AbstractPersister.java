@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.persistence;
+
 import java.util.List;
 
 import com.sqewd.open.dal.api.EnumInstanceState;
@@ -73,7 +74,7 @@ public abstract class AbstractPersister implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract List<AbstractEntity> read(String query, Class<?> type)
+	public abstract List<AbstractEntity> read(String query, Class<?>... types)
 			throws Exception;
 
 	/**
@@ -83,7 +84,8 @@ public abstract class AbstractPersister implements InitializedHandle {
 	 *            - Entity record instance.
 	 * @throws Exception
 	 */
-	public abstract int save(AbstractEntity record) throws Exception;
+	public abstract int save(AbstractEntity record, boolean overwrite)
+			throws Exception;
 
 	/**
 	 * Bulk save a list of entity records.
@@ -92,6 +94,7 @@ public abstract class AbstractPersister implements InitializedHandle {
 	 *            - List of entity records.
 	 * @throws Exception
 	 */
-	public abstract int save(List<AbstractEntity> records) throws Exception;
+	public abstract int save(List<AbstractEntity> records, boolean overwrite)
+			throws Exception;
 
 }

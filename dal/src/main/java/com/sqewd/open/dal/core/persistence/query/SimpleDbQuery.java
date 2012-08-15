@@ -249,7 +249,7 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 					+ "] has not been annotated as an Entity.");
 
 		JoinGraph graph = JoinGraph.lookup(type);
-		
+
 		HashMap<String, String> tables = graph.getTableAliases();
 
 		int limit = parser.getLimit();
@@ -307,7 +307,8 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 				else {
 					sort.append(",");
 				}
-				sort.append(' ').append(column.getColumn());
+				sort.append(' ').append(graph.getAlias()).append('.')
+						.append(column.getColumn());
 				if (column.getOrder() == EnumSortOrder.ASC) {
 					sort.append(" ASC");
 				} else {

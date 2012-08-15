@@ -260,4 +260,12 @@ public class JoinGraph {
 		return columns;
 	}
 
+	/**
+	 * Get the table alias for this Node.
+	 * 
+	 * @return
+	 */
+	public String getAlias() {
+		return alias;
+	}
 }

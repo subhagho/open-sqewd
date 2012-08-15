@@ -15,14 +15,15 @@
 	<core>
 		<datamanager>
 			<packages>
-				<jar name="demo-entities.jar" package="com.sqewd.open.dal.entities" />
+				<jar name="demo-entities.jar" package="com.sqewd.open.dal.demo.entities" />
 			</packages>
 			<persistence>
 				<persister name="CSVPERSISTER"
 					class="com.sqewd.open.dal.core.persistence.csv.CSVPersister">
 					<params>
 						<param type="Value" name="key" value="CSVPERSISTER" />
-						<param type="Value" name="datadir" value="src/test/java/com/sqewd/open/dal/demo/data/" />
+						<param type="Value" name="datadir"
+							value="src/test/java/com/sqewd/open/dal/demo/data/" />
 					</params>
 				</persister>
 
@@ -39,7 +40,8 @@
 							value="src/test/java/com/sqewd/open/dal/demo/config/h2-demo-setup.xml" />
 					</params>
 				</persister>
-				<classmap class="com.sqewd.open.dal.demo.entities" persister="DEMOPERSISTER" />
+				<classmap class="com.sqewd.open.dal.demo.entities"
+					persister="DEMOPERSISTER" />
 			</persistence>
 		</datamanager>
 	</core>

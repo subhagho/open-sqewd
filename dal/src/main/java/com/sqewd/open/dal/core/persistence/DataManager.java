@@ -51,7 +51,7 @@ public class DataManager implements InitializedHandle {
 	public static final String _CONFIG_PERSISTER_XPATH_ = "./persister";
 	public static final String _CONFIG_PERSISTMAP_XPATH_ = "./classmap";
 	public static final String _CONFIG_ATTR_PERSISTER_ = "persister";
-	public static final String _CONFIG_ENTITY_PACKAGES_ = "packages/jar";
+	public static final String _CONFIG_ENTITY_PACKAGES_ = "./packages/jar";
 
 	private static final Logger log = LoggerFactory
 			.getLogger(DataManager.class);
@@ -79,19 +79,23 @@ public class DataManager implements InitializedHandle {
 			}
 			NodeList packnl = XMLUtils.search(_CONFIG_ENTITY_PACKAGES_, dmroot);
 			if (packnl != null && packnl.getLength() > 0) {
-				Element jelm = (Element) pernl.item(0);
-				String jar = jelm.getAttribute("name");
-				if (jar != null && !jar.isEmpty()) {
-					String pack = jelm.getAttribute("package");
-					if (pack != null && !pack.isEmpty()) {
-						List<String> packs = null;
-						if (scanjars.containsKey(jar)) {
-							packs = scanjars.get(pack);
-						} else {
-							packs = new ArrayList<String>();
-							scanjars.put(jar, packs);
+				for (int ii = 0; ii < packnl.getLength(); ii++) {
+					Element jelm = (Element) packnl.item(ii);
+
+					String jar = jelm.getAttribute("name");
+					if (jar != null) {
+						String pack = jelm.getAttribute("package");
+						if (pack != null && !pack.isEmpty()) {
+							List<String> packs = null;
+							if (scanjars.containsKey(jar)) {
+								packs = scanjars.get(jar);
+							} else {
+								packs = new ArrayList<String>();
+								scanjars.put(jar, packs);
+							}
+
+							packs.add(pack);
 						}
-						packs.add(pack);
 					}
 				}
 				scanEntities();

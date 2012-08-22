@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.Attribute;
 import com.sqewd.open.dal.api.persistence.Entity;
 
@@ -30,7 +30,7 @@ import com.sqewd.open.dal.api.persistence.Entity;
 @Entity(recordset = "ROLE")
 @XmlRootElement(name = "role")
 @XmlAccessorType(XmlAccessType.NONE)
-public class Role extends AbstractEntity {
+public class Role extends AbstractPersistedEntity {
 	@Attribute(name = "NAME", keyattribute = true, size = 256)
 	@XmlElement(name = "name")
 	private String name;

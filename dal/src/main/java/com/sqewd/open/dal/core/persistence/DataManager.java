@@ -29,6 +29,7 @@ import org.w3c.dom.NodeList;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.InitializedHandle;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
@@ -254,13 +255,10 @@ public class DataManager implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<AbstractEntity> read(String query, Class<?>... types)
+	public List<AbstractEntity> read(String query, Class<?> type, int limit)
 			throws Exception {
-		if (types.length == 1) {
-			AbstractPersister persister = getPersister(types[0]);
-			return persister.read(query, types[0]);
-		}
-		throw new Exception("JOIN Conditions not yet implemented");
+		AbstractPersister persister = getPersister(type);
+		return persister.read(query, type, limit);
 	}
 
 	/**
@@ -277,8 +275,8 @@ public class DataManager implements InitializedHandle {
 	 * @throws Exception
 	 */
 	public List<AbstractEntity> read(String query, AbstractPersister persister,
-			Class<?>... types) throws Exception {
-		return persister.read(query, types);
+			Class<?> type, int limit) throws Exception {
+		return persister.read(query, type, limit);
 	}
 
 	/**
@@ -289,6 +287,11 @@ public class DataManager implements InitializedHandle {
 	 * @throws Exception
 	 */
 	public int save(AbstractEntity entity) throws Exception {
+		if (!(entity instanceof AbstractPersistedEntity))
+			throw new Exception("Entity ["
+					+ entity.getClass().getCanonicalName()
+					+ "] does not extend from ["
+					+ AbstractPersistedEntity.class.getCanonicalName() + "]");
 		AbstractPersister persister = getPersister(entity.getClass());
 		return persister.save(entity, false);
 	}

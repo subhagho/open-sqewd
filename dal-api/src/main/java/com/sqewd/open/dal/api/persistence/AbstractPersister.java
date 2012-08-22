@@ -74,7 +74,7 @@ public abstract class AbstractPersister implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract List<AbstractEntity> read(String query, Class<?>... types)
+	public abstract List<AbstractEntity> read(String query, Class<?> type, int limit)
 			throws Exception;
 
 	/**

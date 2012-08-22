@@ -14,8 +14,8 @@
  */
 package com.sqewd.open.dal.test;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.sqewd.open.dal.core.persistence.query.SQLQuery;
+import com.sqewd.open.dal.demo.entities.OrganizationView;
 
 /**
  * 
@@ -32,12 +32,16 @@ public class AdHocTest {
 	 */
 	public static void main(String[] args) {
 		try {
-			String dtstr = "23-07-2012";
+			// String dtstr = "23-07-2012";
+			//
+			// SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
+			// Date dt = format.parse(dtstr);
+			//
+			// System.out.println("TIMESTAMP : " + dt.getTime());
 
-			SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
-			Date dt = format.parse(dtstr);
-
-			System.out.println("TIMESTAMP : " + dt.getTime());
+			SQLQuery sq = new SQLQuery(OrganizationView.class);
+			String sql = sq.parse("", -1);
+			System.out.println("[" + sql + "]");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

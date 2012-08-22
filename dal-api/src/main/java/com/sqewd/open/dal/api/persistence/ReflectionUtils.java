@@ -100,6 +100,8 @@ public class ReflectionUtils {
 				StructEntityReflect entity = new StructEntityReflect();
 				entity.Classname = type.getName();
 				entity.Entity = eann.recordset();
+				entity.IsView = eann.isview();
+				entity.Query = eann.query();
 
 				List<Field> fields = new ArrayList<Field>();
 				getFields(type, fields);

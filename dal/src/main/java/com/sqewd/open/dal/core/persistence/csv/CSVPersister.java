@@ -37,11 +37,13 @@ import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.EnumRefereceType;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.AbstractParam;
 import com.sqewd.open.dal.api.utils.DateUtils;
 import com.sqewd.open.dal.api.utils.ListParam;
 import com.sqewd.open.dal.api.utils.ValueParam;
 import com.sqewd.open.dal.core.persistence.DataManager;
+import com.sqewd.open.dal.core.persistence.db.SQLUtils;
 import com.sqewd.open.dal.core.persistence.query.SimpleFilterQuery;
 
 /**
@@ -124,13 +126,8 @@ public class CSVPersister extends AbstractPersister {
 	 * @see com.wookler.core.persistence.AbstractPersister#read(java.util.List)
 	 */
 	@Override
-	public List<AbstractEntity> read(String query, Class<?>... types)
+	public List<AbstractEntity> read(String query, Class<?> type, int limit)
 			throws Exception {
-		if (types.length > 1)
-			throw new Exception("CSVPersister doesnot support JOIN(s)");
-
-		Class<?> type = types[0];
-
 		List<AbstractEntity> result = null;
 		String cname = type.getCanonicalName();
 		if (!cache.containsKey(cname)) {
@@ -210,9 +207,17 @@ public class CSVPersister extends AbstractPersister {
 				} else if (attr.Reference == null) {
 					setFieldValue(entity, attr.Field, data[ii]);
 				} else {
-					String query = attr.Reference.Field + "=" + data[ii];
+					Class<?> reft = Class.forName(attr.Reference.Class);
+					StructEntityReflect enref = ReflectionUtils.get()
+							.getEntityMetadata(reft);
+					String query = enref.Entity
+							+ "."
+							+ attr.Reference.Field
+							+ "="
+							+ SQLUtils.quoteValue(data[ii], reft,
+									attr.Reference.Field);
 					List<AbstractEntity> refs = DataManager.get().read(query,
-							Class.forName(attr.Reference.Class));
+							reft, -1);
 					if (refs != null && refs.size() > 0) {
 						if (attr.Reference.Type == EnumRefereceType.One2One) {
 							setFieldValue(entity, attr.Field, refs.get(0));

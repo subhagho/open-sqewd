@@ -21,6 +21,7 @@
 package com.sqewd.open.dal.core.persistence.db;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
@@ -49,13 +50,21 @@ public class JoinGraph {
 
 	private HashMap<String, String> usedaliases = null;
 
-	private List<String> columns = null;
+	private HashMap<String, String> columns = new HashMap<String, String>();
 
 	public JoinGraph(Class<?> type, JoinGraph parent) throws Exception {
 		this.type = type;
 		this.parent = parent;
 
-		process();
+		process(null);
+	}
+
+	public JoinGraph(Class<?> type, JoinGraph parent, String name)
+			throws Exception {
+		this.type = type;
+		this.parent = parent;
+
+		process(name);
 	}
 
 	private boolean hasAlias(String alias) {
@@ -82,17 +91,20 @@ public class JoinGraph {
 			parent.addcolumn(column);
 		else {
 			if (columns == null) {
-				columns = new ArrayList<String>();
+				columns = new HashMap<String, String>();
 			}
-			columns.add(column);
+			columns.put(column, column);
 		}
 	}
 
-	private void process() throws Exception {
+	private void process(String name) throws Exception {
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
 		table = enref.Entity;
-		alias = table;
+		if (name != null) {
+			alias = name;
+		} else
+			alias = table;
 		int ii = 0;
 		while (true) {
 			if (parent == null || !parent.hasAlias(alias)) {
@@ -106,10 +118,14 @@ public class JoinGraph {
 		for (String column : enref.ColumnMaps.keySet()) {
 			StructAttributeReflect attr = enref.get(column);
 			addcolumn(alias + "." + attr.Column);
+			if (parent != null) {
+				columns.put(alias + "." + attr.Column, alias + "."
+						+ attr.Column);
+			}
 			if (attr.Reference == null)
 				continue;
 			Class<?> rt = Class.forName(attr.Reference.Class);
-			JoinGraph graph = new JoinGraph(rt, this);
+			JoinGraph graph = new JoinGraph(rt, this, attr.Column);
 			KeyValuePair<JoinGraph> kvp = new KeyValuePair<JoinGraph>(
 					attr.Reference.Field, graph);
 			if (joins == null)
@@ -135,6 +151,47 @@ public class JoinGraph {
 		}
 		throw new Exception("Cannot find alias for PATH[" + getPathString(path)
 				+ "]");
+	}
+
+	public List<String> getPath(String column) throws Exception {
+		List<String> list = new ArrayList<String>();
+		if (column.indexOf('.') > 0) {
+			String[] parts = column.split("\\.");
+			getPath(parts, 0, list);
+		} else {
+			String cname = alias + "." + column;
+			if (columns.containsKey(cname)) {
+				list.add(cname);
+			}
+		}
+		return list;
+	}
+
+	private void getPath(String[] parts, int index, List<String> list)
+			throws Exception {
+		if (parts[index].compareTo(alias) == 0 && index + 1 < parts.length) {
+			String column = alias + "." + parts[index + 1];
+			if (columns.containsKey(column)) {
+				if (joins != null && joins.containsKey(parts[index + 1])) {
+					JoinGraph child = joins.get(parts[index + 1]).getValue();
+					child.getPath(parts, index + 1, list);
+				} else {
+					if (index + 1 == parts.length - 1) {
+						list.add(column);
+					}
+				}
+			}
+		} else {
+			String column = alias + "." + parts[index];
+			if (columns.containsKey(column)) {
+				if (joins != null && joins.containsKey(parts[index])) {
+					JoinGraph child = joins.get(parts[index]).getValue();
+					child.getPath(parts, index + 1, list);
+				} else {
+					list.add(column);
+				}
+			}
+		}
 	}
 
 	private String getPathString(Stack<KeyValuePair<Class<?>>> path) {
@@ -207,7 +264,7 @@ public class JoinGraph {
 		if (columns != null) {
 			buff.append("[COLUMNS:");
 			boolean first = true;
-			for (String column : columns) {
+			for (String column : columns.keySet()) {
 				if (first)
 					first = false;
 				else
@@ -232,6 +289,22 @@ public class JoinGraph {
 		return buff.toString();
 	}
 
+	/**
+	 * @return the columns
+	 */
+	public Collection<String> getColumns() {
+		return columns.keySet();
+	}
+
+	/**
+	 * Get the table alias for this Node.
+	 * 
+	 * @return
+	 */
+	public String getAlias() {
+		return alias;
+	}
+
 	private static final HashMap<String, JoinGraph> graphs = new HashMap<String, JoinGraph>();
 
 	/**
@@ -253,19 +326,4 @@ public class JoinGraph {
 		return graphs.get(key);
 	}
 
-	/**
-	 * @return the columns
-	 */
-	public List<String> getColumns() {
-		return columns;
-	}
-
-	/**
-	 * Get the table alias for this Node.
-	 * 
-	 * @return
-	 */
-	public String getAlias() {
-		return alias;
-	}
 }

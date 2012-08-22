@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.persistence;
+
 import java.lang.reflect.Method;
 
 import com.sqewd.open.dal.api.persistence.CustomFieldDataHandler;
@@ -34,4 +35,5 @@ public class StructAttributeReflect {
 	public int Size;
 	public CustomFieldDataHandler Convertor = null;
 	public ReferenceReflection Reference = null;
+
 }

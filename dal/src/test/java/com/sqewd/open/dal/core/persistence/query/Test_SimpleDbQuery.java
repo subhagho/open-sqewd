@@ -60,22 +60,25 @@ public class Test_SimpleDbQuery {
 		try {
 			String query = "MEMBERSHIP.MEMBER.ID = '1000'";
 
-			SimpleDbQuery dbq = new SimpleDbQuery();
+			SQLQuery dbq = new SQLQuery(TeamMember.class);
 
-			dbq.parse(new Class<?>[] { TeamMember.class }, query);
-			String sql = dbq.getSelectQuery(TeamMember.class);
+			dbq.parse(query, -1);
+			String sql = dbq.parse(query, -1);
 			log.info("SQL[" + sql + "]");
 
 			List<AbstractEntity> entities = DataManager.get().read(query,
-					TeamMember.class);
+					TeamMember.class, -1);
 			assertEquals((entities.size() == 1), true);
 			TeamMember member = (TeamMember) entities.get(0);
 			assertEquals(member.getMember().getFirstname(), "Subho");
 			assertEquals(member.getTeam().getManager().getLastname(), "Doe");
 
-			query = "MEMBERSHIP.TEAM.MANAGER.FIRSTNAME like '%on%'";
-			entities = DataManager.get().read(query, TeamMember.class);
+			query = "MEMBERSHIP.TEAM.MANAGER.FIRSTNAME like '%oh%'";
+			entities = DataManager.get().read(query, TeamMember.class, -1);
 			assertEquals((entities.size() > 1), true);
+			for (AbstractEntity en : entities) {
+				log.info(en.toString());
+			}
 		} catch (Exception e) {
 			LogUtils.stacktrace(log, e);
 			e.printStackTrace();

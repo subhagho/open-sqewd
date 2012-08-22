@@ -272,7 +272,7 @@ public class H2DbPersister extends AbstractDbPersister {
 
 			}
 		} else {
-			List<AbstractEntity> versions = read("", DBVersion.class);
+			List<AbstractEntity> versions = read("", DBVersion.class, 1);
 			if (versions == null || versions.isEmpty()) {
 				throw new Exception(
 						"Error retrieving Schema Version. Database might be corrupted.");

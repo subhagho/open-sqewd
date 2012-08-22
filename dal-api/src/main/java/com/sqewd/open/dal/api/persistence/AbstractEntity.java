@@ -13,11 +13,9 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.persistence;
-import java.util.Date;
 
-import javax.xml.bind.annotation.XmlElement;
+import org.apache.commons.beanutils.PropertyUtils;
 
-import com.sqewd.open.dal.api.persistence.Attribute;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
 
 /**
@@ -27,26 +25,7 @@ import com.sqewd.open.dal.api.persistence.EnumEntityState;
  * 
  */
 public abstract class AbstractEntity {
-	public static final String _TX_TIMESTAMP_COLUMN_ = "TX_TIMESTAMP";
 	protected EnumEntityState state = EnumEntityState.Loaded;
-
-	@Attribute(name = _TX_TIMESTAMP_COLUMN_)
-	@XmlElement(name = "tx-timestamp")
-	protected Date timestamp;
-
-	/**
-	 * @return
-	 */
-	public Date getTimestamp() {
-		return timestamp;
-	}
-
-	/**
-	 * @param timestamp
-	 */
-	public void setTimestamp(Date timestamp) {
-		this.timestamp = timestamp;
-	}
 
 	/**
 	 * Indicates that the value of an attribute of this entity has been updated.
@@ -62,7 +41,7 @@ public abstract class AbstractEntity {
 		if (state == EnumEntityState.Deleted)
 			return;
 	}
-	
+
 	/**
 	 * @return the state
 	 */
@@ -77,4 +56,32 @@ public abstract class AbstractEntity {
 	public void setState(EnumEntityState state) {
 		this.state = state;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuffer buff = new StringBuffer("\n");
+		try {
+			StructEntityReflect enref = ReflectionUtils.get()
+					.getEntityMetadata(this.getClass());
+			buff.append("[ENTITY:").append(enref.Entity).append("(")
+					.append(enref.Classname).append(")");
+			for (StructAttributeReflect attr : enref.Attributes) {
+				buff.append("\n\t[")
+						.append(attr.Column)
+						.append(":")
+						.append(PropertyUtils.getSimpleProperty(this,
+								attr.Field.getName())).append("]");
+			}
+			buff.append("\n]");
+		} catch (Exception e) {
+			buff.append(e.getLocalizedMessage());
+		}
+		return buff.toString();
+	}
+
 }

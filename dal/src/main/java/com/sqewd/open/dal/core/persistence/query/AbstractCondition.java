@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.query;
+
 public abstract class AbstractCondition {
 	protected EnumConditionType conditiontype = EnumConditionType.Value;
 

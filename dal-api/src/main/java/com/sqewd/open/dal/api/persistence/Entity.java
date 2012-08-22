@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.persistence;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -57,9 +58,20 @@ public @interface Entity {
 	long TTL() default -1;
 
 	/**
-	 * Cache this entity.
+	 * Is this Entity type a view?
+	 * 
+	 * Note: Views require the custom select query to be specified and no CRUD
+	 * operations will be allowed.
 	 * 
 	 * @return
 	 */
-	boolean cache() default false;
+	boolean isview() default false;
+
+	/**
+	 * The Select Query which will be used to create the entity. This is only
+	 * applicable to Entity types which are defined as views.
+	 * 
+	 * @return
+	 */
+	String query() default "";
 }

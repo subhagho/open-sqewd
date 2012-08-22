@@ -28,6 +28,8 @@ public class StructEntityReflect {
 	public HashMap<String, StructAttributeReflect> FieldMaps = new HashMap<String, StructAttributeReflect>();
 	public HashMap<String, StructAttributeReflect> ColumnMaps = new HashMap<String, StructAttributeReflect>();
 	public List<StructAttributeReflect> Attributes = new ArrayList<StructAttributeReflect>();
+	public boolean IsView = false;
+	public String Query;
 
 	public void add(StructAttributeReflect attr) {
 		if (FieldMaps.containsKey(attr.Field.getName())) {

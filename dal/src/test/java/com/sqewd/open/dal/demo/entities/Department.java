@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.Attribute;
 import com.sqewd.open.dal.api.persistence.Entity;
 
@@ -38,7 +38,7 @@ import com.sqewd.open.dal.api.persistence.Entity;
 @Entity(recordset = "DEPARTMENT")
 @XmlRootElement(name = "department")
 @XmlAccessorType(XmlAccessType.NONE)
-public class Department extends AbstractEntity {
+public class Department extends AbstractPersistedEntity {
 	@Attribute(name = "ID", keyattribute = true, size = 256)
 	@XmlElement(name = "id")
 	private String id;

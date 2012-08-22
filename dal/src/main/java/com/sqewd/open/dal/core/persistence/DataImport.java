@@ -57,7 +57,7 @@ public class DataImport {
 			StructEntityReflect enref = ReflectionUtils.get()
 					.getEntityMetadata(entity);
 			Class<?> cls = Class.forName(enref.Classname);
-			List<AbstractEntity> data = source.read("", cls);
+			List<AbstractEntity> data = source.read("", cls, -1);
 			if (data != null && data.size() > 0) {
 				AbstractPersister dest = DataManager.get().getPersister(cls);
 				for (AbstractEntity en : data) {

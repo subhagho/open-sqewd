@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
@@ -38,6 +39,7 @@ import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
+import com.sqewd.open.dal.core.persistence.query.SQLQuery;
 import com.sqewd.open.dal.core.persistence.query.SimpleDbQuery;
 
 /**
@@ -65,36 +67,27 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 * java.lang.Class)
 	 */
 	@Override
-	public List<AbstractEntity> read(String query, Class<?>... types)
+	public List<AbstractEntity> read(String query, Class<?> type, int limit)
 			throws Exception {
 
-		if (types.length == 1) {
-			Class<?> type = types[0];
-			if (!type.isAnnotationPresent(Entity.class))
-				throw new Exception("Class [" + type.getCanonicalName()
-						+ "] has not been annotated as an Entity.");
-
-			Connection conn = getConnection(true);
-			try {
-				return read(query, type, conn);
-			} finally {
-				if (conn != null)
-					releaseConnection(conn);
-			}
+		Connection conn = getConnection(true);
+		try {
+			return read(query, type, limit, conn);
+		} finally {
+			if (conn != null)
+				releaseConnection(conn);
 		}
-		throw new Exception("JOIN Conditions not yet implemented");
+
 	}
 
-	private List<AbstractEntity> read(String query, Class<?> type,
+	private List<AbstractEntity> read(String query, Class<?> type, int limit,
 			Connection conn) throws Exception {
-		SimpleDbQuery parser = new SimpleDbQuery();
+		SQLQuery parser = new SQLQuery(type);
 
 		// Make sure the type for the class is available.
 		ReflectionUtils.get().getEntityMetadata(type);
 
-		parser.parse(new Class<?>[] { type }, query);
-
-		String selectsql = parser.getSelectQuery(type);
+		String selectsql = parser.parse(query, limit);
 		Statement stmnt = conn.createStatement();
 		try {
 			log.debug("SELECT SQL [" + selectsql + "]");
@@ -258,13 +251,17 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	public boolean recordExists(AbstractEntity entity) throws Exception {
 		String query = getQueryByKey(entity);
 		if (query != null && !query.isEmpty()) {
-			List<AbstractEntity> exists = read(query, entity.getClass());
+			List<AbstractEntity> exists = read(query, entity.getClass(), 1);
 			if (exists == null || exists.size() == 0)
 				return false;
 			else {
 				if (entity.getState() == EnumEntityState.Overwrite) {
 					AbstractEntity en = exists.get(0);
-					entity.setTimestamp(en.getTimestamp());
+					if (en instanceof AbstractPersistedEntity) {
+						AbstractPersistedEntity ape = (AbstractPersistedEntity) en;
+						AbstractPersistedEntity spe = (AbstractPersistedEntity) entity;
+						spe.setTimestamp(ape.getTimestamp());
+					}
 				}
 				return true;
 			}
@@ -288,6 +285,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				buff.append(';');
 
 			String value = null;
+			StringBuffer column = new StringBuffer();
+			column.append(attr.Column);
+
 			if (attr.Reference == null) {
 				if (attr.Field.getType().equals(Date.class)) {
 					Date dt = (Date) PropertyUtils.getSimpleProperty(entity,
@@ -306,13 +306,15 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				StructAttributeReflect rattr = ReflectionUtils.get()
 						.getAttribute(Class.forName(attr.Reference.Class),
 								attr.Reference.Field);
+				column.append('.').append(attr.Reference.Field);
 				value = String.valueOf(PropertyUtils.getSimpleProperty(dvalue,
 						rattr.Field.getName()));
 				if (!EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
 					value = "'" + value + "'";
 				}
 			}
-			buff.append(attr.Column).append("=").append(value);
+			buff.append(enref.Entity).append('.').append(column.toString())
+					.append("=").append(value);
 		}
 		return buff.toString();
 	}
@@ -321,6 +323,14 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			throws Exception {
 		if (record == null)
 			throw new Exception("Invalid entity record : Null record");
+
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				record.getClass());
+
+		if (enref.IsView)
+			throw new Exception("Entity ["
+					+ record.getClass().getCanonicalName()
+					+ "] is defined as a View and cannot me modified.");
 
 		if (record.getState() == EnumEntityState.New)
 			return insert(record, conn);
@@ -374,7 +384,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 						.getAttribute(value.getClass(), attr.Reference.Field);
 				value = PropertyUtils.getProperty(value, rattr.Field.getName());
 			} else if (attr.Column
-					.compareTo(AbstractEntity._TX_TIMESTAMP_COLUMN_) == 0) {
+					.compareTo(AbstractPersistedEntity._TX_TIMESTAMP_COLUMN_) == 0) {
 				value = new Date();
 			}
 			setPreparedValue(pstmnt, index, attr, value, record);
@@ -486,7 +496,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 						.getAttribute(value.getClass(), attr.Reference.Field);
 				value = PropertyUtils.getProperty(value, rattr.Field.getName());
 			} else if (attr.Column
-					.compareTo(AbstractEntity._TX_TIMESTAMP_COLUMN_) == 0) {
+					.compareTo(AbstractPersistedEntity._TX_TIMESTAMP_COLUMN_) == 0) {
 				value = new Date();
 				keyattrs.add(attr);
 			}

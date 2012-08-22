@@ -22,15 +22,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
-import com.sqewd.open.dal.core.persistence.db.JoinGraph;
 import com.sqewd.open.dal.core.persistence.db.SQLDataType;
-import com.sqewd.open.dal.core.persistence.db.SqlConditionTransformer;
 
 /**
  * Class encapsulates the Query definition for a JDBC compliant Database.
@@ -46,14 +45,11 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 	private static final Logger log = LoggerFactory
 			.getLogger(SimpleDbQuery.class);
 
-	private ConditionTransformer transformer = null;
-
 	private List<FilterCondition> postconditions = null;
 
 	private static HashMap<String, HashMap<String, String>> queryCache = new HashMap<String, HashMap<String, String>>();
 
 	public SimpleDbQuery() {
-		transformer = new SqlConditionTransformer();
 		parser = new FilterConditionParser();
 	}
 
@@ -165,7 +161,7 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 				continue;
 			if (attr.IsKeyColumn
 					|| attr.Column
-							.compareTo(AbstractEntity._TX_TIMESTAMP_COLUMN_) == 0) {
+							.compareTo(AbstractPersistedEntity._TX_TIMESTAMP_COLUMN_) == 0) {
 				if (wfirst) {
 					where = new StringBuffer();
 					where.append(" where ");
@@ -233,113 +229,6 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		addToCache(EnumQueryType.DELETE, type, query.toString());
 		log.debug("[DELETE : " + query.toString() + "]");
 		return query.toString();
-	}
-
-	/**
-	 * Parse the filter condition and generate a SQL Select Query.
-	 * 
-	 * @param type
-	 *            - Entity Type
-	 * @return
-	 * @throws Exception
-	 */
-	public String getSelectQuery(Class<?> type) throws Exception {
-		if (!type.isAnnotationPresent(Entity.class))
-			throw new Exception("Class [" + type.getCanonicalName()
-					+ "] has not been annotated as an Entity.");
-
-		JoinGraph graph = JoinGraph.lookup(type);
-
-		HashMap<String, String> tables = graph.getTableAliases();
-
-		int limit = parser.getLimit();
-		StringBuffer sort = new StringBuffer();
-		StringBuffer where = new StringBuffer();
-
-		List<String> columns = graph.getColumns();
-
-		String table = null;
-
-		boolean first = true;
-		StringBuffer cbuff = new StringBuffer();
-		for (String column : columns) {
-			if (first)
-				first = false;
-			else
-				cbuff.append(',');
-			cbuff.append(' ').append(column).append(" as \"").append(column)
-					.append("\"");
-		}
-		String columnstr = cbuff.toString();
-
-		// Get Where Clause
-		first = true;
-		if (graph.hasJoins()) {
-			where.append(graph.getJoinCondition());
-			first = false;
-		}
-
-		if (conditions != null && conditions.size() > 0) {
-			for (AbstractCondition condition : conditions) {
-				if (condition instanceof FilterCondition) {
-					FilterCondition fc = (FilterCondition) condition;
-					if (fc.getComparator() == EnumOperator.Contains) {
-						if (postconditions == null)
-							postconditions = new ArrayList<FilterCondition>();
-						postconditions.add(fc);
-					}
-					String strcond = transformer.transform(condition);
-					if (first)
-						first = false;
-					else
-						where.append(" and ");
-					where.append(strcond);
-				}
-			}
-		}
-
-		// Get Sort
-		if (parser.getSort() != null && parser.getSort().size() > 0) {
-			first = true;
-			for (SortColumn column : parser.getSort()) {
-				if (first)
-					first = false;
-				else {
-					sort.append(",");
-				}
-				sort.append(' ').append(graph.getAlias()).append('.')
-						.append(column.getColumn());
-				if (column.getOrder() == EnumSortOrder.ASC) {
-					sort.append(" ASC");
-				} else {
-					sort.append(" DESC");
-				}
-			}
-		}
-
-		// Create query
-		StringBuffer qbuff = new StringBuffer("select ");
-		if (limit > 0)
-			qbuff.append(" top ").append(limit);
-		qbuff.append(columnstr);
-
-		first = true;
-		for (String tab : tables.keySet()) {
-			table = tables.get(tab);
-			if (first) {
-				first = false;
-				qbuff.append(" from ");
-			} else
-				qbuff.append(", ");
-			qbuff.append(table).append(' ').append(tab);
-		}
-		if (where.length() > 0) {
-			qbuff.append(" where ").append(where);
-		}
-		if (sort.length() > 0) {
-			qbuff.append(" order by ").append(sort);
-		}
-		return qbuff.toString();
 	}
 
 	/**

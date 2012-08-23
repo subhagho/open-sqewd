@@ -78,7 +78,7 @@ public class Test_SQLQuery {
 					log.info("Found : " + column);
 				}
 			}
-			String query = "(ORGANIZATION.MANAGER.ID LIKE '10%';MANAGER.ID LIKE '10%')";
+			String query = "(ORGANIZATION.EMPLOYEE.ID LIKE '10%';EMPLOYEE.ID LIKE '10%')";
 			SQLQuery sq = new SQLQuery(OrganizationView.class);
 			String sql = sq.parse(query, 30);
 			log.info("SQL[" + sql + "]");
@@ -95,7 +95,7 @@ public class Test_SQLQuery {
 		try {
 			SQLQuery sq = new SQLQuery(OrganizationView.class);
 			sq.parse(
-					"(ORGANIZATION.MANAGER.ID = '1003';MANAGER.ID = '1003'),(ORGANIZATION.MANAGER.ID = '1004';MANAGER.ID = '1004')",
+					"(ORGANIZATION.EMPLOYEE.ID LIKE '10%';EMPLOYEE.ID LIKE '10%')",
 					30);
 			long stime = System.currentTimeMillis();
 			int size = 10000;
@@ -103,7 +103,7 @@ public class Test_SQLQuery {
 			for (int ii = 0; ii < size; ii++) {
 				sq = new SQLQuery(OrganizationView.class);
 				sq.parse(
-						"(ORGANIZATION.MANAGER.ID = '1003';MANAGER.ID = '1003'),(ORGANIZATION.MANAGER.ID = '1004';MANAGER.ID = '1004')",
+						"(ORGANIZATION.EMPLOYEE.ID LIKE '10%';EMPLOYEE.ID LIKE '10%')",
 						30);
 			}
 			long etime = System.currentTimeMillis();

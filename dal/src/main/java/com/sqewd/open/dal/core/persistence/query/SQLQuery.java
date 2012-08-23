@@ -33,6 +33,8 @@ import org.gibello.zql.ZExpression;
 import org.gibello.zql.ZQuery;
 import org.gibello.zql.ZStatement;
 import org.gibello.zql.ZqlParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
@@ -47,40 +49,49 @@ import com.sqewd.open.dal.core.persistence.query.parser.DalSqlParser;
  * 
  */
 public class SQLQuery {
+	private static final Logger log = LoggerFactory.getLogger(SQLQuery.class);
+
 	private static HashMap<String, ZQuery> querycache = new HashMap<String, ZQuery>();
 
 	private ZQuery getCachedQuery(Class<?> type) throws Exception {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
+		String selectq = null;
 
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
-		if (!querycache.containsKey(enref.Entity)) {
-			String selectq = null;
-			if (enref.IsView) {
-				selectq = enref.Query;
-			} else {
-				selectq = getBasicSelect(graph);
+		try {
+			StructEntityReflect enref = ReflectionUtils.get()
+					.getEntityMetadata(type);
+			if (!querycache.containsKey(enref.Entity)) {
+				if (enref.IsView) {
+					selectq = enref.Query;
+				} else {
+					selectq = getBasicSelect(graph);
+				}
+
+				selectq = selectq + ";";
+
+				// convert String into InputStream
+				InputStream is = new ByteArrayInputStream(selectq.getBytes());
+				ZqlParser parser = new ZqlParser(is);
+
+				ZQuery zq = null;
+				ZStatement zst = parser.readStatement();
+				if (zst instanceof ZQuery) {
+					zq = (ZQuery) zst;
+					querycache.put(enref.Entity, zq);
+				} else {
+					throw new Exception(
+							"Invalid parsed SQL : Statement of type ["
+									+ zst.getClass().getCanonicalName() + "]");
+				}
 			}
 
-			selectq = selectq + ";";
-
-			// convert String into InputStream
-			InputStream is = new ByteArrayInputStream(selectq.getBytes());
-			ZqlParser parser = new ZqlParser(is);
-
-			ZQuery zq = null;
-			ZStatement zst = parser.readStatement();
-			if (zst instanceof ZQuery) {
-				zq = (ZQuery) zst;
-				querycache.put(enref.Entity, zq);
-			} else {
-				throw new Exception("Invalid parsed SQL : Statement of type ["
-						+ zst.getClass().getCanonicalName() + "]");
-			}
+			return querycache.get(enref.Entity);
+		} catch (Exception e) {
+			log.debug("[QUERY : " + selectq + "]");
+			throw e;
 		}
-		return querycache.get(enref.Entity);
 	}
 
 	private static String getBasicSelect(JoinGraph graph) throws Exception {

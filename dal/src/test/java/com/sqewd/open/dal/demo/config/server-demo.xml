@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
+<configuration xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://open.skewd.com/moong-dal" xmlns="http://open.skewd.com/moong-dal"
+	elementFormDefault="qualified">
 	<env>
 		<work directory="/tmp/sqewd/work/" />
 		<temp directory="/tmp/sqewd/temp/" />
 	</env>
-	<server port="8080" numhtreads="5" home="/tmp/sqewd/work/jetty">
+	<server port="8080" numhtreads="5" home="/tmp/sqewd/work/jetty"
+		type="ALL">
 		<!--web directory="/tmp/sqewd/work/web"> <webapps> <app context="/home" 
 			war="web.war" /> </webapps> </web -->
 		<services package="com.sqewd.open.dal.demo.services" />

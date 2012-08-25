@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://open.skewd.com/moong-dal"
+	xmlns:md="http://open.skewd.com/moong-dal" elementFormDefault="qualified">
+
+	<complexType name="params">
+		<sequence>
+			<element name="param" type="md:param" maxOccurs="unbounded"
+				minOccurs="1"></element>
+		</sequence>
+	</complexType>
+
+
+	<complexType name="valueParam">
+		<complexContent>
+			<extension base="md:param">
+				<attribute name="name" type="string" use="required"></attribute>
+				<attribute name="value" type="string" use="required"></attribute>
+			</extension>
+		</complexContent>
+	</complexType>
+
+
+	<simpleType name="ParamType">
+		<restriction base="string">
+			<enumeration value="Value"></enumeration>
+			<enumeration value="List"></enumeration>
+			<enumeration value="Instance"></enumeration>
+		</restriction>
+	</simpleType>
+
+
+	<complexType name="directory">
+		<attribute name="directory" type="string" use="required"></attribute>
+	</complexType>
+
+	<element name="configuration">
+		<complexType>
+			<sequence>
+				<element name="env" maxOccurs="1" minOccurs="1">
+					<complexType>
+						<sequence>
+							<element name="work" type="md:directory" maxOccurs="1"
+								minOccurs="1">
+							</element>
+							<element name="temp" type="md:directory" minOccurs="0">
+							</element>
+						</sequence>
+					</complexType>
+				</element>
+				<element name="server" type="md:server" maxOccurs="1"
+					minOccurs="1">
+				</element>
+				<element name="core" maxOccurs="1" minOccurs="0">
+					<complexType>
+						<sequence>
+							<element name="datamanager" type="md:datamanager"
+								maxOccurs="1" minOccurs="0"></element>
+						</sequence>
+					</complexType>
+				</element>
+			</sequence>
+		</complexType>
+	</element>
+
+
+
+	<complexType name="package">
+		<attribute name="jar" type="string"></attribute>
+		<attribute name="package" type="string" use="required"></attribute>
+	</complexType>
+
+	<complexType name="webapp">
+		<attribute name="context" type="string" use="required"></attribute>
+		<attribute name="war" type="string" use="required"></attribute>
+	</complexType>
+
+	<complexType name="webapps">
+		<sequence>
+			<element name="webapps">
+				<complexType>
+					<sequence>
+						<element name="app" type="md:webapp" maxOccurs="unbounded"
+							minOccurs="0"></element>
+					</sequence>
+				</complexType>
+			</element>
+		</sequence>
+		<attribute name="directory" type="string"></attribute>
+	</complexType>
+
+	<complexType name="server">
+		<sequence>
+			<element name="web" type="md:webapps"></element>
+			<element name="services" type="md:package"></element>
+		</sequence>
+		<attribute name="port" type="int" use="required"></attribute>
+		<attribute name="numthreads" type="int"></attribute>
+		<attribute name="home" type="string"></attribute>
+		<attribute name="type" type="md:ServerType" use="required"></attribute>
+	</complexType>
+
+
+	<simpleType name="ServerType">
+		<restriction base="string">
+			<enumeration value="ALL"></enumeration>
+			<enumeration value="DATANODE"></enumeration>
+			<enumeration value="SERVICENODE"></enumeration>
+			<enumeration value="WEBSERVER"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<complexType name="persistermap">
+		<attribute name="class" type="string" use="required"></attribute>
+		<attribute name="persister" type="string" use="required"></attribute>
+	</complexType>
+
+	<complexType name="param" abstract="true">
+		<attribute name="type" type="md:ParamType" use="required"></attribute>
+	</complexType>
+
+    <complexType name="listParam">
+    	<complexContent>
+    		<extension base="md:param">
+    			<sequence>
+    				<element name="values">
+    					<complexType>
+    						<sequence>
+    							<element name="value" type="md:param" maxOccurs="unbounded" minOccurs="1"></element>
+    						</sequence>
+    					</complexType>
+    				</element>
+    			</sequence>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="persister">
+    	<sequence>
+    		<element name="params" type="md:params" maxOccurs="unbounded" minOccurs="0"></element>
+    	</sequence>
+    	<attribute name="name" type="string" use="required"></attribute>
+    	<attribute name="class" type="string" use="required"></attribute>
+    </complexType>
+
+    <complexType name="datamanager">
+    	<sequence>
+    		<element name="packages" maxOccurs="unbounded" minOccurs="0">
+    			<complexType>
+    				<sequence>
+    					<element name="jar" type="md:package"></element>
+    				</sequence>
+    			</complexType>
+    		</element>
+    		<element name="persistence" maxOccurs="1" minOccurs="0">
+    			<complexType>
+    				<sequence>
+    					<element name="persister" type="md:persister" maxOccurs="unbounded" minOccurs="1"></element>
+    					<element name="classmap" type="md:persistermap" maxOccurs="unbounded" minOccurs="0"></element>
+    				</sequence>
+    			</complexType>
+    		</element>
+    	</sequence>
+    </complexType>
+</schema>

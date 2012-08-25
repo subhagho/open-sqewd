@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.server;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -69,6 +70,7 @@ public class JettyServer {
 
 	private void start(String[] args) throws Exception {
 		try {
+
 			CmdLineParser parser = new CmdLineParser(this);
 
 			// if you have a wider console, you could increase the value;
@@ -98,9 +100,8 @@ public class JettyServer {
 					|| cmd.compareToIgnoreCase("start") == 0) {
 				// Initialize the DataManager
 				DataManager.create(Env.get().getConfig());
-				
+
 				Server server = new Server(serverConfig.getPort());
-				Map<String, Object> initMap = new HashMap<String, Object>();
 
 				log.info("Starting Jetty Server:");
 				log.info("\tPort : " + serverConfig.getPort());
@@ -119,6 +120,8 @@ public class JettyServer {
 
 				String serpack = serverConfig.getServicesPackage();
 				if (serpack != null && !serpack.isEmpty()) {
+					Map<String, Object> initMap = new HashMap<String, Object>();
+
 					initMap.put("com.sun.jersey.api.json.POJOMappingFeature",
 							"true");
 					initMap.put("com.sun.jersey.config.property.packages",
@@ -151,6 +154,26 @@ public class JettyServer {
 					handlers.add(restctx);
 				}
 
+				{
+					Map<String, Object> initMap = new HashMap<String, Object>();
+
+					initMap.put("com.sun.jersey.api.json.POJOMappingFeature",
+							"true");
+					initMap.put("com.sun.jersey.config.property.packages",
+							"com.sqewd.open.dal.services");
+					initMap.put(
+							"com.sun.jersey.config.property.resourceConfigClass",
+							"com.sun.jersey.api.core.PackagesResourceConfig");
+
+					ServletHolder sh = new ServletHolder(new ServletContainer(
+							new PackagesResourceConfig(initMap)));
+
+					ServletContextHandler restctx = new ServletContextHandler(
+							ServletContextHandler.SESSIONS);
+					restctx.setContextPath("/core");
+					restctx.addServlet(sh, "/*");
+					handlers.add(restctx);
+				}
 				if (serverConfig.getWebapps() != null) {
 					for (KeyValuePair<String> webapp : serverConfig
 							.getWebapps()) {

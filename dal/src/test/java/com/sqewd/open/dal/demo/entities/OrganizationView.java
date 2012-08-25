@@ -20,11 +20,6 @@
  */
 package com.sqewd.open.dal.demo.entities;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.Attribute;
 import com.sqewd.open.dal.api.persistence.Entity;
@@ -37,17 +32,12 @@ import com.sqewd.open.dal.api.persistence.Reference;
  * 
  */
 @Entity(recordset = "ORGANIZATION_V", isview = true, query = "select DEPARTMENT.NAME \"DEPARTMENT.NAME\", MANAGER.ID \"MANAGER.ID\", EMPLOYEE.ID \"EMPLOYEE.ID\", EMPLOYEE.FIRSTNAME \"EMPLOYEE.FIRSTNAME\", MANAGER.DATEOFBIRTH \"MANAGER.DATEOFBIRTH\", ORGANIZATION.DEPARTMENT \"ORGANIZATION.DEPARTMENT\", DEPARTMENT.STATUS \"DEPARTMENT.STATUS\", ORGANIZATION.TX_TIMESTAMP \"ORGANIZATION.TX_TIMESTAMP\", MANAGER.JOINDATE \"MANAGER.JOINDATE\", EMPLOYEE.TX_TIMESTAMP \"EMPLOYEE.TX_TIMESTAMP\", EMPLOYEE.LASTNAME \"EMPLOYEE.LASTNAME\", EMPLOYEE.DATEOFBIRTH \"EMPLOYEE.DATEOFBIRTH\", MANAGER.TITLE \"MANAGER.TITLE\", DEPARTMENT.TX_TIMESTAMP \"DEPARTMENT.TX_TIMESTAMP\", MANAGER.TX_TIMESTAMP \"MANAGER.TX_TIMESTAMP\", ORGANIZATION.EMPLOYEE \"ORGANIZATION.EMPLOYEE\", EMPLOYEE.JOINDATE \"EMPLOYEE.JOINDATE\", ORGANIZATION.MANAGER \"ORGANIZATION.MANAGER\", MANAGER.LASTNAME \"MANAGER.LASTNAME\", MANAGER.FIRSTNAME \"MANAGER.FIRSTNAME\", ORGANIZATION.CREATEDON \"ORGANIZATION.CREATEDON\", EMPLOYEE.TITLE \"EMPLOYEE.TITLE\", DEPARTMENT.ID \"DEPARTMENT.ID\" from EMPLOYEE EMPLOYEE, EMPLOYEE MANAGER, ORGANIZATION ORGANIZATION, DEPARTMENT DEPARTMENT where ((ORGANIZATION.EMPLOYEE = EMPLOYEE.ID)  AND (ORGANIZATION.MANAGER = MANAGER.ID) AND (ORGANIZATION.DEPARTMENT = DEPARTMENT.ID))")
-//@Entity(recordset = "ORGANIZATION_V")
-@XmlRootElement(name = "organization_v")
-@XmlAccessorType(XmlAccessType.NONE)
 public class OrganizationView extends AbstractEntity {
 	@Attribute(name = "ORGANIZATION")
-	@XmlElement(name = "organization")
 	@Reference(target = "com.sqewd.open.dal.demo.entities.Organization", attribute = "ID")
 	private Organization organization;
 
 	@Attribute(name = "EMPLOYEE")
-	@XmlElement(name = "employee")
 	@Reference(target = "com.sqewd.open.dal.demo.entities.Employee", attribute = "ID")
 	private Employee employee;
 

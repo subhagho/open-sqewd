@@ -17,10 +17,8 @@ package com.sqewd.open.dal.core.persistence;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -33,12 +31,14 @@ import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
+import com.sqewd.open.dal.api.persistence.OperationResponse;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.utils.InstanceParam;
 import com.sqewd.open.dal.api.utils.ListParam;
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.api.utils.XMLUtils;
 import com.sqewd.open.dal.core.Env;
+import com.sqewd.open.dal.core.reflect.EntityScanner;
 
 /**
  * The DataManager class manages persistence and data query.
@@ -74,10 +74,6 @@ public class DataManager implements InitializedHandle {
 								+ rootpath + "] not found.");
 			Element dmroot = (Element) nl.item(0);
 
-			NodeList pernl = XMLUtils.search(_CONFIG_PERSIST_XPATH_, dmroot);
-			if (pernl != null && pernl.getLength() > 0) {
-				initPersisters((Element) pernl.item(0));
-			}
 			NodeList packnl = XMLUtils.search(_CONFIG_ENTITY_PACKAGES_, dmroot);
 			if (packnl != null && packnl.getLength() > 0) {
 				for (int ii = 0; ii < packnl.getLength(); ii++) {
@@ -101,6 +97,12 @@ public class DataManager implements InitializedHandle {
 				}
 				scanEntities();
 			}
+
+			NodeList pernl = XMLUtils.search(_CONFIG_PERSIST_XPATH_, dmroot);
+			if (pernl != null && pernl.getLength() > 0) {
+				initPersisters((Element) pernl.item(0));
+			}
+
 			log.debug("DataManager initialzied...");
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage());
@@ -111,24 +113,25 @@ public class DataManager implements InitializedHandle {
 
 	private void scanEntities() throws Exception {
 		if (scanjars.size() > 0) {
+			EntityScanner scanner = new EntityScanner();
 			for (String key : scanjars.keySet()) {
 				List<String> packs = scanjars.get(key);
 				if (packs.size() > 0) {
 					for (String pack : packs) {
-						scanEntities(key, pack);
+						scanner.scan(pack);
+						scanEntities(scanner.getClasses());
 					}
 				}
 			}
 		}
 	}
 
-	private void scanEntities(String jar, String pack) throws Exception {
-		Reflections reflections = new Reflections(pack);
-		Set<Class<?>> annotated = reflections
-				.getTypesAnnotatedWith(Entity.class);
-		if (annotated != null && annotated.size() > 0) {
-			for (Class<?> type : annotated) {
-				log.debug("Found entity : [" + type.getCanonicalName() + "]");
+	private void scanEntities(List<Class<?>> classes) throws Exception {
+		for (Class<?> type : classes) {
+			if (type.isAnnotationPresent(Entity.class)) {
+				log.debug("Found entity : [" + type.getCanonicalName() + "]["
+						+ type.getClassLoader().getClass().getCanonicalName()
+						+ "]");
 				ReflectionUtils.get().load(type);
 			}
 		}
@@ -286,7 +289,7 @@ public class DataManager implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public int save(AbstractEntity entity) throws Exception {
+	public OperationResponse save(AbstractEntity entity) throws Exception {
 		if (!(entity instanceof AbstractPersistedEntity))
 			throw new Exception("Entity ["
 					+ entity.getClass().getCanonicalName()
@@ -294,6 +297,16 @@ public class DataManager implements InitializedHandle {
 					+ AbstractPersistedEntity.class.getCanonicalName() + "]");
 		AbstractPersister persister = getPersister(entity.getClass());
 		return persister.save(entity, false);
+	}
+
+	public List<String> getEntityPackages() {
+		List<String> packages = new ArrayList<String>();
+
+		for (String key : scanjars.keySet()) {
+			List<String> packs = scanjars.get(key);
+			packages.addAll(packs);
+		}
+		return packages;
 	}
 
 	/*

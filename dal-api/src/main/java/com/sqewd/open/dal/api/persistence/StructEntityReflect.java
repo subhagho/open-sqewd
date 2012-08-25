@@ -23,7 +23,8 @@ import java.util.List;
  * 
  */
 public class StructEntityReflect {
-	public String Classname;
+	public String Key;
+	public String Class;
 	public String Entity;
 	public HashMap<String, StructAttributeReflect> FieldMaps = new HashMap<String, StructAttributeReflect>();
 	public HashMap<String, StructAttributeReflect> ColumnMaps = new HashMap<String, StructAttributeReflect>();

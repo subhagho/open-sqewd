@@ -88,6 +88,24 @@ public class ReflectionUtils {
 		return metacache.get(type);
 	}
 
+	/**
+	 * Get all the registered entity metadata.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public List<StructEntityReflect> getAllMetadata() throws Exception {
+		List<StructEntityReflect> ens = new ArrayList<StructEntityReflect>();
+
+		for (String key : metacache.keySet()) {
+			StructEntityReflect enref = metacache.get(key);
+			if (!ens.contains(enref)) {
+				ens.add(enref);
+			}
+		}
+		return ens;
+	}
+
 	public void load(Class<?> type) throws Exception {
 		synchronized (metacache) {
 			if (!metacache.containsKey(type.getName())) {
@@ -98,7 +116,8 @@ public class ReflectionUtils {
 				Entity eann = type.getAnnotation(Entity.class);
 
 				StructEntityReflect entity = new StructEntityReflect();
-				entity.Classname = type.getName();
+				entity.Key = type.getName();
+				entity.Class = type.getCanonicalName();
 				entity.Entity = eann.recordset();
 				entity.IsView = eann.isview();
 				entity.Query = eann.query();
@@ -155,7 +174,7 @@ public class ReflectionUtils {
 						entity.add(ar);
 					}
 				}
-				metacache.put(entity.Classname, entity);
+				metacache.put(entity.Key, entity);
 				metacache.put(entity.Entity, entity);
 				typecahce.put(eann.recordset(), type);
 			}

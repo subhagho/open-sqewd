@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename AbstractPersistedEntity.java
- * @created Aug 22, 2012
+ * @filename DALReadResponse.java
+ * @created Aug 25, 2012
  * @author subhagho
  *
  */
-package com.sqewd.open.dal.api.persistence;
-
-import java.util.Date;
+package com.sqewd.open.dal.services;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -30,25 +28,41 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *         TODO: <comment>
  * 
  */
-public class AbstractPersistedEntity extends AbstractEntity {
-	public static final String _TX_TIMESTAMP_COLUMN_ = "TX_TIMESTAMP";
+public class DALReadResponse {
+	@JsonProperty(value = "schema")
+	private EntitySchema schema = null;
 
-	@Attribute(name = _TX_TIMESTAMP_COLUMN_)
-	@JsonProperty(value = "tx-timestamp")
-	protected Date timestamp;
+	@JsonProperty(value = "data")
+	private Object data = null;
 
 	/**
-	 * @return
+	 * @return the schema
 	 */
-	public Date getTimestamp() {
-		return timestamp;
+	public EntitySchema getSchema() {
+		return schema;
 	}
 
 	/**
-	 * @param timestamp
+	 * @param schema
+	 *            the schema to set
 	 */
-	public void setTimestamp(Date timestamp) {
-		this.timestamp = timestamp;
+	public void setSchema(EntitySchema schema) {
+		this.schema = schema;
+	}
+
+	/**
+	 * @return the data
+	 */
+	public Object getData() {
+		return data;
+	}
+
+	/**
+	 * @param data
+	 *            the data to set
+	 */
+	public void setData(Object data) {
+		this.data = data;
 	}
 
 }

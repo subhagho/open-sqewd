@@ -16,11 +16,6 @@ package com.sqewd.open.dal.demo.entities;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.Attribute;
 import com.sqewd.open.dal.api.persistence.Entity;
@@ -30,31 +25,23 @@ import com.sqewd.open.dal.api.persistence.Entity;
  * 
  */
 @Entity(recordset = "EMPLOYEE")
-@XmlRootElement(name = "employee")
-@XmlAccessorType(XmlAccessType.NONE)
 public class Employee extends AbstractPersistedEntity {
 	@Attribute(name = "ID", keyattribute = true, size = 256)
-	@XmlElement(name = "id")
 	private String id;
 
 	@Attribute(name = "FIRSTNAME", size = 256)
-	@XmlElement(name = "firstname")
 	private String firstname;
 
 	@Attribute(name = "LASTNAME", size = 256)
-	@XmlElement(name = "lastname")
 	private String lastname;
 
 	@Attribute(name = "DATEOFBIRTH")
-	@XmlElement(name = "firstname")
 	private Date dateOfBirth;
 
 	@Attribute(name = "JOINDATE")
-	@XmlElement(name = "joindate")
 	private Date joinDate;
 
 	@Attribute(name = "TITLE", size = 256)
-	@XmlElement(name = "title")
 	private String title;
 
 	public String getId() {

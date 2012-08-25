@@ -1,0 +1,5 @@
+// Delete record
+curl -i -H "Content-Type: application/json" -X POST -d '{ "record-state": "Deleted", "tx-timestamp": 1345872034636, "ID": "1020", "FIRSTNAME": "Suzy", "LASTNAME": "Q", "DATEOFBIRTH": 532031400000, "JOINDATE": 1257273000000, "TITLE": "Assistant" }' http://localhost:8080/core/dal/services/save/EMPLOYEE
+
+// Update/Insert record
+curl -i -H "Content-Type: application/json" -X POST -d '{ "record-state": "Overwrite", "tx-timestamp": 1345872034636, "ID": "1020", "FIRSTNAME": "Suzy", "LASTNAME": "Q", "DATEOFBIRTH": 532031400000, "JOINDATE": 1257273000000, "TITLE": "Assistant" }' http://localhost:8080/core/dal/services/save/EMPLOYEE

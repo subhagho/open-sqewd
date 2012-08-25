@@ -16,6 +16,7 @@ package com.sqewd.open.dal.api.persistence;
 
 import org.apache.commons.beanutils.PropertyUtils;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
 
 /**
@@ -25,6 +26,7 @@ import com.sqewd.open.dal.api.persistence.EnumEntityState;
  * 
  */
 public abstract class AbstractEntity {
+	@JsonProperty(value = "record-state")
 	protected EnumEntityState state = EnumEntityState.Loaded;
 
 	/**
@@ -69,7 +71,7 @@ public abstract class AbstractEntity {
 			StructEntityReflect enref = ReflectionUtils.get()
 					.getEntityMetadata(this.getClass());
 			buff.append("[ENTITY:").append(enref.Entity).append("(")
-					.append(enref.Classname).append(")");
+					.append(enref.Class).append(")");
 			for (StructAttributeReflect attr : enref.Attributes) {
 				buff.append("\n\t[")
 						.append(attr.Column)

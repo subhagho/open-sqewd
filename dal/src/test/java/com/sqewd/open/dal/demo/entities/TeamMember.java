@@ -16,11 +16,6 @@ package com.sqewd.open.dal.demo.entities;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.Attribute;
 import com.sqewd.open.dal.api.persistence.Entity;
@@ -31,30 +26,23 @@ import com.sqewd.open.dal.api.persistence.Reference;
  * 
  */
 @Entity(recordset = "MEMBERSHIP")
-@XmlRootElement(name = "membership")
-@XmlAccessorType(XmlAccessType.NONE)
 public class TeamMember extends AbstractPersistedEntity {
 	@Attribute(name = "TEAM", keyattribute = true, size = 256)
-	@XmlElement(name = "team")
 	@Reference(target = "com.sqewd.open.dal.demo.entities.Team", attribute = "ID")
 	private Team team;
 
 	@Attribute(name = "MEMBER", keyattribute = true, size = 256)
-	@XmlElement(name = "member")
 	@Reference(target = "com.sqewd.open.dal.demo.entities.Employee", attribute = "ID")
 	private Employee member;
 
 	@Attribute(name = "ROLE", keyattribute = true, size = 256)
-	@XmlElement(name = "role")
 	@Reference(target = "com.sqewd.open.dal.demo.entities.Role", attribute = "NAME")
 	private Role role;
 
 	@Attribute(name = "STATUS", size = 256)
-	@XmlElement(name = "STATUS")
 	private EnumStatus status;
 
 	@Attribute(name = "CREATEDON", size = 256)
-	@XmlElement(name = "createdon")
 	private Date createdOn;
 
 	/**

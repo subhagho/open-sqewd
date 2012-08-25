@@ -32,6 +32,8 @@ import au.com.bytecode.opencsv.CSVReader;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
+import com.sqewd.open.dal.api.persistence.OperationResponse;
+import com.sqewd.open.dal.api.persistence.PersistenceResponse;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
@@ -243,7 +245,8 @@ public class CSVPersister extends AbstractPersister {
 	 * persistence.AbstractEntity)
 	 */
 	@Override
-	public int save(AbstractEntity record, boolean overwrite) throws Exception {
+	public OperationResponse save(AbstractEntity record, boolean overwrite)
+			throws Exception {
 		throw new NotImplementedException(
 				"This is a dummy persister. Write operations are not supported.");
 	}
@@ -254,8 +257,8 @@ public class CSVPersister extends AbstractPersister {
 	 * @see com.wookler.core.persistence.AbstractPersister#save(java.util.List)
 	 */
 	@Override
-	public int save(List<AbstractEntity> records, boolean overwrite)
-			throws Exception {
+	public PersistenceResponse save(List<AbstractEntity> records,
+			boolean overwrite) throws Exception {
 		throw new NotImplementedException(
 				"This is a dummy persister. Write operations are not supported.");
 	}

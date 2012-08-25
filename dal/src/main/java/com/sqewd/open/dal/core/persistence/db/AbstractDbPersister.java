@@ -32,12 +32,15 @@ import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
+import com.sqewd.open.dal.api.persistence.EnumPersistenceOperation;
+import com.sqewd.open.dal.api.persistence.OperationResponse;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.persistence.PersistenceResponse;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.persistence.query.SQLQuery;
 import com.sqewd.open.dal.core.persistence.query.SimpleDbQuery;
@@ -237,7 +240,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 * persistence.AbstractEntity)
 	 */
 	@Override
-	public int save(AbstractEntity record, boolean overwrite) throws Exception {
+	public OperationResponse save(AbstractEntity record, boolean overwrite)
+			throws Exception {
 		Connection conn = getConnection(true);
 		try {
 			return save(record, conn, overwrite);
@@ -267,6 +271,52 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			}
 		}
 		return false;
+	}
+
+	private String getEntityKey(AbstractEntity entity) throws Exception {
+		StringBuffer buff = new StringBuffer();
+		boolean first = true;
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				entity.getClass());
+		for (String key : enref.FieldMaps.keySet()) {
+			StructAttributeReflect attr = enref.get(key);
+			if (attr == null || !attr.IsKeyColumn)
+				continue;
+
+			if (first)
+				first = false;
+			else
+				buff.append(':');
+
+			String value = null;
+
+			if (attr.Reference == null) {
+				if (attr.Field.getType().equals(Date.class)) {
+					Date dt = (Date) PropertyUtils.getSimpleProperty(entity,
+							attr.Field.getName());
+					value = String.valueOf(dt.getTime());
+				} else {
+					value = String.valueOf(PropertyUtils.getSimpleProperty(
+							entity, attr.Field.getName()));
+					if (!EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
+						value = "'" + value + "'";
+					}
+				}
+			} else {
+				Object dvalue = PropertyUtils.getSimpleProperty(entity,
+						attr.Field.getName());
+				StructAttributeReflect rattr = ReflectionUtils.get()
+						.getAttribute(Class.forName(attr.Reference.Class),
+								attr.Reference.Field);
+				value = String.valueOf(PropertyUtils.getSimpleProperty(dvalue,
+						rattr.Field.getName()));
+				if (!EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
+					value = "'" + value + "'";
+				}
+			}
+			buff.append(value);
+		}
+		return buff.toString();
 	}
 
 	private String getQueryByKey(AbstractEntity entity) throws Exception {
@@ -319,8 +369,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return buff.toString();
 	}
 
-	private int save(AbstractEntity record, Connection conn, boolean overwrite)
-			throws Exception {
+	private OperationResponse save(AbstractEntity record, Connection conn,
+			boolean overwrite) throws Exception {
 		if (record == null)
 			throw new Exception("Invalid entity record : Null record");
 
@@ -332,6 +382,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 					+ record.getClass().getCanonicalName()
 					+ "] is defined as a View and cannot me modified.");
 
+		OperationResponse response = new OperationResponse();
+
 		if (record.getState() == EnumEntityState.New)
 			return insert(record, conn);
 		else if (record.getState() == EnumEntityState.Deleted)
@@ -342,15 +394,21 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			if (recordExists(record)) {
 				if (overwrite)
 					return update(record, conn);
-				else
-					return -1;
+				else {
+					response.setEntity(enref.Entity);
+					response.setKey(getEntityKey(record));
+					response.setOperation(EnumPersistenceOperation.Ignored);
+				}
 			} else
 				return insert(record, conn);
 		}
+		return response;
 	}
 
-	private int insert(AbstractEntity record, Connection conn) throws Exception {
+	private OperationResponse insert(AbstractEntity record, Connection conn)
+			throws Exception {
 		Class<?> type = record.getClass();
+		OperationResponse response = new OperationResponse();
 
 		SimpleDbQuery parser = new SimpleDbQuery();
 
@@ -359,6 +417,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
+		response.setEntity(enref.Entity);
+		response.setKey(getEntityKey(record));
 
 		int index = 1;
 		for (StructAttributeReflect attr : enref.Attributes) {
@@ -391,9 +451,14 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			index++;
 		}
 		int count = pstmnt.executeUpdate();
+		if (count > 0) {
+			response.setOperation(EnumPersistenceOperation.Inserted);
+		} else {
+			response.setOperation(EnumPersistenceOperation.Ignored);
+		}
 		log.debug("[" + record.getClass().getCanonicalName()
 				+ "] created [count=" + count + "]");
-		return count;
+		return response;
 	}
 
 	protected abstract Object getSequenceValue(Entity entity,
@@ -464,8 +529,10 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return ((T) value).name();
 	}
 
-	private int update(AbstractEntity record, Connection conn) throws Exception {
+	private OperationResponse update(AbstractEntity record, Connection conn)
+			throws Exception {
 		Class<?> type = record.getClass();
+		OperationResponse response = new OperationResponse();
 
 		SimpleDbQuery parser = new SimpleDbQuery();
 
@@ -477,6 +544,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
+
+		response.setEntity(enref.Entity);
+		response.setKey(getEntityKey(record));
 
 		int index = 1;
 		for (StructAttributeReflect attr : enref.Attributes) {
@@ -511,9 +581,14 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		}
 
 		int count = pstmnt.executeUpdate();
+		if (count > 0) {
+			response.setOperation(EnumPersistenceOperation.Updated);
+		} else {
+			response.setOperation(EnumPersistenceOperation.Ignored);
+		}
 		log.debug("[" + record.getClass().getCanonicalName()
 				+ "] updated [count=" + count + "]");
-		return count;
+		return response;
 	}
 
 	protected boolean checkSchema() throws Exception {
@@ -545,11 +620,11 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 * @see com.wookler.core.persistence.AbstractPersister#save(java.util.List)
 	 */
 	@Override
-	public int save(List<AbstractEntity> records, boolean overwrite)
-			throws Exception {
+	public PersistenceResponse save(List<AbstractEntity> records,
+			boolean overwrite) throws Exception {
 
+		PersistenceResponse response = new PersistenceResponse();
 		Connection conn = getConnection(true);
-		int count = 0;
 		try {
 			for (AbstractEntity record : records) {
 				if (!record.getClass().isAnnotationPresent(Entity.class))
@@ -557,9 +632,10 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 							+ record.getClass().getCanonicalName()
 							+ "] has not been annotated as an Entity.");
 
-				count += save(record, conn, overwrite);
+				OperationResponse or = save(record, conn, overwrite);
+				response.add(or);
 			}
-			return count;
+			return response;
 		} finally {
 			if (conn != null)
 				releaseConnection(conn);
@@ -567,7 +643,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 	}
 
-	private int delete(AbstractEntity record, Connection conn) throws Exception {
+	private OperationResponse delete(AbstractEntity record, Connection conn)
+			throws Exception {
+		OperationResponse response = new OperationResponse();
 		Class<?> type = record.getClass();
 
 		SimpleDbQuery parser = new SimpleDbQuery();
@@ -580,6 +658,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
+		response.setEntity(enref.Entity);
+		response.setKey(getEntityKey(record));
 
 		for (StructAttributeReflect attr : enref.Attributes) {
 			if (attr == null)
@@ -595,9 +675,14 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		}
 
 		int count = pstmnt.executeUpdate();
+		if (count > 0) {
+			response.setOperation(EnumPersistenceOperation.Deleted);
+		} else {
+			response.setOperation(EnumPersistenceOperation.Ignored);
+		}
 		log.debug("[" + record.getClass().getCanonicalName()
 				+ "] deleted [count=" + count + "]");
-		return count;
+		return response;
 	}
 
 	/**

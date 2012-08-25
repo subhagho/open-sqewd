@@ -5,12 +5,9 @@
 		<temp directory="/tmp/sqewd/temp/" />
 	</env>
 	<server port="8080" numhtreads="5" home="/tmp/sqewd/work/jetty">
-		<web directory="/tmp/sqewd/work/web">
-			<webapps>
-				<app context="/home" war="web.war" />
-			</webapps>
-		</web>
-		<services package="com.sqewd.services" />
+		<!--web directory="/tmp/sqewd/work/web"> <webapps> <app context="/home" 
+			war="web.war" /> </webapps> </web -->
+		<services package="com.sqewd.open.dal.demo.services" />
 	</server>
 	<core>
 		<datamanager>

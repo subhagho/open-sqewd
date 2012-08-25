@@ -13,42 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename AbstractPersistedEntity.java
- * @created Aug 22, 2012
+ * @filename PersistenceResponse.java
+ * @created Aug 25, 2012
  * @author subhagho
  *
  */
 package com.sqewd.open.dal.api.persistence;
 
-import java.util.Date;
+import java.util.HashMap;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * Structure is used to record persistence response.
+ * 
  * @author subhagho
  * 
- *         TODO: <comment>
- * 
  */
-public class AbstractPersistedEntity extends AbstractEntity {
-	public static final String _TX_TIMESTAMP_COLUMN_ = "TX_TIMESTAMP";
-
-	@Attribute(name = _TX_TIMESTAMP_COLUMN_)
-	@JsonProperty(value = "tx-timestamp")
-	protected Date timestamp;
+public class PersistenceResponse {
+	@JsonProperty(value = "statuses")
+	private HashMap<String, OperationResponse> responses = new HashMap<String, OperationResponse>();
 
 	/**
-	 * @return
+	 * @return the responses
 	 */
-	public Date getTimestamp() {
-		return timestamp;
+	public HashMap<String, OperationResponse> getResponses() {
+		return responses;
 	}
 
 	/**
-	 * @param timestamp
+	 * @param responses
+	 *            the responses to set
 	 */
-	public void setTimestamp(Date timestamp) {
-		this.timestamp = timestamp;
+	public void setResponses(HashMap<String, OperationResponse> responses) {
+		this.responses = responses;
 	}
 
+	public void add(OperationResponse response) {
+		String key = response.getHashKey();
+		if (responses.containsKey(key)) {
+			responses.remove(key);
+		}
+		responses.put(key, response);
+	}
 }

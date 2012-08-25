@@ -13,42 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename AbstractPersistedEntity.java
- * @created Aug 22, 2012
+ * @filename EnumResponseState.java
+ * @created Aug 23, 2012
  * @author subhagho
  *
  */
-package com.sqewd.open.dal.api.persistence;
-
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package com.sqewd.open.dal.services;
 
 /**
+ * Enumeration of DAL service response states.
+ * 
  * @author subhagho
  * 
- *         TODO: <comment>
- * 
  */
-public class AbstractPersistedEntity extends AbstractEntity {
-	public static final String _TX_TIMESTAMP_COLUMN_ = "TX_TIMESTAMP";
-
-	@Attribute(name = _TX_TIMESTAMP_COLUMN_)
-	@JsonProperty(value = "tx-timestamp")
-	protected Date timestamp;
-
+public enum EnumResponseState {
 	/**
-	 * @return
+	 * Service executed successfully. If data fetch service, data is returned.
 	 */
-	public Date getTimestamp() {
-		return timestamp;
-	}
-
+	Success,
 	/**
-	 * @param timestamp
+	 * Service executed successfully, but no data was returned.
 	 */
-	public void setTimestamp(Date timestamp) {
-		this.timestamp = timestamp;
-	}
-
+	NoData,
+	/**
+	 * Service execution raised an exception.
+	 */
+	Exception;
 }

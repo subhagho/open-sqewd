@@ -74,8 +74,8 @@ public abstract class AbstractPersister implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract List<AbstractEntity> read(String query, Class<?> type, int limit)
-			throws Exception;
+	public abstract List<AbstractEntity> read(String query, Class<?> type,
+			int limit) throws Exception;
 
 	/**
 	 * Persist the specified entity record.
@@ -84,8 +84,8 @@ public abstract class AbstractPersister implements InitializedHandle {
 	 *            - Entity record instance.
 	 * @throws Exception
 	 */
-	public abstract int save(AbstractEntity record, boolean overwrite)
-			throws Exception;
+	public abstract OperationResponse save(AbstractEntity record,
+			boolean overwrite) throws Exception;
 
 	/**
 	 * Bulk save a list of entity records.
@@ -94,7 +94,7 @@ public abstract class AbstractPersister implements InitializedHandle {
 	 *            - List of entity records.
 	 * @throws Exception
 	 */
-	public abstract int save(List<AbstractEntity> records, boolean overwrite)
-			throws Exception;
+	public abstract PersistenceResponse save(List<AbstractEntity> records,
+			boolean overwrite) throws Exception;
 
 }

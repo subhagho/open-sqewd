@@ -13,42 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename AbstractPersistedEntity.java
- * @created Aug 22, 2012
+ * @filename Timer.java
+ * @created Aug 25, 2012
  * @author subhagho
  *
  */
-package com.sqewd.open.dal.api.persistence;
-
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package com.sqewd.open.dal.utils;
 
 /**
  * @author subhagho
  * 
- *         TODO: <comment>
  * 
  */
-public class AbstractPersistedEntity extends AbstractEntity {
-	public static final String _TX_TIMESTAMP_COLUMN_ = "TX_TIMESTAMP";
+public class Timer {
+	private long startime = System.currentTimeMillis();
 
-	@Attribute(name = _TX_TIMESTAMP_COLUMN_)
-	@JsonProperty(value = "tx-timestamp")
-	protected Date timestamp;
-
-	/**
-	 * @return
-	 */
-	public Date getTimestamp() {
-		return timestamp;
+	public long start() {
+		startime = System.currentTimeMillis();
+		return startime;
 	}
 
-	/**
-	 * @param timestamp
-	 */
-	public void setTimestamp(Date timestamp) {
-		this.timestamp = timestamp;
+	public long stop() {
+		long endtime = System.currentTimeMillis();
+		return endtime - startime;
 	}
-
 }

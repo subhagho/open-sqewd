@@ -44,9 +44,9 @@ import com.sqewd.open.dal.api.persistence.OperationResponse;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.LogUtils;
+import com.sqewd.open.dal.api.utils.Timer;
 import com.sqewd.open.dal.core.persistence.DataManager;
 import com.sqewd.open.dal.server.ServerConfig;
-import com.sqewd.open.dal.utils.Timer;
 import com.sun.jersey.api.JResponse;
 
 /**

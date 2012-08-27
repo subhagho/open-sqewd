@@ -68,6 +68,13 @@ public @interface Entity {
 	boolean isview() default false;
 
 	/**
+	 * Virtual Joins are entities which are joined post select to create a view.
+	 * 
+	 * @return
+	 */
+	boolean isjoin() default false;
+
+	/**
 	 * The Select Query which will be used to create the entity. This is only
 	 * applicable to Entity types which are defined as views.
 	 * 

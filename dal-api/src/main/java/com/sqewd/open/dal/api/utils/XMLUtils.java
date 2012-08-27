@@ -13,8 +13,16 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.utils;
+
+import java.io.File;
 import java.util.HashMap;
 
+import javax.xml.XMLConstants;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -34,6 +42,17 @@ public class XMLUtils {
 	public static final String _PARAM_ATTR_TYPE_ = "type";
 
 	private static XPath xpath = XPathFactory.newInstance().newXPath();
+
+	public static void validate(String xmlfile, String schemaf)
+			throws Exception {
+		Source xmlsrc = new StreamSource(new File(xmlfile));
+
+		SchemaFactory sf = SchemaFactory
+				.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		Schema schema = sf.newSchema(XMLUtils.class.getResource(schemaf));
+		Validator validator = schema.newValidator();
+		validator.validate(xmlsrc);
+	}
 
 	/**
 	 * Get the XML Nodes for the specified XPath.

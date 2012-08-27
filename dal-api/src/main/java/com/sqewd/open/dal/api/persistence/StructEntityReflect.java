@@ -30,7 +30,9 @@ public class StructEntityReflect {
 	public HashMap<String, StructAttributeReflect> ColumnMaps = new HashMap<String, StructAttributeReflect>();
 	public List<StructAttributeReflect> Attributes = new ArrayList<StructAttributeReflect>();
 	public boolean IsView = false;
+	public boolean IsJoin = false;
 	public String Query;
+	public StructJoinedEntityView Join;
 
 	public void add(StructAttributeReflect attr) {
 		if (FieldMaps.containsKey(attr.Field.getName())) {

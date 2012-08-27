@@ -14,26 +14,9 @@
  */
 package com.sqewd.open.dal.api.persistence;
 
-import java.lang.reflect.Method;
-
-import com.sqewd.open.dal.api.persistence.CustomFieldDataHandler;
-
-/**
- * Structure encapsulates the Entity Attribute parameters extracted from the
- * annotation using reflection.
- * 
- * @author subhagho
- * 
- */
-public class StructAttributeReflect {
-	public java.lang.reflect.Field Field;
-	public String Column;
-	public Method Getter;
-	public Method Setter;
-	public boolean IsKeyColumn = false;
-	public boolean AutoIncrement = false;
-	public int Size;
-	public CustomFieldDataHandler Convertor = null;
-	public StructReferenceReflection Reference = null;
-
+public class StructReferenceReflection {
+	public String Class;
+	public String Field;
+	public EnumRefereceType Type = EnumRefereceType.One2One;
+	public boolean CascadeUpdate = false;
 }

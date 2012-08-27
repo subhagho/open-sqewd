@@ -540,8 +540,9 @@ public class DalSqlParser implements DalSqlParserConstants {
   ZExp e;
   ZOrderBy ob;
     jj_consume_token(K_ORDER);
+    jj_consume_token(K_BY);
     e = SQLSimpleExpression();
-                                       ob = new ZOrderBy(e);
+                                             ob = new ZOrderBy(e);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case K_ASC:
     case K_DESC:

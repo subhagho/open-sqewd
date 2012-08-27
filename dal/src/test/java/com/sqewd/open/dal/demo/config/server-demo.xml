@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	targetNamespace="http://open.skewd.com/moong-dal" xmlns="http://open.skewd.com/moong-dal"
-	elementFormDefault="qualified">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xs:targetNamespace="http://open.skewd.com/moong-dal" xmlns="http://open.skewd.com/moong-dal"
+	xsi:schemaLocation="https://raw.github.com/subhagho/open-sqewd/master/dal-api/src/main/java/com/sqewd/open/dal/schema/ https://raw.github.com/subhagho/open-sqewd/master/dal-api/src/main/java/com/sqewd/open/dal/schema/moong-dal.xsd"
+	xs:elementFormDefault="qualified">
 	<env>
 		<work directory="/tmp/sqewd/work/" />
 		<temp directory="/tmp/sqewd/temp/" />

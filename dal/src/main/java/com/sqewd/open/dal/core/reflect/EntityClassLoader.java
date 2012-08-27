@@ -62,13 +62,16 @@ public class EntityClassLoader extends ClassLoader {
 	 */
 	@Override
 	protected Class<?> findClass(String arg0) throws ClassNotFoundException {
-		Class<?> cls;
+		Class<?> cls = findLoadedClass(arg0);
+		if (cls != null)
+			return cls;
+
 		try {
 			cls = process(arg0);
 			if (cls != null)
 				return cls;
 		} catch (Exception e) {
-			throw new ClassNotFoundException("Failed to load class...", e);
+			// throw new ClassNotFoundException("Failed to load class...", e);
 		}
 
 		return null;

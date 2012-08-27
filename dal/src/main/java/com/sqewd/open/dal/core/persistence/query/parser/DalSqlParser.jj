@@ -130,7 +130,7 @@ TOKEN: /* SQL Keywords. prefixed with K_ to avoid name clashes */
 |   <K_OF:"OF">
 |   <K_ONLY:"ONLY">
 |   <K_OR:",">
-|   <K_ORDER:"SORT">
+|   <K_ORDER:"ORDER">
 |   <K_PRIOR:"PRIOR">
 |   <K_QUIT:"QUIT">
 |   <K_READ:"READ">
@@ -440,7 +440,7 @@ Vector<ZOrderBy> OrderByClause():
   ZOrderBy ob;
 }
 {
-    "SORT" e = SQLSimpleExpression() { ob = new ZOrderBy(e); }
+    "ORDER" "BY" e = SQLSimpleExpression() { ob = new ZOrderBy(e); }
     ["ASC" | "DESC" { ob.setAscOrder(false); }] { v.addElement(ob); }
     ("," e = SQLSimpleExpression() { ob = new ZOrderBy(e); }
      ["ASC" | "DESC" { ob.setAscOrder(false); }] { v.addElement(ob); } )*

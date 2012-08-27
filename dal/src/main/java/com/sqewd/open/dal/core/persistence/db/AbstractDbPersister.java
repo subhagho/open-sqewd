@@ -83,19 +83,20 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 	}
 
+	@SuppressWarnings("unused")
 	private List<AbstractEntity> read(String query, Class<?> type, int limit,
 			Connection conn) throws Exception {
-		SQLQuery parser = new SQLQuery(type);
-
 		// Make sure the type for the class is available.
-		ReflectionUtils.get().getEntityMetadata(type);
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+		SQLQuery parser = new SQLQuery(type);
 
 		String selectsql = parser.parse(query, limit);
 		Statement stmnt = conn.createStatement();
 		try {
 			log.debug("SELECT SQL [" + selectsql + "]");
 			ResultSet rs = stmnt.executeQuery(selectsql);
-			JoinGraph gr = JoinGraph.lookup(type);
+			AbstractJoinGraph gr = AbstractJoinGraph.lookup(type);
 
 			List<AbstractEntity> entities = new ArrayList<AbstractEntity>();
 			while (rs.next()) {
@@ -118,8 +119,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		}
 	}
 
-	private void setEntity(AbstractEntity entity, ResultSet rs, JoinGraph gr,
-			Stack<KeyValuePair<Class<?>>> path) throws Exception {
+	private void setEntity(AbstractEntity entity, ResultSet rs,
+			AbstractJoinGraph gr, Stack<KeyValuePair<Class<?>>> path)
+			throws Exception {
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				entity.getClass());
 
@@ -132,7 +134,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void setColumnValue(ResultSet rs, StructAttributeReflect attr,
-			AbstractEntity entity, JoinGraph gr,
+			AbstractEntity entity, AbstractJoinGraph gr,
 			Stack<KeyValuePair<Class<?>>> path) throws Exception {
 
 		KeyValuePair<String> alias = gr.getAliasFor(path, attr.Column, 0);

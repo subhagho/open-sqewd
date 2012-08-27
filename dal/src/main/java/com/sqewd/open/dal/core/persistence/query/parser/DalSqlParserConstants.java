@@ -236,7 +236,7 @@ public interface DalSqlParserConstants {
     "\"OF\"",
     "\"ONLY\"",
     "\",\"",
-    "\"SORT\"",
+    "\"ORDER\"",
     "\"PRIOR\"",
     "\"QUIT\"",
     "\"READ\"",

@@ -31,8 +31,10 @@ import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
+import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.OperationResponse;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.InstanceParam;
 import com.sqewd.open.dal.api.utils.ListParam;
 import com.sqewd.open.dal.api.utils.LogUtils;
@@ -260,8 +262,54 @@ public class DataManager implements InitializedHandle {
 	 */
 	public List<AbstractEntity> read(String query, Class<?> type, int limit)
 			throws Exception {
-		AbstractPersister persister = getPersister(type);
-		return persister.read(query, type, limit);
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				type);
+		if (enref.IsJoin) {
+			if (enref.Join.Type == null
+					|| enref.Join.Type == EnumJoinType.Unknown) {
+				isNativeJoin(enref);
+			}
+		}
+		if (!enref.IsJoin || enref.Join.Type == EnumJoinType.Native) {
+			AbstractPersister persister = getPersister(type);
+			return persister.read(query, type, limit);
+		} else {
+			return readjoined(query, type, limit, enref);
+		}
+	}
+
+	private List<AbstractEntity> readjoined(String query, Class<?> type,
+			int limit, StructEntityReflect enref) throws Exception {
+		for (String entity : enref.Join.Entities) {
+			StructEntityReflect subref = ReflectionUtils.get()
+					.getEntityMetadata(entity);
+			if (subref == null)
+				throw new Exception("No entity defined for name [" + entity
+						+ "]");
+
+		}
+		return null;
+	}
+
+	private void isNativeJoin(StructEntityReflect enref) throws Exception {
+		AbstractPersister pers = null;
+
+		for (String entity : enref.Join.Entities) {
+			StructEntityReflect subref = ReflectionUtils.get()
+					.getEntityMetadata(entity);
+			if (subref == null)
+				throw new Exception("No entity defined for name [" + entity
+						+ "]");
+			Class<?> cls = Class.forName(subref.Class);
+			AbstractPersister p = getPersister(cls);
+			if (pers == null)
+				pers = p;
+			else if (!p.equals(pers)) {
+				enref.Join.Type = EnumJoinType.Virtual;
+				return;
+			}
+		}
+		enref.Join.Type = EnumJoinType.Native;
 	}
 
 	/**

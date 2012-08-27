@@ -30,8 +30,13 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sqewd.open.dal.api.persistence.AbstractPersister;
+import com.sqewd.open.dal.api.persistence.EnumJoinType;
+import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.LogUtils;
-import com.sqewd.open.dal.core.persistence.db.JoinGraph;
+import com.sqewd.open.dal.core.persistence.DataManager;
+import com.sqewd.open.dal.core.persistence.db.AbstractJoinGraph;
 import com.sqewd.open.dal.demo.entities.OrganizationView;
 import com.sqewd.open.dal.demo.entities.TeamMember;
 import com.sqewd.open.dal.test.EnvSetup;
@@ -67,10 +72,31 @@ public class Test_SQLQuery {
 		EnvSetup.dispose();
 	}
 
+	private void isNativeJoin(StructEntityReflect enref) throws Exception {
+		AbstractPersister pers = null;
+
+		for (String entity : enref.Join.Entities) {
+			StructEntityReflect subref = ReflectionUtils.get()
+					.getEntityMetadata(entity);
+			if (subref == null)
+				throw new Exception("No entity defined for name [" + entity
+						+ "]");
+			Class<?> cls = Class.forName(subref.Class);
+			AbstractPersister p = DataManager.get().getPersister(cls);
+			if (pers == null)
+				pers = p;
+			else if (!p.equals(pers)) {
+				enref.Join.Type = EnumJoinType.Virtual;
+				return;
+			}
+		}
+		enref.Join.Type = EnumJoinType.Native;
+	}
+
 	@Test
 	public void testParse() {
 		try {
-			JoinGraph gr = JoinGraph.lookup(TeamMember.class);
+			AbstractJoinGraph gr = AbstractJoinGraph.lookup(TeamMember.class);
 
 			List<String> nodes = gr.getPath("MEMBERSHIP.MEMBER.ID");
 			if (nodes.size() > 0) {
@@ -78,7 +104,9 @@ public class Test_SQLQuery {
 					log.info("Found : " + column);
 				}
 			}
-			String query = "(ORGANIZATION.EMPLOYEE.ID LIKE '10%';EMPLOYEE.ID LIKE '10%')";
+			String query = "EMPLOYEE.ID LIKE '%2%'";
+			isNativeJoin(ReflectionUtils.get().getEntityMetadata(
+					OrganizationView.class));
 			SQLQuery sq = new SQLQuery(OrganizationView.class);
 			String sql = sq.parse(query, 30);
 			log.info("SQL[" + sql + "]");

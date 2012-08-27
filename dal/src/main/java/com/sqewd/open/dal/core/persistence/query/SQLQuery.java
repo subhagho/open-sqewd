@@ -37,9 +37,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.persistence.Entity;
+import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
-import com.sqewd.open.dal.core.persistence.db.JoinGraph;
+import com.sqewd.open.dal.core.persistence.db.AbstractJoinGraph;
 import com.sqewd.open.dal.core.persistence.query.parser.DalSqlParser;
 
 /**
@@ -64,7 +65,15 @@ public class SQLQuery {
 					.getEntityMetadata(type);
 			if (!querycache.containsKey(enref.Entity)) {
 				if (enref.IsView) {
-					selectq = enref.Query;
+					if (!enref.IsJoin)
+						selectq = enref.Query;
+					else {
+						if (enref.Join.Type == EnumJoinType.Native) {
+							selectq = getBasicSelect(graph);
+						} else
+							throw new Exception(
+									"This method should not be called for Joined Entities.");
+					}
 				} else {
 					selectq = getBasicSelect(graph);
 				}
@@ -94,7 +103,7 @@ public class SQLQuery {
 		}
 	}
 
-	private static String getBasicSelect(JoinGraph graph) throws Exception {
+	private static String getBasicSelect(AbstractJoinGraph graph) throws Exception {
 		StringBuffer where = new StringBuffer();
 
 		Collection<String> columns = graph.getColumns();
@@ -144,11 +153,11 @@ public class SQLQuery {
 
 	private String query;
 
-	private JoinGraph graph = null;
+	private AbstractJoinGraph graph = null;
 
 	public SQLQuery(Class<?> type) throws Exception {
 		this.type = type;
-		graph = JoinGraph.lookup(type);
+		graph = AbstractJoinGraph.lookup(type);
 	}
 
 	public String parse(String query, int limit) throws Exception {

@@ -120,8 +120,29 @@ public class ReflectionUtils {
 				entity.Class = type.getCanonicalName();
 				entity.Entity = eann.recordset();
 				entity.IsView = eann.isview();
+				entity.IsJoin = eann.isjoin();
 				entity.Query = eann.query();
+				if (entity.IsJoin) {
+					entity.IsView = true;
+					if (!type.isAnnotationPresent(EntityJoin.class))
+						throw new Exception(
+								"Class ["
+										+ type.getCanonicalName()
+										+ "] is specified as a vitual join, but missing Join annotation ["
+										+ EntityJoin.class.getCanonicalName()
+										+ "]");
+					EntityJoin join = type.getAnnotation(EntityJoin.class);
+					StructJoinedEntityView jev = new StructJoinedEntityView();
+					String[] entities = join.entities().split(",");
+					jev.Entities = new String[entities.length];
+					for (int ii = 0; ii < jev.Entities.length; ii++) {
+						jev.Entities[ii] = entities[ii].trim();
+					}
 
+					jev.Join = join.join();
+
+					entity.Join = jev;
+				}
 				List<Field> fields = new ArrayList<Field>();
 				getFields(type, fields);
 				if (fields != null && fields.size() > 0) {
@@ -145,12 +166,11 @@ public class ReflectionUtils {
 						if (fd.isAnnotationPresent(Reference.class)) {
 							Reference ref = (Reference) fd
 									.getAnnotation(Reference.class);
-							ar.Reference = new ReferenceReflection();
+							ar.Reference = new StructReferenceReflection();
 							ar.Reference.Class = ref.target();
 							ar.Reference.Field = ref.attribute();
 							ar.Reference.Type = ref.association();
 							ar.Reference.CascadeUpdate = ref.cascade();
-							ar.Reference.NativeJoin = ref.nativejoin();
 						}
 						if (attr.handler() != null && !attr.handler().isEmpty()) {
 							String handler = attr.handler();

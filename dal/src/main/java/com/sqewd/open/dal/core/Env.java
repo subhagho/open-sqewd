@@ -13,14 +13,15 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core;
+
 import java.io.File;
 import java.util.HashMap;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.w3c.dom.Document;
 
+import com.sqewd.open.dal.api.utils.XMLUtils;
 import com.sqewd.open.dal.core.persistence.DataManager;
-
 
 /**
  * Initializes the System Environment. Shared handles should be registered with
@@ -42,6 +43,9 @@ public class Env {
 	private HashMap<String, Object> shared = new HashMap<String, Object>();
 
 	private Env(String filename) throws Exception {
+		// XMLUtils.validate(filename,
+		// "/com/sqewd/open/dal/schema/moong-dal.xsd");
+
 		configf = filename;
 		config = new XMLConfiguration(configf);
 

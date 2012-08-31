@@ -50,6 +50,9 @@ public class NativeJoinGraph extends AbstractJoinGraph {
 	private void process() throws Exception {
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
+		table = enref.Entity;
+		alias = enref.Entity;
+
 		if (!enref.IsJoin || enref.Join.Type != EnumJoinType.Native) {
 			throw new Exception("Invalid entity [" + enref.Class
 					+ "], does not represent a native join.");
@@ -64,11 +67,12 @@ public class NativeJoinGraph extends AbstractJoinGraph {
 					if (!hasAlias(name)) {
 						break;
 					}
-					name = name + "_" + count;
+					name = name + _ALIAS_SUFFIX_ + count;
 					count++;
 				}
 				InternalJoinGraph ig = new InternalJoinGraph(
-						Class.forName(attr.Reference.Class), this, name);
+						Class.forName(attr.Reference.Class), this, name,
+						attr.Column);
 				joins.put(ig.alias, ig);
 			}
 		}
@@ -159,17 +163,21 @@ public class NativeJoinGraph extends AbstractJoinGraph {
 		if (cls.getValue().equals(type)) {
 			if (index == path.size() - 1) {
 				return new KeyValuePair<String>(alias, table);
-			} else {
-				for (String key : joins.keySet()) {
-					if (key.compareTo(cls.getKey()) == 0) {
-						return joins.get(key).getAliasFor(path, cls.getKey(),
-								index + 1);
-					}
+			}
+			for (String key : joins.keySet()) {
+				if (key.compareTo(cls.getKey()) == 0) {
+					return joins.get(key).getAliasFor(path, column, index + 1);
 				}
 			}
 		}
-		throw new Exception("Cannot find alias for PATH[" + getPathString(path)
-				+ "]");
+		throw new Exception("Invalid Path : Root element isn't of type ["
+				+ type.getCanonicalName() + "]");
 	}
 
+	public AbstractJoinGraph getElementGraph(String column) throws Exception {
+		if (joins.containsKey(column)) {
+			return joins.get(column);
+		}
+		throw new Exception("No joins specified for column [" + column + "]");
+	}
 }

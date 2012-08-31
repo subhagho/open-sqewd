@@ -40,9 +40,10 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 	private HashMap<String, KeyValuePair<InternalJoinGraph>> joins = null;
 
 	public InternalJoinGraph(Class<?> type, AbstractJoinGraph parent,
-			String name) throws Exception {
+			String name, String columname) throws Exception {
 		this.type = type;
 		this.parent = parent;
+		this.columname = columname;
 
 		process(name);
 	}
@@ -63,7 +64,7 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 			if (parent == null || !parent.hasAlias(alias)) {
 				break;
 			}
-			alias = alias + "_" + ii;
+			alias = alias + _ALIAS_SUFFIX_ + ii;
 			ii++;
 		}
 		addalias(alias, enref.Entity);
@@ -78,7 +79,7 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 				continue;
 			Class<?> rt = Class.forName(attr.Reference.Class);
 			InternalJoinGraph graph = new InternalJoinGraph(rt, this,
-					attr.Column);
+					attr.Column, attr.Column);
 			KeyValuePair<InternalJoinGraph> kvp = new KeyValuePair<InternalJoinGraph>(
 					attr.Reference.Field, graph);
 			if (joins == null)
@@ -163,7 +164,6 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 			}
 		}
 	}
-
 
 	/*
 	 * (non-Javadoc)

@@ -16,6 +16,7 @@ package com.sqewd.open.dal.api.persistence;
 
 import org.apache.commons.beanutils.PropertyUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
 
@@ -26,6 +27,9 @@ import com.sqewd.open.dal.api.persistence.EnumEntityState;
  * 
  */
 public abstract class AbstractEntity {
+	@JsonIgnore
+	public static final String _KEY_SEPARATOR_ = "~|~";
+
 	@JsonProperty(value = "record-state")
 	protected EnumEntityState state = EnumEntityState.Loaded;
 
@@ -57,6 +61,36 @@ public abstract class AbstractEntity {
 	 */
 	public void setState(EnumEntityState state) {
 		this.state = state;
+	}
+
+	/**
+	 * Get a string value representing the key columns.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	@JsonIgnore
+	public String getEntityKey() throws Exception {
+		StringBuffer buff = new StringBuffer();
+		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
+				getClass());
+
+		for (StructAttributeReflect attr : enref.Attributes) {
+			if (attr.IsKeyColumn) {
+				if (buff.length() > 0)
+					buff.append(_KEY_SEPARATOR_);
+				Object value = PropertyUtils.getSimpleProperty(this,
+						attr.Field.getName());
+				if (value instanceof AbstractEntity) {
+					buff.append(((AbstractEntity) value).getEntityKey());
+				} else {
+					buff.append(value);
+				}
+			}
+		}
+		if (buff.length() == 0)
+			return null;
+		return buff.toString();
 	}
 
 	/*

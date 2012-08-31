@@ -21,9 +21,11 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
+import org.apache.commons.beanutils.MethodUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.EnumPersistenceOperation;
+import com.sqewd.open.dal.api.persistence.EnumRefereceType;
 import com.sqewd.open.dal.api.persistence.OperationResponse;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
@@ -83,12 +86,13 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 	}
 
-	@SuppressWarnings("unused")
 	private List<AbstractEntity> read(String query, Class<?> type, int limit,
 			Connection conn) throws Exception {
 		// Make sure the type for the class is available.
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
+		boolean joinedList = hasJoinedList(enref);
+
 		SQLQuery parser = new SQLQuery(type);
 
 		String selectsql = parser.parse(query, limit);
@@ -96,27 +100,157 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		try {
 			log.debug("SELECT SQL [" + selectsql + "]");
 			ResultSet rs = stmnt.executeQuery(selectsql);
-			AbstractJoinGraph gr = AbstractJoinGraph.lookup(type);
 
 			List<AbstractEntity> entities = new ArrayList<AbstractEntity>();
+			HashMap<String, AbstractEntity> refindx = null;
+			if (joinedList)
+				refindx = new HashMap<String, AbstractEntity>();
+
 			while (rs.next()) {
-				Object obj = type.newInstance();
-				if (!(obj instanceof AbstractEntity))
-					throw new Exception("Unsupported Entity type ["
-							+ type.getCanonicalName() + "]");
-				AbstractEntity entity = (AbstractEntity) obj;
-				Stack<KeyValuePair<Class<?>>> path = new Stack<KeyValuePair<Class<?>>>();
-				KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
-				cls.setValue(entity.getClass());
-				path.push(cls);
-				setEntity(entity, rs, gr, path);
-				entities.add(entity);
+
+				if (!joinedList) {
+					AbstractJoinGraph gr = AbstractJoinGraph.lookup(type);
+
+					Object obj = type.newInstance();
+					if (!(obj instanceof AbstractEntity))
+						throw new Exception("Unsupported Entity type ["
+								+ type.getCanonicalName() + "]");
+					AbstractEntity entity = (AbstractEntity) obj;
+					Stack<KeyValuePair<Class<?>>> path = new Stack<KeyValuePair<Class<?>>>();
+					KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
+					cls.setValue(entity.getClass());
+					path.push(cls);
+					setEntity(entity, rs, gr, path);
+					entities.add(entity);
+				} else {
+					setEntity(enref, refindx, rs);
+				}
+			}
+			if (joinedList) {
+				for (String key : refindx.keySet()) {
+					entities.add(refindx.get(key));
+				}
 			}
 			return entities;
 		} finally {
 			if (stmnt != null && !stmnt.isClosed())
 				stmnt.close();
 		}
+	}
+
+	private boolean hasJoinedList(StructEntityReflect enref) throws Exception {
+		boolean retval = false;
+		if (enref.IsJoin) {
+			for (StructAttributeReflect attr : enref.Attributes) {
+				if (attr.Reference != null
+						&& attr.Reference.Type == EnumRefereceType.One2Many) {
+					Class<?> ft = attr.Field.getType();
+					if (ft.equals(List.class)) {
+						retval = true;
+						continue;
+					}
+					Class<?>[] intfs = ft.getInterfaces();
+					if (intfs != null && intfs.length > 0) {
+						for (Class<?> intf : intfs) {
+							if (intf.equals(List.class)) {
+								retval = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		return retval;
+	}
+
+	private void setEntity(StructEntityReflect enref,
+			HashMap<String, AbstractEntity> entities, ResultSet rs)
+			throws Exception {
+		Class<?> type = Class.forName(enref.Class);
+		Object obj = type.newInstance();
+		if (!(obj instanceof AbstractEntity))
+			throw new Exception("Unsupported Entity type ["
+					+ type.getCanonicalName() + "]");
+		AbstractEntity entity = (AbstractEntity) obj;
+		AbstractJoinGraph gr = AbstractJoinGraph.lookup(type);
+
+		for (StructAttributeReflect attr : enref.Attributes) {
+			Stack<KeyValuePair<Class<?>>> path = new Stack<KeyValuePair<Class<?>>>();
+			Class<?> at = attr.Field.getType();
+			KeyValuePair<Class<?>> ak = new KeyValuePair<Class<?>>();
+			ak.setValue(entity.getClass());
+			ak.setKey(attr.Column);
+			path.push(ak);
+
+			if (attr.Reference == null
+					|| attr.Reference.Type != EnumRefereceType.One2Many) {
+				setColumnValue(rs, attr, entity, gr, path);
+			} else if (attr.Reference != null) {
+				// Object ao = createListInstance(entity, attr);
+				Class<?> rt = Class.forName(attr.Reference.Class);
+				Object ro = rt.newInstance();
+				if (!(ro instanceof AbstractEntity)) {
+					throw new Exception("Reference [" + attr.Column
+							+ "] is of invalid type. [" + at.getCanonicalName()
+							+ "] does not extend from ["
+							+ AbstractEntity.class.getCanonicalName() + "]");
+				}
+				AbstractEntity ae = (AbstractEntity) getColumnValue(rs, attr,
+						entity, gr, path);
+				addListValue(ae, entity, attr);
+			}
+
+		}
+		String key = entity.getEntityKey();
+		if (!entities.containsKey(key)) {
+			entities.put(entity.getEntityKey(), entity);
+		} else {
+			AbstractEntity target = entities.get(key);
+			for (StructAttributeReflect attr : enref.Attributes) {
+				if (attr.Reference.Type == EnumRefereceType.One2Many)
+					copyToList(entity, target, attr);
+			}
+		}
+	}
+
+	private <T extends AbstractEntity> void copyToList(T source, T dest,
+			StructAttributeReflect attr) throws Exception {
+		Object so = PropertyUtils.getSimpleProperty(source,
+				attr.Field.getName());
+		Object to = PropertyUtils.getSimpleProperty(dest, attr.Field.getName());
+		if (so == null)
+			return;
+		if (to == null)
+			throw new Exception(
+					"Source List has not been intiialized for Field ["
+							+ attr.Column + "]");
+		if (!(so instanceof List<?>))
+			throw new Exception("Source element [" + attr.Column
+					+ "] is not a List");
+		if (!(to instanceof List<?>))
+			throw new Exception("Target element [" + attr.Column
+					+ "] is not a List");
+		MethodUtils.invokeMethod(to, "addAll", new Object[] { so });
+	}
+
+	private <T extends AbstractEntity> Object createListInstance(
+			AbstractEntity entity, StructAttributeReflect attr)
+			throws Exception {
+		Object vo = PropertyUtils.getSimpleProperty(entity,
+				attr.Field.getName());
+		if (vo == null) {
+			vo = new ArrayList<T>();
+			PropertyUtils.setSimpleProperty(entity, attr.Field.getName(), vo);
+		}
+		return vo;
+	}
+
+	private <T extends AbstractEntity> void addListValue(AbstractEntity entity,
+			AbstractEntity parent, StructAttributeReflect attr)
+			throws Exception {
+		Object vo = createListInstance(parent, attr);
+		MethodUtils.invokeMethod(vo, "add", new Object[] { entity });
 	}
 
 	private void setEntity(AbstractEntity entity, ResultSet rs,
@@ -126,8 +260,6 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				entity.getClass());
 
 		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr == null)
-				continue;
 			setColumnValue(rs, attr, entity, gr, path);
 		}
 	}
@@ -222,7 +354,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				throw new Exception("Unsupported Entity type ["
 						+ rt.getCanonicalName() + "]");
 			AbstractEntity rentity = (AbstractEntity) obj;
-			path.peek().setKey(attr.Column);
+			if (path.size() > 0)
+				path.peek().setKey(attr.Column);
 
 			KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
 			cls.setValue(rentity.getClass());
@@ -232,6 +365,106 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 					rentity);
 			path.pop();
 		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private Object getColumnValue(ResultSet rs, StructAttributeReflect attr,
+			AbstractEntity entity, AbstractJoinGraph gr,
+			Stack<KeyValuePair<Class<?>>> path) throws Exception {
+
+		Object value = null;
+
+		KeyValuePair<String> alias = gr.getAliasFor(path, attr.Column, 0);
+		String tabprefix = alias.getKey();
+
+		if (EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
+			EnumPrimitives prim = EnumPrimitives.type(attr.Field.getType());
+			switch (prim) {
+			case ECharacter:
+				String sv = rs.getString(tabprefix + "." + attr.Column);
+				if (!rs.wasNull()) {
+					PropertyUtils.setSimpleProperty(entity,
+							attr.Field.getName(), sv.charAt(0));
+				}
+				break;
+			case EShort:
+				short shv = rs.getShort(tabprefix + "." + attr.Column);
+				if (!rs.wasNull()) {
+					PropertyUtils.setSimpleProperty(entity,
+							attr.Field.getName(), shv);
+				}
+				break;
+			case EInteger:
+				int iv = rs.getInt(tabprefix + "." + attr.Column);
+				if (!rs.wasNull()) {
+					PropertyUtils.setSimpleProperty(entity,
+							attr.Field.getName(), iv);
+				}
+				break;
+			case ELong:
+				long lv = rs.getLong(tabprefix + "." + attr.Column);
+				if (!rs.wasNull()) {
+					PropertyUtils.setSimpleProperty(entity,
+							attr.Field.getName(), lv);
+				}
+				break;
+			case EFloat:
+				float fv = rs.getFloat(tabprefix + "." + attr.Column);
+				if (!rs.wasNull()) {
+					PropertyUtils.setSimpleProperty(entity,
+							attr.Field.getName(), fv);
+				}
+				break;
+			case EDouble:
+				double dv = rs.getDouble(tabprefix + "." + attr.Column);
+				if (!rs.wasNull()) {
+					PropertyUtils.setSimpleProperty(entity,
+							attr.Field.getName(), dv);
+				}
+				break;
+			default:
+				throw new Exception("Unsupported Data type [" + prim.name()
+						+ "]");
+			}
+		} else if (attr.Convertor != null) {
+			// TODO : Not supported at this time.
+			value = rs.getString(tabprefix + "." + attr.Column);
+
+		} else if (attr.Field.getType().equals(String.class)) {
+			value = rs.getString(tabprefix + "." + attr.Column);
+			if (rs.wasNull()) {
+				value = null;
+			}
+		} else if (attr.Field.getType().equals(Date.class)) {
+			long lvalue = rs.getLong(tabprefix + "." + attr.Column);
+			if (!rs.wasNull()) {
+				Date dt = new Date(lvalue);
+				value = dt;
+			}
+		} else if (attr.Field.getType().isEnum()) {
+			String svalue = rs.getString(tabprefix + "." + attr.Column);
+			if (!rs.wasNull()) {
+				Class ecls = attr.Field.getType();
+				value = Enum.valueOf(ecls, svalue);
+			}
+		} else if (attr.Reference != null) {
+			Class<?> rt = Class.forName(attr.Reference.Class);
+			Object obj = rt.newInstance();
+			if (!(obj instanceof AbstractEntity))
+				throw new Exception("Unsupported Entity type ["
+						+ rt.getCanonicalName() + "]");
+			AbstractEntity rentity = (AbstractEntity) obj;
+			if (path.size() > 0)
+				path.peek().setKey(attr.Column);
+
+			KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
+			cls.setValue(rentity.getClass());
+			path.push(cls);
+			setEntity(rentity, rs, gr, path);
+			value = rentity;
+			path.pop();
+		}
+		return value;
 	}
 
 	/*

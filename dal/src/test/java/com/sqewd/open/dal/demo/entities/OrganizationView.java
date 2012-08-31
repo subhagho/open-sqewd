@@ -20,10 +20,13 @@
  */
 package com.sqewd.open.dal.demo.entities;
 
+import java.util.List;
+
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.Attribute;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EntityJoin;
+import com.sqewd.open.dal.api.persistence.EnumRefereceType;
 import com.sqewd.open.dal.api.persistence.Reference;
 
 /**
@@ -32,23 +35,36 @@ import com.sqewd.open.dal.api.persistence.Reference;
  *         TODO: <comment>
  * 
  */
-// @Entity(recordset = "ORGANIZATION_V", isview = true, query =
-// "select DEPARTMENT.NAME \"DEPARTMENT.NAME\", MANAGER.ID \"MANAGER.ID\", EMPLOYEE.ID \"EMPLOYEE.ID\", EMPLOYEE.FIRSTNAME \"EMPLOYEE.FIRSTNAME\", MANAGER.DATEOFBIRTH \"MANAGER.DATEOFBIRTH\", ORGANIZATION.DEPARTMENT \"ORGANIZATION.DEPARTMENT\", DEPARTMENT.STATUS \"DEPARTMENT.STATUS\", ORGANIZATION.TX_TIMESTAMP \"ORGANIZATION.TX_TIMESTAMP\", MANAGER.JOINDATE \"MANAGER.JOINDATE\", EMPLOYEE.TX_TIMESTAMP \"EMPLOYEE.TX_TIMESTAMP\", EMPLOYEE.LASTNAME \"EMPLOYEE.LASTNAME\", EMPLOYEE.DATEOFBIRTH \"EMPLOYEE.DATEOFBIRTH\", MANAGER.TITLE \"MANAGER.TITLE\", DEPARTMENT.TX_TIMESTAMP \"DEPARTMENT.TX_TIMESTAMP\", MANAGER.TX_TIMESTAMP \"MANAGER.TX_TIMESTAMP\", ORGANIZATION.EMPLOYEE \"ORGANIZATION.EMPLOYEE\", EMPLOYEE.JOINDATE \"EMPLOYEE.JOINDATE\", ORGANIZATION.MANAGER \"ORGANIZATION.MANAGER\", MANAGER.LASTNAME \"MANAGER.LASTNAME\", MANAGER.FIRSTNAME \"MANAGER.FIRSTNAME\", ORGANIZATION.CREATEDON \"ORGANIZATION.CREATEDON\", EMPLOYEE.TITLE \"EMPLOYEE.TITLE\", DEPARTMENT.ID \"DEPARTMENT.ID\" from EMPLOYEE EMPLOYEE, EMPLOYEE MANAGER, ORGANIZATION ORGANIZATION, DEPARTMENT DEPARTMENT where ((ORGANIZATION.EMPLOYEE = EMPLOYEE.ID)  AND (ORGANIZATION.MANAGER = MANAGER.ID) AND (ORGANIZATION.DEPARTMENT = DEPARTMENT.ID))")
 @Entity(recordset = "ORGANIZATION_V", isview = true, isjoin = true)
-@EntityJoin(entities = "ORGANIZATION,EMPLOYEE", join = "ORGANIZATION.EMPLOYEE = EMPLOYEE.ID")
+@EntityJoin(entities = "ORGANIZATION,EMPLOYEE", join = "ORGANIZATION.MANAGER = ORGMANAGER.ID")
 public class OrganizationView extends AbstractEntity {
 	@Attribute(name = "ORGANIZATION")
-	@Reference(target = "com.sqewd.open.dal.demo.entities.Organization", attribute = "ID")
-	private Organization organization;
+	@Reference(target = "com.sqewd.open.dal.demo.entities.Organization", attribute = "ID", association = EnumRefereceType.One2Many)
+	private List<Organization> organization;
 
-	@Attribute(name = "EMPLOYEE")
+	@Attribute(name = "ORGMANAGER", keyattribute = true)
 	@Reference(target = "com.sqewd.open.dal.demo.entities.Employee", attribute = "ID")
-	private Employee employee;
+	private Employee manager;
+
+	/**
+	 * @return the manager
+	 */
+	public Employee getManager() {
+		return manager;
+	}
+
+	/**
+	 * @param manager
+	 *            the manager to set
+	 */
+	public void setManager(Employee manager) {
+		this.manager = manager;
+	}
 
 	/**
 	 * @return the organization
 	 */
-	public Organization getOrganization() {
+	public List<Organization> getOrganization() {
 		return organization;
 	}
 
@@ -56,23 +72,8 @@ public class OrganizationView extends AbstractEntity {
 	 * @param organization
 	 *            the organization to set
 	 */
-	public void setOrganization(Organization organization) {
+	public void setOrganization(List<Organization> organization) {
 		this.organization = organization;
-	}
-
-	/**
-	 * @return the employee
-	 */
-	public Employee getEmployee() {
-		return employee;
-	}
-
-	/**
-	 * @param employee
-	 *            the employee to set
-	 */
-	public void setEmployee(Employee employee) {
-		this.employee = employee;
 	}
 
 }

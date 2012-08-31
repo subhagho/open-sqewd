@@ -37,11 +37,15 @@ import com.sqewd.open.dal.api.utils.KeyValuePair;
  * 
  */
 public abstract class AbstractJoinGraph {
+	protected static final String _ALIAS_SUFFIX_ = "_DAL";
+
 	protected AbstractJoinGraph parent;
 
 	protected Class<?> type;
 
 	protected String alias;
+
+	protected String columname;
 
 	protected String table;
 
@@ -152,7 +156,8 @@ public abstract class AbstractJoinGraph {
 		String key = enref.Entity;
 		if (!graphs.containsKey(key)) {
 			if (!enref.IsJoin) {
-				InternalJoinGraph ig = new InternalJoinGraph(type, null, null);
+				InternalJoinGraph ig = new InternalJoinGraph(type, null, null,
+						null);
 				graphs.put(key, ig);
 			} else if (enref.Join.Type == EnumJoinType.Native) {
 				NativeJoinGraph ng = new NativeJoinGraph(type);

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.core.persistence.DataManager;
+import com.sqewd.open.dal.demo.entities.OrganizationView;
 import com.sqewd.open.dal.demo.entities.TeamMember;
 import com.sqewd.open.dal.test.EnvSetup;
 
@@ -79,6 +80,11 @@ public class Test_SimpleDbQuery {
 			for (AbstractEntity en : entities) {
 				log.info(en.toString());
 			}
+
+			query = "ORGANIZATION.DEPARTMENT = '1000'";
+			entities = DataManager.get()
+					.read(query, OrganizationView.class, -1);
+			assertEquals((entities.size() > 1), true);
 		} catch (Exception e) {
 			LogUtils.stacktrace(log, e);
 			e.printStackTrace();

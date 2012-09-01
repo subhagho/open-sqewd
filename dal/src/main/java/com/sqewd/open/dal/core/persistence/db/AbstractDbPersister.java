@@ -30,6 +30,9 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jolbox.bonecp.BoneCP;
+import com.jolbox.bonecp.BoneCPConfig;
+import com.jolbox.bonecp.Statistics;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
@@ -44,7 +47,11 @@ import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.persistence.PersistenceResponse;
+import com.sqewd.open.dal.api.utils.AbstractParam;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
+import com.sqewd.open.dal.api.utils.ListParam;
+import com.sqewd.open.dal.api.utils.LogUtils;
+import com.sqewd.open.dal.api.utils.ValueParam;
 import com.sqewd.open.dal.core.persistence.query.SQLQuery;
 import com.sqewd.open.dal.core.persistence.query.SimpleDbQuery;
 
@@ -56,6 +63,35 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	private static final Logger log = LoggerFactory
 			.getLogger(AbstractDbPersister.class);
 
+	public static final String _PARAM_MAXPOOL_SIZE_ = "maxpoolsize";
+
+	public static final String _PARAM_MINPOOL_SIZE_ = "minpoolsize";
+
+	public static final String _PARAM_PARTITIONS_ = "poolpartitions";
+
+	public static final String _PARAM_CONN_URL_ = "url";
+
+	public static final String _PARAM_CONN_USER_ = "user";
+
+	public static final String _PARAM_CONN_PASSWD_ = "password";
+
+	public static final String _PARAM_DBCONFIG_ = "setup";
+
+	protected int partitionsize = 2;
+
+	protected int maxcpoolsize = 10;
+
+	protected int mincpoolsize = maxcpoolsize / 4;
+
+	protected String connurl = null;
+
+	protected String username = null;
+
+	protected String password = null;
+
+	protected BoneCP cpool = null;
+
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -63,6 +99,156 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 */
 	public EnumInstanceState state() {
 		return state;
+	}
+
+	protected Connection getConnection(boolean blocking) throws Exception {
+		if (state != EnumInstanceState.Running)
+			throw new Exception(
+					"Db Persister is not running. Either it has been disposed or errored out. Check log file for details.");
+		if (log.isDebugEnabled()) {
+			Statistics stats = new Statistics(cpool);
+			log.debug("Tot Conn Created:   "
+					+ stats.getTotalCreatedConnections());
+			log.debug("Tot Free Conn:      " + stats.getTotalFree());
+			log.debug("Tot Leased Conn:    " + stats.getTotalLeased());
+		}
+		return cpool.getConnection();
+	}
+
+
+	protected void releaseConnection(Connection conn) {
+		try {
+			if (conn != null && !conn.isClosed())
+				conn.close();
+		} catch (Exception e) {
+			LogUtils.stacktrace(log, e);
+			log.error(e.getLocalizedMessage());
+		}
+	}
+
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.wookler.core.persistence.AbstractPersister#init(com.wookler.utils
+	 * .ListParam)
+	 */
+	@Override
+	public void init(ListParam params) throws Exception {
+		try {
+			AbstractParam pkey = params.get(_PARAM_KEY_);
+			if (pkey == null)
+				throw new Exception(
+						"Invalid Configuration : Missing paramter ["
+								+ _PARAM_KEY_ + "]");
+			if (!(pkey instanceof ValueParam)) {
+				throw new Exception(
+						"Invalid Configuration : Invalid Parameter type for ["
+								+ _PARAM_KEY_ + "]");
+			}
+			key = ((ValueParam) pkey).getValue();
+			if (key == null || key.isEmpty())
+				throw new Exception("Invalid Configuration : Param ["
+						+ _PARAM_KEY_ + "] is NULL or empty.");
+
+			AbstractParam param = params.get(_PARAM_MAXPOOL_SIZE_);
+			if (param != null) {
+				if (param instanceof ValueParam) {
+					String ps = ((ValueParam) param).getValue();
+					maxcpoolsize = Integer.parseInt(ps);
+					mincpoolsize = maxcpoolsize / 4;
+				}
+			}
+
+			param = params.get(_PARAM_MINPOOL_SIZE_);
+			if (param != null) {
+				if (param instanceof ValueParam) {
+					String ps = ((ValueParam) param).getValue();
+					mincpoolsize = Integer.parseInt(ps);
+				}
+			}
+
+			param = params.get(_PARAM_PARTITIONS_);
+			if (param != null) {
+				if (param instanceof ValueParam) {
+					String ps = ((ValueParam) param).getValue();
+					partitionsize = Integer.parseInt(ps);
+				}
+			}
+
+			param = params.get(_PARAM_CONN_URL_);
+			if (param == null)
+				throw new Exception(
+						"Invalid Configuration : Missing parameter ["
+								+ _PARAM_CONN_URL_ + "]");
+			if (!(param instanceof ValueParam))
+				throw new Exception(
+						"Invalid Configuration : Invalid parameter type ["
+								+ _PARAM_CONN_URL_ + "]");
+			connurl = ((ValueParam) param).getValue();
+
+			param = params.get(_PARAM_CONN_USER_);
+			if (param == null)
+				throw new Exception(
+						"Invalid Configuration : Missing parameter ["
+								+ _PARAM_CONN_USER_ + "]");
+			if (!(param instanceof ValueParam))
+				throw new Exception(
+						"Invalid Configuration : Invalid parameter type ["
+								+ _PARAM_CONN_USER_ + "]");
+
+			username = ((ValueParam) param).getValue();
+
+			param = params.get(_PARAM_CONN_PASSWD_);
+			if (param == null)
+				throw new Exception(
+						"Invalid Configuration : Missing parameter ["
+								+ _PARAM_CONN_PASSWD_ + "]");
+			if (!(param instanceof ValueParam))
+				throw new Exception(
+						"Invalid Configuration : Invalid parameter type ["
+								+ _PARAM_CONN_PASSWD_ + "]");
+
+			password = ((ValueParam) param).getValue();
+
+			setupConnectionPool();
+
+			state = EnumInstanceState.Running;
+
+		} catch (Exception e) {
+			state = EnumInstanceState.Exception;
+			throw e;
+		}
+	}
+
+	private void setupConnectionPool() throws Exception {
+		BoneCPConfig config = new BoneCPConfig();
+		config.setJdbcUrl(connurl);
+		config.setUsername(username);
+		config.setPassword(password);
+		config.setMinConnectionsPerPartition(mincpoolsize);
+		config.setMaxConnectionsPerPartition(maxcpoolsize);
+		config.setPartitionCount(partitionsize);
+
+		cpool = new BoneCP(config);
+
+	}
+
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.wookler.core.InitializedHandle#dispose()
+	 */
+	public void dispose() {
+		try {
+			cpool.shutdown();
+			state = EnumInstanceState.Closed;
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage());
+			LogUtils.stacktrace(log, e);
+		}
 	}
 
 	/*
@@ -944,23 +1130,4 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				pstmnt.close();
 		}
 	}
-
-	/**
-	 * Get a handle to the DB Connection.
-	 * 
-	 * @param blocking
-	 *            - Request connection in blocking mode.
-	 * @return
-	 * @throws Exception
-	 */
-	protected abstract Connection getConnection(boolean blocking)
-			throws Exception;
-
-	/**
-	 * Release the connection back to the Queue.
-	 * 
-	 * @param conn
-	 */
-	protected abstract void releaseConnection(Connection conn);
-
 }

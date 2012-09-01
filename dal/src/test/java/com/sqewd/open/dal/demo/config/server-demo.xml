@@ -21,7 +21,8 @@
 				<persister name="CSVPERSISTER"
 					class="com.sqewd.open.dal.core.persistence.csv.CSVPersister">
 					<params>
-						<param xsi:type="valueParam" type="Value" name="key" value="CSVPERSISTER" />
+						<param xsi:type="valueParam" type="Value" name="key"
+							value="CSVPERSISTER" />
 						<param xsi:type="valueParam" type="Value" name="datadir"
 							value="src/test/java/com/sqewd/open/dal/demo/data/" />
 					</params>
@@ -30,12 +31,16 @@
 				<persister name="DEMOPERSISTER"
 					class="com.sqewd.open.dal.core.persistence.db.H2DbPersister">
 					<params>
-						<param xsi:type="valueParam" type="Value"
-							name="key" value="DEMOPERSISTER" />
+						<param xsi:type="valueParam" type="Value" name="key"
+							value="DEMOPERSISTER" />
 						<param xsi:type="valueParam" type="Value" name="url"
 							value="jdbc:h2:src/test/java/com/sqewd/open/dal/demo/data/run/h2" />
-						<param xsi:type="valueParam" type="Value" name="poolsize"
+						<param xsi:type="valueParam" type="Value" name="maxpoolsize"
 							value="10" />
+						<param xsi:type="valueParam" type="Value" name="minpoolsize"
+							value="5" />
+						<param xsi:type="valueParam" type="Value" name="poolpartitions"
+							value="2" />
 						<param xsi:type="valueParam" type="Value" name="user" value="sqewd" />
 						<param xsi:type="valueParam" type="Value" name="password"
 							value="sQewD" />

@@ -15,14 +15,11 @@
 package com.sqewd.open.dal.core.persistence.db;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.slf4j.Logger;
@@ -30,7 +27,9 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.jolbox.bonecp.BoneCP;
+import com.jolbox.bonecp.BoneCPConfig;
+import com.jolbox.bonecp.Statistics;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
@@ -53,9 +52,14 @@ public class H2DbPersister extends AbstractDbPersister {
 	private static final Logger log = LoggerFactory
 			.getLogger(H2DbPersister.class);
 
+	@SuppressWarnings("unused")
 	private static final long _DEFAULT_LOCK_TIMEOUT_ = 100;
 
-	public static final String _PARAM_POOL_SIZE_ = "poolsize";
+	public static final String _PARAM_MAXPOOL_SIZE_ = "maxpoolsize";
+
+	public static final String _PARAM_MINPOOL_SIZE_ = "minpoolsize";
+
+	public static final String _PARAM_PARTITIONS_ = "poolpartitions";
 
 	public static final String _PARAM_CONN_URL_ = "url";
 
@@ -71,9 +75,11 @@ public class H2DbPersister extends AbstractDbPersister {
 
 	public static final String _CONFIG_SETUP_INDEXES_ = "./index";
 
-	private int cpoolsize = 10;
+	private int partitionsize = 2;
 
-	private int mincpoolsize = cpoolsize / 4;
+	private int maxcpoolsize = 10;
+
+	private int mincpoolsize = maxcpoolsize / 4;
 
 	private String dbconfig = null;
 
@@ -83,14 +89,10 @@ public class H2DbPersister extends AbstractDbPersister {
 
 	private String password = null;
 
-	private Connection[] conns = null;
-
-	private Queue<Connection> freeconns = new LinkedBlockingQueue<Connection>();
+	private BoneCP cpool = null;
 
 	private boolean checksetup = false;
 
-	private ComboPooledDataSource cpool = null;
-	
 	public H2DbPersister() {
 		key = this.getClass().getCanonicalName();
 	}
@@ -105,18 +107,14 @@ public class H2DbPersister extends AbstractDbPersister {
 		if (state != EnumInstanceState.Running)
 			throw new Exception(
 					"Db Persister is not running. Either it has been disposed or errored out. Check log file for details.");
-		while (true) {
-			synchronized (freeconns) {
-				if (freeconns.size() > 0) {
-					return freeconns.remove();
-				}
-			}
-			if (blocking)
-				Thread.sleep(_DEFAULT_LOCK_TIMEOUT_);
-			else
-				break;
+		if (log.isDebugEnabled()) {
+			Statistics stats = new Statistics(cpool);
+			log.debug("Tot Conn Created:   "
+					+ stats.getTotalCreatedConnections());
+			log.debug("Tot Free Conn:      " + stats.getTotalFree());
+			log.debug("Tot Leased Conn:    " + stats.getTotalLeased());
 		}
-		return null;
+		return cpool.getConnection();
 	}
 
 	/*
@@ -128,8 +126,12 @@ public class H2DbPersister extends AbstractDbPersister {
 	 */
 	@Override
 	protected void releaseConnection(Connection conn) {
-		synchronized (freeconns) {
-			freeconns.add(conn);
+		try {
+			if (conn != null && !conn.isClosed())
+				conn.close();
+		} catch (Exception e) {
+			LogUtils.stacktrace(log, e);
+			log.error(e.getLocalizedMessage());
 		}
 	}
 
@@ -158,16 +160,31 @@ public class H2DbPersister extends AbstractDbPersister {
 				throw new Exception("Invalid Configuration : Param ["
 						+ _PARAM_KEY_ + "] is NULL or empty.");
 
-			Class.forName("org.h2.Driver");
-
-			AbstractParam param = params.get(_PARAM_POOL_SIZE_);
+			AbstractParam param = params.get(_PARAM_MAXPOOL_SIZE_);
 			if (param != null) {
 				if (param instanceof ValueParam) {
 					String ps = ((ValueParam) param).getValue();
-					cpoolsize = Integer.parseInt(ps);
-					mincpoolsize = cpoolsize / 4;
+					maxcpoolsize = Integer.parseInt(ps);
+					mincpoolsize = maxcpoolsize / 4;
 				}
 			}
+
+			param = params.get(_PARAM_MINPOOL_SIZE_);
+			if (param != null) {
+				if (param instanceof ValueParam) {
+					String ps = ((ValueParam) param).getValue();
+					mincpoolsize = Integer.parseInt(ps);
+				}
+			}
+
+			param = params.get(_PARAM_PARTITIONS_);
+			if (param != null) {
+				if (param instanceof ValueParam) {
+					String ps = ((ValueParam) param).getValue();
+					partitionsize = Integer.parseInt(ps);
+				}
+			}
+
 			param = params.get(_PARAM_CONN_URL_);
 			if (param == null)
 				throw new Exception(
@@ -203,27 +220,8 @@ public class H2DbPersister extends AbstractDbPersister {
 
 			password = ((ValueParam) param).getValue();
 
-			/*
-			conns = new Connection[cpoolsize];	
-			for (int ii = 0; ii < cpoolsize; ii++) {
-				conns[ii] = DriverManager.getConnection(connurl, username,
-						password);
-				conns[ii].setAutoCommit(true);
-				freeconns.add(conns[ii]);
-			}
-			*/
-			
-			cpool = new ComboPooledDataSource();
-			cpool.setDriverClass("org.h2.Driver");
-			cpool.setJdbcUrl(connurl);
-			cpool.setUser(username);
-			cpool.setPassword(password);
-			
-			cpool.setMinPoolSize(mincpoolsize);
-			cpool.setAcquireIncrement(1);
-			cpool.setMaxPoolSize(cpoolsize);
-			
-			
+			setupConnectionPool();
+
 			state = EnumInstanceState.Running;
 
 			param = params.get(_PARAM_DBCONFIG_);
@@ -236,12 +234,27 @@ public class H2DbPersister extends AbstractDbPersister {
 				checksetup = true;
 			}
 
-			log.info("Created connection pool [size=" + cpoolsize
+			log.info("Created connection pool [size=" + maxcpoolsize
 					+ "], H2 Database [" + connurl + "]");
 		} catch (Exception e) {
 			state = EnumInstanceState.Exception;
 			throw e;
 		}
+	}
+
+	private void setupConnectionPool() throws Exception {
+		Class.forName("org.h2.Driver");
+
+		BoneCPConfig config = new BoneCPConfig();
+		config.setJdbcUrl(connurl);
+		config.setUsername(username);
+		config.setPassword(password);
+		config.setMinConnectionsPerPartition(mincpoolsize);
+		config.setMaxConnectionsPerPartition(maxcpoolsize);
+		config.setPartitionCount(partitionsize);
+
+		cpool = new BoneCP(config);
+
 	}
 
 	private void checkSetup() throws Exception {
@@ -348,18 +361,7 @@ public class H2DbPersister extends AbstractDbPersister {
 	 */
 	public void dispose() {
 		try {
-			if (conns != null && conns.length > 0) {
-				for (Connection conn : conns) {
-					if (conn != null) {
-						if (!conn.isClosed()) {
-							log.debug("Closing H2 connection...");
-							conn.close();
-						}
-					}
-				}
-				conns = null;
-			}
-			freeconns.clear();
+			cpool.shutdown();
 			state = EnumInstanceState.Closed;
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage());
@@ -402,6 +404,8 @@ public class H2DbPersister extends AbstractDbPersister {
 					while (rs.next()) {
 						return rs.getLong(1);
 					}
+					if (rs != null)
+						rs.close();
 				} finally {
 					if (stmnt != null && !stmnt.isClosed())
 						stmnt.close();

@@ -97,34 +97,39 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		String selectsql = parser.parse(query, limit);
 		Statement stmnt = conn.createStatement();
+		List<AbstractEntity> entities = new ArrayList<AbstractEntity>();
+		HashMap<String, AbstractEntity> refindx = null;
+
 		try {
 			log.debug("SELECT SQL [" + selectsql + "]");
 			ResultSet rs = stmnt.executeQuery(selectsql);
+			try {
+				if (joinedList)
+					refindx = new HashMap<String, AbstractEntity>();
 
-			List<AbstractEntity> entities = new ArrayList<AbstractEntity>();
-			HashMap<String, AbstractEntity> refindx = null;
-			if (joinedList)
-				refindx = new HashMap<String, AbstractEntity>();
+				while (rs.next()) {
 
-			while (rs.next()) {
+					if (!joinedList) {
+						AbstractJoinGraph gr = AbstractJoinGraph.lookup(type);
 
-				if (!joinedList) {
-					AbstractJoinGraph gr = AbstractJoinGraph.lookup(type);
-
-					Object obj = type.newInstance();
-					if (!(obj instanceof AbstractEntity))
-						throw new Exception("Unsupported Entity type ["
-								+ type.getCanonicalName() + "]");
-					AbstractEntity entity = (AbstractEntity) obj;
-					Stack<KeyValuePair<Class<?>>> path = new Stack<KeyValuePair<Class<?>>>();
-					KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
-					cls.setValue(entity.getClass());
-					path.push(cls);
-					setEntity(entity, rs, gr, path);
-					entities.add(entity);
-				} else {
-					setEntity(enref, refindx, rs);
+						Object obj = type.newInstance();
+						if (!(obj instanceof AbstractEntity))
+							throw new Exception("Unsupported Entity type ["
+									+ type.getCanonicalName() + "]");
+						AbstractEntity entity = (AbstractEntity) obj;
+						Stack<KeyValuePair<Class<?>>> path = new Stack<KeyValuePair<Class<?>>>();
+						KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
+						cls.setValue(entity.getClass());
+						path.push(cls);
+						setEntity(entity, rs, gr, path);
+						entities.add(entity);
+					} else {
+						setEntity(enref, refindx, rs);
+					}
 				}
+			} finally {
+				if (rs != null && !rs.isClosed())
+					rs.close();
 			}
 			if (joinedList) {
 				for (String key : refindx.keySet()) {
@@ -637,6 +642,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			} else
 				return insert(record, conn);
 		}
+		conn.commit();
 		return response;
 	}
 
@@ -649,51 +655,57 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		String sql = parser.getInsertQuery(type);
 		PreparedStatement pstmnt = conn.prepareStatement(sql);
+		try {
+			StructEntityReflect enref = ReflectionUtils.get()
+					.getEntityMetadata(type);
+			response.setEntity(enref.Entity);
+			response.setKey(getEntityKey(record));
 
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
-		response.setEntity(enref.Entity);
-		response.setKey(getEntityKey(record));
+			int index = 1;
+			for (StructAttributeReflect attr : enref.Attributes) {
+				if (attr == null)
+					continue;
 
-		int index = 1;
-		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr == null)
-				continue;
-
-			Object value = PropertyUtils.getSimpleProperty(record,
-					attr.Field.getName());
-			if (value == null) {
-				if (attr.IsKeyColumn && attr.AutoIncrement) {
-					Entity entity = record.getClass().getAnnotation(
-							Entity.class);
-					value = getSequenceValue(entity, attr, conn);
+				Object value = PropertyUtils.getSimpleProperty(record,
+						attr.Field.getName());
+				if (value == null) {
+					if (attr.IsKeyColumn && attr.AutoIncrement) {
+						Entity entity = record.getClass().getAnnotation(
+								Entity.class);
+						value = getSequenceValue(entity, attr, conn);
+					}
 				}
-			}
-			if (attr.Reference != null) {
-				boolean overwrite = false;
-				if (attr.Reference.CascadeUpdate) {
-					overwrite = true;
+				if (attr.Reference != null) {
+					boolean overwrite = false;
+					if (attr.Reference.CascadeUpdate) {
+						overwrite = true;
+					}
+					save((AbstractEntity) value, conn, overwrite);
+					StructAttributeReflect rattr = ReflectionUtils.get()
+							.getAttribute(value.getClass(),
+									attr.Reference.Field);
+					value = PropertyUtils.getProperty(value,
+							rattr.Field.getName());
+				} else if (attr.Column
+						.compareTo(AbstractPersistedEntity._TX_TIMESTAMP_COLUMN_) == 0) {
+					value = new Date();
 				}
-				save((AbstractEntity) value, conn, overwrite);
-				StructAttributeReflect rattr = ReflectionUtils.get()
-						.getAttribute(value.getClass(), attr.Reference.Field);
-				value = PropertyUtils.getProperty(value, rattr.Field.getName());
-			} else if (attr.Column
-					.compareTo(AbstractPersistedEntity._TX_TIMESTAMP_COLUMN_) == 0) {
-				value = new Date();
+				setPreparedValue(pstmnt, index, attr, value, record);
+				index++;
 			}
-			setPreparedValue(pstmnt, index, attr, value, record);
-			index++;
+			int count = pstmnt.executeUpdate();
+			if (count > 0) {
+				response.setOperation(EnumPersistenceOperation.Inserted);
+			} else {
+				response.setOperation(EnumPersistenceOperation.Ignored);
+			}
+			log.debug("[" + record.getClass().getCanonicalName()
+					+ "] created [count=" + count + "]");
+			return response;
+		} finally {
+			if (pstmnt != null && !pstmnt.isClosed())
+				pstmnt.close();
 		}
-		int count = pstmnt.executeUpdate();
-		if (count > 0) {
-			response.setOperation(EnumPersistenceOperation.Inserted);
-		} else {
-			response.setOperation(EnumPersistenceOperation.Ignored);
-		}
-		log.debug("[" + record.getClass().getCanonicalName()
-				+ "] created [count=" + count + "]");
-		return response;
 	}
 
 	protected abstract Object getSequenceValue(Entity entity,
@@ -775,55 +787,62 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		PreparedStatement pstmnt = conn.prepareStatement(sql);
 
-		List<StructAttributeReflect> keyattrs = new ArrayList<StructAttributeReflect>();
+		try {
+			List<StructAttributeReflect> keyattrs = new ArrayList<StructAttributeReflect>();
 
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
+			StructEntityReflect enref = ReflectionUtils.get()
+					.getEntityMetadata(type);
 
-		response.setEntity(enref.Entity);
-		response.setKey(getEntityKey(record));
+			response.setEntity(enref.Entity);
+			response.setKey(getEntityKey(record));
 
-		int index = 1;
-		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr == null)
-				continue;
+			int index = 1;
+			for (StructAttributeReflect attr : enref.Attributes) {
+				if (attr == null)
+					continue;
 
-			if (attr.IsKeyColumn) {
-				keyattrs.add(attr);
-				continue;
+				if (attr.IsKeyColumn) {
+					keyattrs.add(attr);
+					continue;
+				}
+
+				Object value = PropertyUtils.getSimpleProperty(record,
+						attr.Field.getName());
+				if (attr.Reference != null && attr.Reference.CascadeUpdate) {
+					save((AbstractEntity) value, conn, true);
+					StructAttributeReflect rattr = ReflectionUtils.get()
+							.getAttribute(value.getClass(),
+									attr.Reference.Field);
+					value = PropertyUtils.getProperty(value,
+							rattr.Field.getName());
+				} else if (attr.Column
+						.compareTo(AbstractPersistedEntity._TX_TIMESTAMP_COLUMN_) == 0) {
+					value = new Date();
+					keyattrs.add(attr);
+				}
+				setPreparedValue(pstmnt, index, attr, value, record);
+				index++;
+			}
+			for (int ii = 0; ii < keyattrs.size(); ii++) {
+				Object value = PropertyUtils.getSimpleProperty(record,
+						keyattrs.get(ii).Field.getName());
+				setPreparedValue(pstmnt, (index + ii), keyattrs.get(ii), value,
+						record);
 			}
 
-			Object value = PropertyUtils.getSimpleProperty(record,
-					attr.Field.getName());
-			if (attr.Reference != null && attr.Reference.CascadeUpdate) {
-				save((AbstractEntity) value, conn, true);
-				StructAttributeReflect rattr = ReflectionUtils.get()
-						.getAttribute(value.getClass(), attr.Reference.Field);
-				value = PropertyUtils.getProperty(value, rattr.Field.getName());
-			} else if (attr.Column
-					.compareTo(AbstractPersistedEntity._TX_TIMESTAMP_COLUMN_) == 0) {
-				value = new Date();
-				keyattrs.add(attr);
+			int count = pstmnt.executeUpdate();
+			if (count > 0) {
+				response.setOperation(EnumPersistenceOperation.Updated);
+			} else {
+				response.setOperation(EnumPersistenceOperation.Ignored);
 			}
-			setPreparedValue(pstmnt, index, attr, value, record);
-			index++;
+			log.debug("[" + record.getClass().getCanonicalName()
+					+ "] updated [count=" + count + "]");
+			return response;
+		} finally {
+			if (pstmnt != null && !pstmnt.isClosed())
+				pstmnt.close();
 		}
-		for (int ii = 0; ii < keyattrs.size(); ii++) {
-			Object value = PropertyUtils.getSimpleProperty(record,
-					keyattrs.get(ii).Field.getName());
-			setPreparedValue(pstmnt, (index + ii), keyattrs.get(ii), value,
-					record);
-		}
-
-		int count = pstmnt.executeUpdate();
-		if (count > 0) {
-			response.setOperation(EnumPersistenceOperation.Updated);
-		} else {
-			response.setOperation(EnumPersistenceOperation.Ignored);
-		}
-		log.debug("[" + record.getClass().getCanonicalName()
-				+ "] updated [count=" + count + "]");
-		return response;
 	}
 
 	protected boolean checkSchema() throws Exception {
@@ -889,35 +908,41 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 		PreparedStatement pstmnt = conn.prepareStatement(sql);
 
-		List<StructAttributeReflect> keyattrs = new ArrayList<StructAttributeReflect>();
+		try {
+			List<StructAttributeReflect> keyattrs = new ArrayList<StructAttributeReflect>();
 
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
-		response.setEntity(enref.Entity);
-		response.setKey(getEntityKey(record));
+			StructEntityReflect enref = ReflectionUtils.get()
+					.getEntityMetadata(type);
+			response.setEntity(enref.Entity);
+			response.setKey(getEntityKey(record));
 
-		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr == null)
-				continue;
-			if (attr.IsKeyColumn) {
-				keyattrs.add(attr);
+			for (StructAttributeReflect attr : enref.Attributes) {
+				if (attr == null)
+					continue;
+				if (attr.IsKeyColumn) {
+					keyattrs.add(attr);
+				}
 			}
-		}
-		for (int ii = 0; ii < keyattrs.size(); ii++) {
-			Object value = PropertyUtils.getSimpleProperty(record,
-					keyattrs.get(ii).Field.getName());
-			setPreparedValue(pstmnt, ii + 1, keyattrs.get(ii), value, record);
-		}
+			for (int ii = 0; ii < keyattrs.size(); ii++) {
+				Object value = PropertyUtils.getSimpleProperty(record,
+						keyattrs.get(ii).Field.getName());
+				setPreparedValue(pstmnt, ii + 1, keyattrs.get(ii), value,
+						record);
+			}
 
-		int count = pstmnt.executeUpdate();
-		if (count > 0) {
-			response.setOperation(EnumPersistenceOperation.Deleted);
-		} else {
-			response.setOperation(EnumPersistenceOperation.Ignored);
+			int count = pstmnt.executeUpdate();
+			if (count > 0) {
+				response.setOperation(EnumPersistenceOperation.Deleted);
+			} else {
+				response.setOperation(EnumPersistenceOperation.Ignored);
+			}
+			log.debug("[" + record.getClass().getCanonicalName()
+					+ "] deleted [count=" + count + "]");
+			return response;
+		} finally {
+			if (pstmnt != null && !pstmnt.isClosed())
+				pstmnt.close();
 		}
-		log.debug("[" + record.getClass().getCanonicalName()
-				+ "] deleted [count=" + count + "]");
-		return response;
 	}
 
 	/**

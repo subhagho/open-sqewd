@@ -171,6 +171,11 @@
 			<version>0.9.8</version>
 		</dependency>
 		<dependency>
+			<groupId>c3p0</groupId>
+			<artifactId>c3p0</artifactId>
+			<version>0.9.1.2</version>
+		</dependency>
+		<dependency>
 			<groupId>com.sqewd.open</groupId>
 			<artifactId>dal-api</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
@@ -247,7 +252,7 @@
 					<execution>
 						<id>copy-resources</id>
 						<!-- here the phase you need -->
-						<phase>validate</phase>
+						<phase>install</phase>
 						<goals>
 							<goal>copy-resources</goal>
 						</goals>

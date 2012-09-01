@@ -104,7 +104,7 @@ public class Test_SQLQuery {
 					log.info("Found : " + column);
 				}
 			}
-			String query = "EMPLOYEE.ID LIKE '%2%'";
+			String query = "ORGMANAGER.ID LIKE '%2%'";
 			isNativeJoin(ReflectionUtils.get().getEntityMetadata(
 					OrganizationView.class));
 			SQLQuery sq = new SQLQuery(OrganizationView.class);
@@ -123,7 +123,7 @@ public class Test_SQLQuery {
 		try {
 			SQLQuery sq = new SQLQuery(OrganizationView.class);
 			sq.parse(
-					"(ORGANIZATION.EMPLOYEE.ID LIKE '10%';EMPLOYEE.ID LIKE '10%')",
+					"(ORGANIZATION.EMPLOYEE.ID LIKE '10%';ORGMANAGER.ID LIKE '10%')",
 					30);
 			long stime = System.currentTimeMillis();
 			int size = 10000;
@@ -131,7 +131,7 @@ public class Test_SQLQuery {
 			for (int ii = 0; ii < size; ii++) {
 				sq = new SQLQuery(OrganizationView.class);
 				sq.parse(
-						"(ORGANIZATION.EMPLOYEE.ID LIKE '10%';EMPLOYEE.ID LIKE '10%')",
+						"(ORGANIZATION.EMPLOYEE.ID LIKE '10%';ORGMANAGER.ID LIKE '10%')",
 						30);
 			}
 			long etime = System.currentTimeMillis();

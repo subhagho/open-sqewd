@@ -43,8 +43,7 @@ public class Env {
 	private HashMap<String, Object> shared = new HashMap<String, Object>();
 
 	private Env(String filename) throws Exception {
-		// XMLUtils.validate(filename,
-		// "/com/sqewd/open/dal/schema/moong-dal.xsd");
+		XMLUtils.validate(filename, "/schema/moong-dal.xsd");
 
 		configf = filename;
 		config = new XMLConfiguration(configf);

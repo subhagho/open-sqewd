@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xs:targetNamespace="http://open.skewd.com/moong-dal" xmlns="http://open.skewd.com/moong-dal"
-	xsi:schemaLocation="https://raw.github.com/subhagho/open-sqewd/master/dal-api/src/main/java/com/sqewd/open/dal/schema/ https://raw.github.com/subhagho/open-sqewd/master/dal-api/src/main/java/com/sqewd/open/dal/schema/moong-dal.xsd"
-	xs:elementFormDefault="qualified">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://open.skewd.com/moong-dal"
+	xsi:schemaLocation="https://raw.github.com/subhagho/open-sqewd/master/dal-api/src/main/java/com/sqewd/open/dal/schema/ https://raw.github.com/subhagho/open-sqewd/master/dal-api/src/main/java/com/sqewd/open/dal/schema/moong-dal.xsd">
 	<env>
 		<work directory="/tmp/sqewd/work/" />
 		<temp directory="/tmp/sqewd/temp/" />
 	</env>
-	<server port="8080" numhtreads="5" home="/tmp/sqewd/work/jetty"
+	<server port="8080" numthreads="5" home="/tmp/sqewd/work/jetty"
 		type="ALL">
 		<!--web directory="/tmp/sqewd/work/web"> <webapps> <app context="/home" 
 			war="web.war" /> </webapps> </web -->
@@ -17,14 +15,14 @@
 	<core>
 		<datamanager>
 			<packages>
-				<jar name="demo-entities.jar" package="com.sqewd.open.dal.demo.entities" />
+				<jar jar="demo-entities.jar" package="com.sqewd.open.dal.demo.entities" />
 			</packages>
 			<persistence>
 				<persister name="CSVPERSISTER"
 					class="com.sqewd.open.dal.core.persistence.csv.CSVPersister">
 					<params>
-						<param type="Value" name="key" value="CSVPERSISTER" />
-						<param type="Value" name="datadir"
+						<param xsi:type="valueParam" type="Value" name="key" value="CSVPERSISTER" />
+						<param xsi:type="valueParam" type="Value" name="datadir"
 							value="src/test/java/com/sqewd/open/dal/demo/data/" />
 					</params>
 				</persister>
@@ -32,13 +30,16 @@
 				<persister name="DEMOPERSISTER"
 					class="com.sqewd.open.dal.core.persistence.db.H2DbPersister">
 					<params>
-						<param type="Value" name="key" value="DEMOPERSISTER" />
-						<param type="Value" name="url"
+						<param xsi:type="valueParam" type="Value"
+							name="key" value="DEMOPERSISTER" />
+						<param xsi:type="valueParam" type="Value" name="url"
 							value="jdbc:h2:src/test/java/com/sqewd/open/dal/demo/data/run/h2" />
-						<param type="Value" name="poolsize" value="10" />
-						<param type="Value" name="user" value="sqewd" />
-						<param type="Value" name="password" value="sQewD" />
-						<param type="Value" name="setup"
+						<param xsi:type="valueParam" type="Value" name="poolsize"
+							value="10" />
+						<param xsi:type="valueParam" type="Value" name="user" value="sqewd" />
+						<param xsi:type="valueParam" type="Value" name="password"
+							value="sQewD" />
+						<param xsi:type="valueParam" type="Value" name="setup"
 							value="src/test/java/com/sqewd/open/dal/demo/config/h2-demo-setup.xml" />
 					</params>
 				</persister>

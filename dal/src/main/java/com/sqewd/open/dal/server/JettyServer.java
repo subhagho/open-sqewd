@@ -75,7 +75,7 @@ public class JettyServer {
 
 			// if you have a wider console, you could increase the value;
 			// here 80 is also the default
-			parser.setUsageWidth(80);
+			parser.setUsageWidth(120);
 
 			try {
 				// parse the arguments.

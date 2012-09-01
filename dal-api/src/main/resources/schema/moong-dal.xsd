@@ -90,8 +90,10 @@
 
 	<complexType name="server">
 		<sequence>
-			<element name="web" type="md:webapps"></element>
-			<element name="services" type="md:package"></element>
+			<element name="web" type="md:webapps" maxOccurs="unbounded"
+				minOccurs="0"></element>
+			<element name="services" type="md:package" maxOccurs="unbounded"
+				minOccurs="0"></element>
 		</sequence>
 		<attribute name="port" type="int" use="required"></attribute>
 		<attribute name="numthreads" type="int"></attribute>
@@ -114,51 +116,55 @@
 		<attribute name="persister" type="string" use="required"></attribute>
 	</complexType>
 
-	<complexType name="param" abstract="true">
+	<complexType name="param">
 		<attribute name="type" type="md:ParamType" use="required"></attribute>
 	</complexType>
 
-    <complexType name="listParam">
-    	<complexContent>
-    		<extension base="md:param">
-    			<sequence>
-    				<element name="values">
-    					<complexType>
-    						<sequence>
-    							<element name="value" type="md:param" maxOccurs="unbounded" minOccurs="1"></element>
-    						</sequence>
-    					</complexType>
-    				</element>
-    			</sequence>
-    		</extension>
-    	</complexContent>
-    </complexType>
+	<complexType name="listParam">
+		<complexContent>
+			<extension base="md:param">
+				<sequence>
+					<element name="values">
+						<complexType>
+							<sequence>
+								<element name="value" type="md:param" maxOccurs="unbounded"
+									minOccurs="1"></element>
+							</sequence>
+						</complexType>
+					</element>
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
 
-    <complexType name="persister">
-    	<sequence>
-    		<element name="params" type="md:params" maxOccurs="unbounded" minOccurs="0"></element>
-    	</sequence>
-    	<attribute name="name" type="string" use="required"></attribute>
-    	<attribute name="class" type="string" use="required"></attribute>
-    </complexType>
+	<complexType name="persister">
+		<sequence>
+			<element name="params" type="md:params" maxOccurs="unbounded"
+				minOccurs="0"></element>
+		</sequence>
+		<attribute name="name" type="string" use="required"></attribute>
+		<attribute name="class" type="string" use="required"></attribute>
+	</complexType>
 
-    <complexType name="datamanager">
-    	<sequence>
-    		<element name="packages" maxOccurs="unbounded" minOccurs="0">
-    			<complexType>
-    				<sequence>
-    					<element name="jar" type="md:package"></element>
-    				</sequence>
-    			</complexType>
-    		</element>
-    		<element name="persistence" maxOccurs="1" minOccurs="0">
-    			<complexType>
-    				<sequence>
-    					<element name="persister" type="md:persister" maxOccurs="unbounded" minOccurs="1"></element>
-    					<element name="classmap" type="md:persistermap" maxOccurs="unbounded" minOccurs="0"></element>
-    				</sequence>
-    			</complexType>
-    		</element>
-    	</sequence>
-    </complexType>
+	<complexType name="datamanager">
+		<sequence>
+			<element name="packages" maxOccurs="unbounded" minOccurs="0">
+				<complexType>
+					<sequence>
+						<element name="jar" type="md:package"></element>
+					</sequence>
+				</complexType>
+			</element>
+			<element name="persistence" maxOccurs="1" minOccurs="0">
+				<complexType>
+					<sequence>
+						<element name="persister" type="md:persister" maxOccurs="unbounded"
+							minOccurs="1"></element>
+						<element name="classmap" type="md:persistermap" maxOccurs="unbounded"
+							minOccurs="0"></element>
+					</sequence>
+				</complexType>
+			</element>
+		</sequence>
+	</complexType>
 </schema>

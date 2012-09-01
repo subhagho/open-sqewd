@@ -72,6 +72,8 @@ public class H2DbPersister extends AbstractDbPersister {
 
 	private int cpoolsize = 10;
 
+	private int mincpoolsize = cpoolsize / 4;
+
 	private String dbconfig = null;
 
 	private String connurl = null;
@@ -160,6 +162,7 @@ public class H2DbPersister extends AbstractDbPersister {
 				if (param instanceof ValueParam) {
 					String ps = ((ValueParam) param).getValue();
 					cpoolsize = Integer.parseInt(ps);
+					mincpoolsize = cpoolsize / 4;
 				}
 			}
 			param = params.get(_PARAM_CONN_URL_);

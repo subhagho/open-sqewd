@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
@@ -88,6 +89,8 @@ public class H2DbPersister extends AbstractDbPersister {
 
 	private boolean checksetup = false;
 
+	private ComboPooledDataSource cpool = null;
+	
 	public H2DbPersister() {
 		key = this.getClass().getCanonicalName();
 	}
@@ -200,13 +203,27 @@ public class H2DbPersister extends AbstractDbPersister {
 
 			password = ((ValueParam) param).getValue();
 
-			conns = new Connection[cpoolsize];
+			/*
+			conns = new Connection[cpoolsize];	
 			for (int ii = 0; ii < cpoolsize; ii++) {
 				conns[ii] = DriverManager.getConnection(connurl, username,
 						password);
 				conns[ii].setAutoCommit(true);
 				freeconns.add(conns[ii]);
 			}
+			*/
+			
+			cpool = new ComboPooledDataSource();
+			cpool.setDriverClass("org.h2.Driver");
+			cpool.setJdbcUrl(connurl);
+			cpool.setUser(username);
+			cpool.setPassword(password);
+			
+			cpool.setMinPoolSize(mincpoolsize);
+			cpool.setAcquireIncrement(1);
+			cpool.setMaxPoolSize(cpoolsize);
+			
+			
 			state = EnumInstanceState.Running;
 
 			param = params.get(_PARAM_DBCONFIG_);

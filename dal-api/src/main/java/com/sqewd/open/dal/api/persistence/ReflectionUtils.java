@@ -133,11 +133,6 @@ public class ReflectionUtils {
 										+ "]");
 					EntityJoin join = type.getAnnotation(EntityJoin.class);
 					StructJoinedEntityView jev = new StructJoinedEntityView();
-					String[] entities = join.entities().split(",");
-					jev.Entities = new String[entities.length];
-					for (int ii = 0; ii < jev.Entities.length; ii++) {
-						jev.Entities[ii] = entities[ii].trim();
-					}
 
 					jev.Join = join.join();
 
@@ -210,8 +205,6 @@ public class ReflectionUtils {
 
 	private void getFields(Class<?> type, List<Field> array) {
 		if (type.equals(Object.class)) {
-			// TODO : Need to investigate why there are null fields.
-			// Temporary Quickfix
 			List<Integer> toremove = new ArrayList<Integer>();
 			for (int ii = 0; ii < array.size(); ii++) {
 				Field fd = array.get(ii);

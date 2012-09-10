@@ -151,7 +151,7 @@
 			<element name="packages" maxOccurs="unbounded" minOccurs="0">
 				<complexType>
 					<sequence>
-						<element name="jar" type="md:package"></element>
+						<element name="jar" type="md:package" maxOccurs="unbounded" minOccurs="0"></element>
 					</sequence>
 				</complexType>
 			</element>

@@ -16,6 +16,7 @@
 		<datamanager>
 			<packages>
 				<jar jar="demo-entities.jar" package="com.sqewd.open.dal.demo.entities" />
+				<jar jar="demo-ext-entities.jar" package="com.sqewd.open.dal.demo.ext.entities" />
 			</packages>
 			<persistence>
 				<persister name="CSVPERSISTER"
@@ -48,8 +49,30 @@
 							value="src/test/java/com/sqewd/open/dal/demo/config/h2-demo-setup.xml" />
 					</params>
 				</persister>
+				<persister name="DEMOPERSISTER_J"
+					class="com.sqewd.open.dal.core.persistence.db.H2DbPersister">
+					<params>
+						<param xsi:type="valueParam" type="Value" name="key"
+							value="DEMOPERSISTER_J" />
+						<param xsi:type="valueParam" type="Value" name="url"
+							value="jdbc:h2:src/test/java/com/sqewd/open/dal/demo/data/run/h2-ext" />
+						<param xsi:type="valueParam" type="Value" name="maxpoolsize"
+							value="10" />
+						<param xsi:type="valueParam" type="Value" name="minpoolsize"
+							value="5" />
+						<param xsi:type="valueParam" type="Value" name="poolpartitions"
+							value="2" />
+						<param xsi:type="valueParam" type="Value" name="user" value="sqewd" />
+						<param xsi:type="valueParam" type="Value" name="password"
+							value="sQewD" />
+						<param xsi:type="valueParam" type="Value" name="setup"
+							value="src/test/java/com/sqewd/open/dal/demo/config/h2-ext-demo-setup.xml" />
+					</params>
+				</persister>
 				<classmap class="com.sqewd.open.dal.demo.entities"
 					persister="DEMOPERSISTER" />
+				<classmap class="com.sqewd.open.dal.demo.ext.entities"
+					persister="DEMOPERSISTER_J" />
 			</persistence>
 		</datamanager>
 	</core>

@@ -42,4 +42,19 @@ public class ZFromItem extends ZAliasedName {
 		super(fullname, ZAliasedName.FORM_TABLE);
 	}
 
+	public ZFromItem copy() {
+		ZFromItem fi = new ZFromItem();
+		if (alias_ != null)
+			fi.alias_ = new String(alias_);
+		if (column_ != null)
+			fi.column_ = new String(column_);
+		fi.form_ = form_;
+		if (schema_ != null)
+			fi.schema_ = new String(schema_);
+		if (strform_ != null)
+			fi.strform_ = new String(strform_);
+		if (table_ != null)
+			fi.table_ = new String(table_);
+		return fi;
+	}
 };

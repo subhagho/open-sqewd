@@ -253,4 +253,55 @@ public class ZExpression implements ZExp {
 		b.append(")");
 		return b.toString();
 	}
+
+	public void clear() {
+		operands_.clear();
+	}
+
+	public int count() {
+		if (operands_ != null)
+			return operands_.size();
+		return 0;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.gibello.zql.ZExp#copy()
+	 */
+	public ZExp copy() {
+		ZExpression exp = new ZExpression(op_);
+		if (operands_ != null && operands_.size() > 0) {
+			for (ZExp x : operands_) {
+				ZExp nx = x.copy();
+				exp.addOperand(nx);
+			}
+		}
+		return exp;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.gibello.zql.ZExp#clean()
+	 */
+	public boolean clean() {
+		if (operands_ != null && operands_.size() > 0) {
+			Vector<ZExp> toremove = new Vector<ZExp>();
+			for (ZExp ex : operands_) {
+				if (ex.clean())
+					toremove.add(ex);
+			}
+			if (toremove.size() > 0) {
+				for (ZExp ex : toremove) {
+					operands_.remove(ex);
+				}
+			}
+			if (operands_.size() >= 2)
+				return false;
+			else if (operands_.size() == 1)
+				op_ = "";
+		}
+		return true;
+	}
 };

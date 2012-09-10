@@ -37,16 +37,16 @@ import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
-import com.sqewd.open.dal.api.persistence.EnumPersistenceOperation;
-import com.sqewd.open.dal.api.persistence.EnumRefereceType;
-import com.sqewd.open.dal.api.persistence.OperationResponse;
-import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
+import com.sqewd.open.dal.api.persistence.EnumPersistenceOperation;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
-import com.sqewd.open.dal.api.persistence.ReflectionUtils;
-import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.persistence.EnumRefereceType;
+import com.sqewd.open.dal.api.persistence.OperationResponse;
 import com.sqewd.open.dal.api.persistence.PersistenceResponse;
+import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
+import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.AbstractParam;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.api.utils.ListParam;
@@ -91,7 +91,6 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 	protected BoneCP cpool = null;
 
-	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -101,7 +100,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return state;
 	}
 
-	protected Connection getConnection(boolean blocking) throws Exception {
+	protected Connection getConnection(final boolean blocking) throws Exception {
 		if (state != EnumInstanceState.Running)
 			throw new Exception(
 					"Db Persister is not running. Either it has been disposed or errored out. Check log file for details.");
@@ -115,17 +114,16 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return cpool.getConnection();
 	}
 
-
-	protected void releaseConnection(Connection conn) {
+	protected void releaseConnection(final Connection conn) {
 		try {
-			if (conn != null && !conn.isClosed())
+			if (conn != null && !conn.isClosed()) {
 				conn.close();
+			}
 		} catch (Exception e) {
 			LogUtils.stacktrace(log, e);
 			log.error(e.getLocalizedMessage());
 		}
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -135,18 +133,17 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 * .ListParam)
 	 */
 	@Override
-	public void init(ListParam params) throws Exception {
+	public void init(final ListParam params) throws Exception {
 		try {
 			AbstractParam pkey = params.get(_PARAM_KEY_);
 			if (pkey == null)
 				throw new Exception(
 						"Invalid Configuration : Missing paramter ["
 								+ _PARAM_KEY_ + "]");
-			if (!(pkey instanceof ValueParam)) {
+			if (!(pkey instanceof ValueParam))
 				throw new Exception(
 						"Invalid Configuration : Invalid Parameter type for ["
 								+ _PARAM_KEY_ + "]");
-			}
 			key = ((ValueParam) pkey).getValue();
 			if (key == null || key.isEmpty())
 				throw new Exception("Invalid Configuration : Param ["
@@ -235,7 +232,6 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 	}
 
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -259,21 +255,22 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 * java.lang.Class)
 	 */
 	@Override
-	public List<AbstractEntity> read(String query, Class<?> type, int limit)
-			throws Exception {
+	public List<AbstractEntity> read(final String query, final Class<?> type,
+			final int limit) throws Exception {
 
 		Connection conn = getConnection(true);
 		try {
 			return read(query, type, limit, conn);
 		} finally {
-			if (conn != null)
+			if (conn != null) {
 				releaseConnection(conn);
+			}
 		}
 
 	}
 
-	private List<AbstractEntity> read(String query, Class<?> type, int limit,
-			Connection conn) throws Exception {
+	private List<AbstractEntity> read(final String query, final Class<?> type,
+			final int limit, final Connection conn) throws Exception {
 		// Make sure the type for the class is available.
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
@@ -290,8 +287,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			log.debug("SELECT SQL [" + selectsql + "]");
 			ResultSet rs = stmnt.executeQuery(selectsql);
 			try {
-				if (joinedList)
+				if (joinedList) {
 					refindx = new HashMap<String, AbstractEntity>();
+				}
 
 				while (rs.next()) {
 
@@ -314,8 +312,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 					}
 				}
 			} finally {
-				if (rs != null && !rs.isClosed())
+				if (rs != null && !rs.isClosed()) {
 					rs.close();
+				}
 			}
 			if (joinedList) {
 				for (String key : refindx.keySet()) {
@@ -324,12 +323,14 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			}
 			return entities;
 		} finally {
-			if (stmnt != null && !stmnt.isClosed())
+			if (stmnt != null && !stmnt.isClosed()) {
 				stmnt.close();
+			}
 		}
 	}
 
-	private boolean hasJoinedList(StructEntityReflect enref) throws Exception {
+	private boolean hasJoinedList(final StructEntityReflect enref)
+			throws Exception {
 		boolean retval = false;
 		if (enref.IsJoin) {
 			for (StructAttributeReflect attr : enref.Attributes) {
@@ -355,8 +356,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return retval;
 	}
 
-	private void setEntity(StructEntityReflect enref,
-			HashMap<String, AbstractEntity> entities, ResultSet rs)
+	private void setEntity(final StructEntityReflect enref,
+			final HashMap<String, AbstractEntity> entities, final ResultSet rs)
 			throws Exception {
 		Class<?> type = Class.forName(enref.Class);
 		Object obj = type.newInstance();
@@ -381,12 +382,11 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				// Object ao = createListInstance(entity, attr);
 				Class<?> rt = Class.forName(attr.Reference.Class);
 				Object ro = rt.newInstance();
-				if (!(ro instanceof AbstractEntity)) {
+				if (!(ro instanceof AbstractEntity))
 					throw new Exception("Reference [" + attr.Column
 							+ "] is of invalid type. [" + at.getCanonicalName()
 							+ "] does not extend from ["
 							+ AbstractEntity.class.getCanonicalName() + "]");
-				}
 				AbstractEntity ae = (AbstractEntity) getColumnValue(rs, attr,
 						entity, gr, path);
 				addListValue(ae, entity, attr);
@@ -399,14 +399,15 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		} else {
 			AbstractEntity target = entities.get(key);
 			for (StructAttributeReflect attr : enref.Attributes) {
-				if (attr.Reference.Type == EnumRefereceType.One2Many)
+				if (attr.Reference.Type == EnumRefereceType.One2Many) {
 					copyToList(entity, target, attr);
+				}
 			}
 		}
 	}
 
-	private <T extends AbstractEntity> void copyToList(T source, T dest,
-			StructAttributeReflect attr) throws Exception {
+	private <T extends AbstractEntity> void copyToList(final T source,
+			final T dest, final StructAttributeReflect attr) throws Exception {
 		Object so = PropertyUtils.getSimpleProperty(source,
 				attr.Field.getName());
 		Object to = PropertyUtils.getSimpleProperty(dest, attr.Field.getName());
@@ -426,7 +427,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	}
 
 	private <T extends AbstractEntity> Object createListInstance(
-			AbstractEntity entity, StructAttributeReflect attr)
+			final AbstractEntity entity, final StructAttributeReflect attr)
 			throws Exception {
 		Object vo = PropertyUtils.getSimpleProperty(entity,
 				attr.Field.getName());
@@ -437,15 +438,15 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return vo;
 	}
 
-	private <T extends AbstractEntity> void addListValue(AbstractEntity entity,
-			AbstractEntity parent, StructAttributeReflect attr)
-			throws Exception {
+	private <T extends AbstractEntity> void addListValue(
+			final AbstractEntity entity, final AbstractEntity parent,
+			final StructAttributeReflect attr) throws Exception {
 		Object vo = createListInstance(parent, attr);
 		MethodUtils.invokeMethod(vo, "add", new Object[] { entity });
 	}
 
-	private void setEntity(AbstractEntity entity, ResultSet rs,
-			AbstractJoinGraph gr, Stack<KeyValuePair<Class<?>>> path)
+	private void setEntity(final AbstractEntity entity, final ResultSet rs,
+			final AbstractJoinGraph gr, final Stack<KeyValuePair<Class<?>>> path)
 			throws Exception {
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				entity.getClass());
@@ -456,9 +457,10 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void setColumnValue(ResultSet rs, StructAttributeReflect attr,
-			AbstractEntity entity, AbstractJoinGraph gr,
-			Stack<KeyValuePair<Class<?>>> path) throws Exception {
+	private void setColumnValue(final ResultSet rs,
+			final StructAttributeReflect attr, final AbstractEntity entity,
+			final AbstractJoinGraph gr, final Stack<KeyValuePair<Class<?>>> path)
+			throws Exception {
 
 		KeyValuePair<String> alias = gr.getAliasFor(path, attr.Column, 0);
 		String tabprefix = alias.getKey();
@@ -545,8 +547,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				throw new Exception("Unsupported Entity type ["
 						+ rt.getCanonicalName() + "]");
 			AbstractEntity rentity = (AbstractEntity) obj;
-			if (path.size() > 0)
+			if (path.size() > 0) {
 				path.peek().setKey(attr.Column);
+			}
 
 			KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
 			cls.setValue(rentity.getClass());
@@ -559,9 +562,10 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Object getColumnValue(ResultSet rs, StructAttributeReflect attr,
-			AbstractEntity entity, AbstractJoinGraph gr,
-			Stack<KeyValuePair<Class<?>>> path) throws Exception {
+	private Object getColumnValue(final ResultSet rs,
+			final StructAttributeReflect attr, final AbstractEntity entity,
+			final AbstractJoinGraph gr, final Stack<KeyValuePair<Class<?>>> path)
+			throws Exception {
 
 		Object value = null;
 
@@ -645,8 +649,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				throw new Exception("Unsupported Entity type ["
 						+ rt.getCanonicalName() + "]");
 			AbstractEntity rentity = (AbstractEntity) obj;
-			if (path.size() > 0)
+			if (path.size() > 0) {
 				path.peek().setKey(attr.Column);
+			}
 
 			KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
 			cls.setValue(rentity.getClass());
@@ -666,19 +671,20 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 * persistence.AbstractEntity)
 	 */
 	@Override
-	public OperationResponse save(AbstractEntity record, boolean overwrite)
-			throws Exception {
+	public OperationResponse save(final AbstractEntity record,
+			final boolean overwrite) throws Exception {
 		Connection conn = getConnection(true);
 		try {
 			return save(record, conn, overwrite);
 
 		} finally {
-			if (conn != null)
+			if (conn != null) {
 				releaseConnection(conn);
+			}
 		}
 	}
 
-	public boolean recordExists(AbstractEntity entity) throws Exception {
+	public boolean recordExists(final AbstractEntity entity) throws Exception {
 		String query = getQueryByKey(entity);
 		if (query != null && !query.isEmpty()) {
 			List<AbstractEntity> exists = read(query, entity.getClass(), 1);
@@ -699,20 +705,22 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return false;
 	}
 
-	private String getEntityKey(AbstractEntity entity) throws Exception {
+	private String getEntityKey(final AbstractEntity entity) throws Exception {
 		StringBuffer buff = new StringBuffer();
 		boolean first = true;
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				entity.getClass());
 		for (String key : enref.FieldMaps.keySet()) {
 			StructAttributeReflect attr = enref.get(key);
-			if (attr == null || !attr.IsKeyColumn)
+			if (attr == null || !attr.IsKeyColumn) {
 				continue;
+			}
 
-			if (first)
+			if (first) {
 				first = false;
-			else
+			} else {
 				buff.append(':');
+			}
 
 			String value = null;
 
@@ -745,20 +753,22 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return buff.toString();
 	}
 
-	private String getQueryByKey(AbstractEntity entity) throws Exception {
+	private String getQueryByKey(final AbstractEntity entity) throws Exception {
 		StringBuffer buff = new StringBuffer();
 		boolean first = true;
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				entity.getClass());
 		for (String key : enref.FieldMaps.keySet()) {
 			StructAttributeReflect attr = enref.get(key);
-			if (attr == null || !attr.IsKeyColumn)
+			if (attr == null || !attr.IsKeyColumn) {
 				continue;
+			}
 
-			if (first)
+			if (first) {
 				first = false;
-			else
+			} else {
 				buff.append(';');
+			}
 
 			String value = null;
 			StringBuffer column = new StringBuffer();
@@ -795,8 +805,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return buff.toString();
 	}
 
-	private OperationResponse save(AbstractEntity record, Connection conn,
-			boolean overwrite) throws Exception {
+	private OperationResponse save(final AbstractEntity record,
+			final Connection conn, final boolean overwrite) throws Exception {
 		if (record == null)
 			throw new Exception("Invalid entity record : Null record");
 
@@ -832,8 +842,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		return response;
 	}
 
-	private OperationResponse insert(AbstractEntity record, Connection conn)
-			throws Exception {
+	private OperationResponse insert(final AbstractEntity record,
+			final Connection conn) throws Exception {
 		Class<?> type = record.getClass();
 		OperationResponse response = new OperationResponse();
 
@@ -849,8 +859,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 			int index = 1;
 			for (StructAttributeReflect attr : enref.Attributes) {
-				if (attr == null)
+				if (attr == null) {
 					continue;
+				}
 
 				Object value = PropertyUtils.getSimpleProperty(record,
 						attr.Field.getName());
@@ -889,17 +900,18 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 					+ "] created [count=" + count + "]");
 			return response;
 		} finally {
-			if (pstmnt != null && !pstmnt.isClosed())
+			if (pstmnt != null && !pstmnt.isClosed()) {
 				pstmnt.close();
+			}
 		}
 	}
 
 	protected abstract Object getSequenceValue(Entity entity,
 			StructAttributeReflect attr, Connection conn) throws Exception;
 
-	private void setPreparedValue(PreparedStatement pstmnt, int index,
-			StructAttributeReflect attr, Object value, AbstractEntity entity)
-			throws Exception {
+	private void setPreparedValue(final PreparedStatement pstmnt,
+			final int index, final StructAttributeReflect attr, Object value,
+			final AbstractEntity entity) throws Exception {
 		Class<?> type = attr.Field.getType();
 		if (EnumPrimitives.isPrimitiveType(type)) {
 			EnumPrimitives prim = EnumPrimitives.type(type);
@@ -931,8 +943,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				pstmnt.setString(index, (String) value);
 			} else if (type.equals(Date.class)) {
 				long dtval = new Date().getTime();
-				if (value != null)
+				if (value != null) {
 					dtval = ((Date) value).getTime();
+				}
 				pstmnt.setLong(index, dtval);
 			} else if (value instanceof Enum) {
 				pstmnt.setString(index, getEnumValue(value));
@@ -950,20 +963,19 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				value = PropertyUtils.getSimpleProperty(refval,
 						rattr.Field.getName());
 				setPreparedValue(pstmnt, index, rattr, value, entity);
-			} else {
+			} else
 				throw new Exception("Unsupported field type ["
 						+ type.getCanonicalName() + "]");
-			}
 		}
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private <T extends Enum> String getEnumValue(Object value) {
+	private <T extends Enum> String getEnumValue(final Object value) {
 		return ((T) value).name();
 	}
 
-	private OperationResponse update(AbstractEntity record, Connection conn)
-			throws Exception {
+	private OperationResponse update(final AbstractEntity record,
+			final Connection conn) throws Exception {
 		Class<?> type = record.getClass();
 		OperationResponse response = new OperationResponse();
 
@@ -984,8 +996,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 
 			int index = 1;
 			for (StructAttributeReflect attr : enref.Attributes) {
-				if (attr == null)
+				if (attr == null) {
 					continue;
+				}
 
 				if (attr.IsKeyColumn) {
 					keyattrs.add(attr);
@@ -1026,8 +1039,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 					+ "] updated [count=" + count + "]");
 			return response;
 		} finally {
-			if (pstmnt != null && !pstmnt.isClosed())
+			if (pstmnt != null && !pstmnt.isClosed()) {
 				pstmnt.close();
+			}
 		}
 	}
 
@@ -1048,8 +1062,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			rs.close();
 
 		} finally {
-			if (conn != null)
+			if (conn != null) {
 				releaseConnection(conn);
+			}
 		}
 		return found;
 	}
@@ -1060,8 +1075,8 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 	 * @see com.wookler.core.persistence.AbstractPersister#save(java.util.List)
 	 */
 	@Override
-	public PersistenceResponse save(List<AbstractEntity> records,
-			boolean overwrite) throws Exception {
+	public PersistenceResponse save(final List<AbstractEntity> records,
+			final boolean overwrite) throws Exception {
 
 		PersistenceResponse response = new PersistenceResponse();
 		Connection conn = getConnection(true);
@@ -1077,14 +1092,15 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			}
 			return response;
 		} finally {
-			if (conn != null)
+			if (conn != null) {
 				releaseConnection(conn);
+			}
 		}
 
 	}
 
-	private OperationResponse delete(AbstractEntity record, Connection conn)
-			throws Exception {
+	private OperationResponse delete(final AbstractEntity record,
+			final Connection conn) throws Exception {
 		OperationResponse response = new OperationResponse();
 		Class<?> type = record.getClass();
 
@@ -1103,8 +1119,9 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			response.setKey(getEntityKey(record));
 
 			for (StructAttributeReflect attr : enref.Attributes) {
-				if (attr == null)
+				if (attr == null) {
 					continue;
+				}
 				if (attr.IsKeyColumn) {
 					keyattrs.add(attr);
 				}
@@ -1126,8 +1143,59 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 					+ "] deleted [count=" + count + "]");
 			return response;
 		} finally {
-			if (pstmnt != null && !pstmnt.isClosed())
+			if (pstmnt != null && !pstmnt.isClosed()) {
 				pstmnt.close();
+			}
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.persistence.AbstractPersister#select(java.lang
+	 * .String, java.lang.Class, int)
+	 */
+	@Override
+	public ResultSet select(final String query,
+			final List<KeyValuePair<Class<?>>> types, final int limit)
+			throws Exception {
+		Connection conn = getConnection(true);
+		try {
+			return select(query, types, limit, conn);
+		} finally {
+			if (conn != null) {
+				releaseConnection(conn);
+			}
+		}
+	}
+
+	private ResultSet select(final String query,
+			final List<KeyValuePair<Class<?>>> types, final int limit,
+			final Connection conn) throws Exception {
+
+		// Make sure the type for the class is available.
+		SQLQuery parser = new SQLQuery(type);
+
+		String selectsql = parser.parse(query, limit);
+		Statement stmnt = conn.createStatement();
+		LocalResultSet entities = new LocalResultSet();
+
+		try {
+			log.debug("SELECT SQL [" + selectsql + "]");
+			ResultSet rs = stmnt.executeQuery(selectsql);
+			try {
+				entities.create(type, rs);
+			} finally {
+				if (rs != null && !rs.isClosed()) {
+					rs.close();
+				}
+			}
+			return entities;
+		} finally {
+			if (stmnt != null && !stmnt.isClosed()) {
+				stmnt.close();
+			}
 		}
 	}
 }

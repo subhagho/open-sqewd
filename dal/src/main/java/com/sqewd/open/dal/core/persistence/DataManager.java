@@ -34,12 +34,14 @@ import com.sqewd.open.dal.api.persistence.EnumEntityState;
 import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.OperationResponse;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.InstanceParam;
 import com.sqewd.open.dal.api.utils.ListParam;
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.api.utils.XMLUtils;
 import com.sqewd.open.dal.core.Env;
+import com.sqewd.open.dal.core.reflect.EntityClassLoader;
 import com.sqewd.open.dal.core.reflect.EntityScanner;
 
 /**
@@ -61,12 +63,20 @@ public class DataManager implements InitializedHandle {
 
 	private EnumInstanceState state = EnumInstanceState.Unknown;
 
-	private HashMap<String, AbstractPersister> persistmap = new HashMap<String, AbstractPersister>();
-	private HashMap<String, List<String>> scanjars = new HashMap<String, List<String>>();
+	private final HashMap<String, AbstractPersister> persistmap = new HashMap<String, AbstractPersister>();
+	private final HashMap<String, List<String>> scanjars = new HashMap<String, List<String>>();
 
 	private void init(XMLConfiguration config) throws Exception {
 		try {
 			state = EnumInstanceState.Running;
+
+			if (Env.get().getEntityLoader() == null) {
+				Env.get()
+						.setEntityLoader(
+								new EntityClassLoader(this.getClass()
+										.getClassLoader()));
+			}
+
 			String rootpath = Env._CONFIG_XPATH_ROOT_ + _CONFIG_XPATH_;
 			NodeList nl = XMLUtils.search(rootpath, config.getDocument()
 					.getDocumentElement());
@@ -274,34 +284,25 @@ public class DataManager implements InitializedHandle {
 			AbstractPersister persister = getPersister(type);
 			return persister.read(query, type, limit);
 		} else {
-			return readjoined(query, type, limit, enref);
+			DistributedJoinHandler jh = new DistributedJoinHandler(type, query,
+					limit);
+			return jh.read();
 		}
-	}
-
-	private List<AbstractEntity> readjoined(String query, Class<?> type,
-			int limit, StructEntityReflect enref) throws Exception {
-		for (String entity : enref.Join.Entities) {
-			StructEntityReflect subref = ReflectionUtils.get()
-					.getEntityMetadata(entity);
-			if (subref == null)
-				throw new Exception("No entity defined for name [" + entity
-						+ "]");
-
-		}
-		return null;
 	}
 
 	private void isNativeJoin(StructEntityReflect enref) throws Exception {
 		AbstractPersister pers = null;
 
-		for (String entity : enref.Join.Entities) {
+		for (StructAttributeReflect attr : enref.Attributes) {
+			if (attr.Reference == null)
+				continue;
+			Class<?> type = Class.forName(attr.Reference.Class);
 			StructEntityReflect subref = ReflectionUtils.get()
-					.getEntityMetadata(entity);
+					.getEntityMetadata(type);
 			if (subref == null)
-				throw new Exception("No entity defined for name [" + entity
-						+ "]");
-			Class<?> cls = Class.forName(subref.Class);
-			AbstractPersister p = getPersister(cls);
+				throw new Exception("No entity defined for name ["
+						+ attr.Column + "]");
+			AbstractPersister p = getPersister(type);
 			if (pers == null)
 				pers = p;
 			else if (!p.equals(pers)) {

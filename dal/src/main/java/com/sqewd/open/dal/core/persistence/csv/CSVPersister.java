@@ -17,6 +17,7 @@ package com.sqewd.open.dal.core.persistence.csv;
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,16 +33,17 @@ import au.com.bytecode.opencsv.CSVReader;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
-import com.sqewd.open.dal.api.persistence.OperationResponse;
-import com.sqewd.open.dal.api.persistence.PersistenceResponse;
-import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.EnumRefereceType;
+import com.sqewd.open.dal.api.persistence.OperationResponse;
+import com.sqewd.open.dal.api.persistence.PersistenceResponse;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.AbstractParam;
 import com.sqewd.open.dal.api.utils.DateUtils;
+import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.api.utils.ListParam;
 import com.sqewd.open.dal.api.utils.ValueParam;
 import com.sqewd.open.dal.core.persistence.DataManager;
@@ -65,7 +67,7 @@ public class CSVPersister extends AbstractPersister {
 		key = this.getClass().getCanonicalName();
 	}
 
-	public CSVPersister(EnumImportFormat format) {
+	public CSVPersister(final EnumImportFormat format) {
 		this.format = format;
 	}
 
@@ -74,18 +76,18 @@ public class CSVPersister extends AbstractPersister {
 	 * 
 	 * @see com.wookler.core.InitializedHandle#init(com.wookler.utils.ListParam)
 	 */
-	public void init(ListParam param) throws Exception {
+	@Override
+	public void init(final ListParam param) throws Exception {
 		try {
 			AbstractParam pkey = param.get(_PARAM_KEY_);
 			if (pkey == null)
 				throw new Exception(
 						"Invalid Configuration : Missing paramter ["
 								+ _PARAM_KEY_ + "]");
-			if (!(pkey instanceof ValueParam)) {
+			if (!(pkey instanceof ValueParam))
 				throw new Exception(
 						"Invalid Configuration : Invalid Parameter type for ["
 								+ _PARAM_KEY_ + "]");
-			}
 			key = ((ValueParam) pkey).getValue();
 			if (key == null || key.isEmpty())
 				throw new Exception("Invalid Configuration : Param ["
@@ -96,11 +98,10 @@ public class CSVPersister extends AbstractPersister {
 				throw new Exception(
 						"Invalid Configuration : Missing paramter ["
 								+ _PARAM_DATADIR_ + "]");
-			if (!(pdd instanceof ValueParam)) {
+			if (!(pdd instanceof ValueParam))
 				throw new Exception(
 						"Invalid Configuration : Invalid Parameter type for ["
 								+ _PARAM_DATADIR_ + "]");
-			}
 			datadir = ((ValueParam) pdd).getValue();
 			if (datadir == null || datadir.isEmpty())
 				throw new Exception("Invalid Configuration : Param ["
@@ -128,8 +129,8 @@ public class CSVPersister extends AbstractPersister {
 	 * @see com.wookler.core.persistence.AbstractPersister#read(java.util.List)
 	 */
 	@Override
-	public List<AbstractEntity> read(String query, Class<?> type, int limit)
-			throws Exception {
+	public List<AbstractEntity> read(final String query, final Class<?> type,
+			final int limit) throws Exception {
 		List<AbstractEntity> result = null;
 		String cname = type.getCanonicalName();
 		if (!cache.containsKey(cname)) {
@@ -151,7 +152,7 @@ public class CSVPersister extends AbstractPersister {
 		return result;
 	}
 
-	protected void load(Class<?> type) throws Exception {
+	protected void load(final Class<?> type) throws Exception {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
@@ -159,7 +160,7 @@ public class CSVPersister extends AbstractPersister {
 			if (cache.containsKey(type.getCanonicalName()))
 				return;
 
-			Entity eann = (Entity) type.getAnnotation(Entity.class);
+			Entity eann = type.getAnnotation(Entity.class);
 			String fname = eann.recordset() + "." + format.name();
 			String path = datadir + "/" + fname;
 
@@ -177,14 +178,16 @@ public class CSVPersister extends AbstractPersister {
 			String[] header = null;
 			while (true) {
 				String[] data = reader.readNext();
-				if (data == null)
+				if (data == null) {
 					break;
+				}
 				if (header == null) {
 					header = data;
 					continue;
 				}
-				if (data.length < header.length)
+				if (data.length < header.length) {
 					continue;
+				}
 				AbstractEntity record = parseRecord(type, header, data);
 				if (record == null) {
 					log.warn("Parse returned NULL");
@@ -193,11 +196,12 @@ public class CSVPersister extends AbstractPersister {
 				entities.add(record);
 			}
 			cache.put(type.getCanonicalName(), entities);
+			reader.close();
 		}
 	}
 
-	protected AbstractEntity parseRecord(Class<?> type, String[] header,
-			String[] data) throws Exception {
+	protected AbstractEntity parseRecord(final Class<?> type,
+			final String[] header, final String[] data) throws Exception {
 		AbstractEntity entity = (AbstractEntity) type.newInstance();
 
 		for (int ii = 0; ii < header.length; ii++) {
@@ -226,11 +230,10 @@ public class CSVPersister extends AbstractPersister {
 						} else {
 							setFieldValue(entity, attr.Field, refs);
 						}
-					} else {
+					} else
 						throw new Exception(
 								"No record found for reference key : [QUERY:"
 										+ query + "]");
-					}
 				}
 			}
 		}
@@ -245,8 +248,8 @@ public class CSVPersister extends AbstractPersister {
 	 * persistence.AbstractEntity)
 	 */
 	@Override
-	public OperationResponse save(AbstractEntity record, boolean overwrite)
-			throws Exception {
+	public OperationResponse save(final AbstractEntity record,
+			final boolean overwrite) throws Exception {
 		throw new NotImplementedException(
 				"This is a dummy persister. Write operations are not supported.");
 	}
@@ -257,8 +260,8 @@ public class CSVPersister extends AbstractPersister {
 	 * @see com.wookler.core.persistence.AbstractPersister#save(java.util.List)
 	 */
 	@Override
-	public PersistenceResponse save(List<AbstractEntity> records,
-			boolean overwrite) throws Exception {
+	public PersistenceResponse save(final List<AbstractEntity> records,
+			final boolean overwrite) throws Exception {
 		throw new NotImplementedException(
 				"This is a dummy persister. Write operations are not supported.");
 	}
@@ -272,11 +275,11 @@ public class CSVPersister extends AbstractPersister {
 	 * java.lang.Object)
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void setFieldValue(AbstractEntity entity, Field fd, Object value)
-			throws Exception {
+	protected void setFieldValue(final AbstractEntity entity, final Field fd,
+			final Object value) throws Exception {
 		Object pvalue = value;
 		if (fd.getType().equals(String.class)) {
-			pvalue = (String) value;
+			pvalue = value;
 		} else if (fd.getType().equals(Date.class)) {
 			pvalue = DateUtils.fromString((String) value);
 		} else if (EnumPrimitives.isPrimitiveType(fd.getType())) {
@@ -309,10 +312,9 @@ public class CSVPersister extends AbstractPersister {
 			pvalue = Enum.valueOf(ecls, (String) value);
 		} else if (pvalue.getClass().isAnnotationPresent(Entity.class)) {
 			pvalue = value;
-		} else {
+		} else
 			throw new Exception("Field type ["
 					+ fd.getType().getCanonicalName() + "] is not supported.");
-		}
 		PropertyUtils.setProperty(entity, fd.getName(), pvalue);
 	}
 
@@ -333,5 +335,20 @@ public class CSVPersister extends AbstractPersister {
 	@Override
 	public void postinit() throws Exception {
 		// Do nothing...
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.persistence.AbstractPersister#select(java.lang
+	 * .String, java.lang.Class, int)
+	 */
+	@Override
+	public ResultSet select(final String query,
+			final List<KeyValuePair<Class<?>>> types, final int limit)
+			throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

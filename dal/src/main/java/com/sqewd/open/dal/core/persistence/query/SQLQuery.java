@@ -54,7 +54,7 @@ public class SQLQuery {
 
 	private static HashMap<String, ZQuery> querycache = new HashMap<String, ZQuery>();
 
-	private ZQuery getCachedQuery(Class<?> type) throws Exception {
+	private ZQuery getCachedQuery(final Class<?> type) throws Exception {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
@@ -65,9 +65,9 @@ public class SQLQuery {
 					.getEntityMetadata(type);
 			if (!querycache.containsKey(enref.Entity)) {
 				if (enref.IsView) {
-					if (!enref.IsJoin)
+					if (!enref.IsJoin) {
 						selectq = enref.Query;
-					else {
+					} else {
 						if (enref.Join.Type == EnumJoinType.Native) {
 							selectq = getBasicSelect(graph);
 						} else
@@ -89,11 +89,10 @@ public class SQLQuery {
 				if (zst instanceof ZQuery) {
 					zq = (ZQuery) zst;
 					querycache.put(enref.Entity, zq);
-				} else {
+				} else
 					throw new Exception(
 							"Invalid parsed SQL : Statement of type ["
 									+ zst.getClass().getCanonicalName() + "]");
-				}
 			}
 
 			return querycache.get(enref.Entity);
@@ -103,7 +102,8 @@ public class SQLQuery {
 		}
 	}
 
-	private static String getBasicSelect(AbstractJoinGraph graph) throws Exception {
+	private static String getBasicSelect(final AbstractJoinGraph graph)
+			throws Exception {
 		StringBuffer where = new StringBuffer();
 
 		Collection<String> columns = graph.getColumns();
@@ -113,10 +113,11 @@ public class SQLQuery {
 		boolean first = true;
 		StringBuffer cbuff = new StringBuffer();
 		for (String column : columns) {
-			if (first)
+			if (first) {
 				first = false;
-			else
+			} else {
 				cbuff.append(',');
+			}
 			cbuff.append(' ').append(column).append(" as \"").append(column)
 					.append("\"");
 		}
@@ -139,8 +140,9 @@ public class SQLQuery {
 			if (first) {
 				first = false;
 				qbuff.append(" from ");
-			} else
+			} else {
 				qbuff.append(", ");
+			}
 			qbuff.append(table).append(' ').append(tab);
 		}
 		if (where.length() > 0) {
@@ -155,12 +157,17 @@ public class SQLQuery {
 
 	private AbstractJoinGraph graph = null;
 
-	public SQLQuery(Class<?> type) throws Exception {
+	public SQLQuery(final Class<?> type) throws Exception {
 		this.type = type;
 		graph = AbstractJoinGraph.lookup(type);
 	}
 
-	public String parse(String query, int limit) throws Exception {
+	public SQLQuery(final AbstractJoinGraph graph) {
+		this.graph = graph;
+		this.type = graph.getType();
+	}
+
+	public String parse(final String query, final int limit) throws Exception {
 		this.query = query;
 
 		ZQuery zq = getCachedQuery(type);
@@ -172,7 +179,7 @@ public class SQLQuery {
 		return zq.getSql(aq, limit);
 	}
 
-	private ZQuery parseQuery(ZQuery qr) throws Exception {
+	private ZQuery parseQuery(final ZQuery qr) throws Exception {
 		if (query == null || query.isEmpty())
 			return null;
 
@@ -186,7 +193,8 @@ public class SQLQuery {
 		return zq;
 	}
 
-	private void resolveColumn(ZExp exp, ZQuery qr) throws Exception {
+	private void resolveColumn(final ZExp exp, final ZQuery qr)
+			throws Exception {
 		if (exp instanceof ZExpression) {
 			ZExpression ze = (ZExpression) exp;
 			Vector<ZExp> ve = ze.getOperands();

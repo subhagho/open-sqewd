@@ -36,7 +36,7 @@ import com.sqewd.open.dal.api.persistence.Reference;
  * 
  */
 @Entity(recordset = "ORGANIZATION_V", isview = true, isjoin = true)
-@EntityJoin(entities = "ORGANIZATION,EMPLOYEE", join = "ORGANIZATION.MANAGER = ORGMANAGER.ID")
+@EntityJoin(join = "ORGANIZATION.MANAGER = ORGMANAGER.ID")
 public class OrganizationView extends AbstractEntity {
 	@Attribute(name = "ORGANIZATION")
 	@Reference(target = "com.sqewd.open.dal.demo.entities.Organization", attribute = "ID", association = EnumRefereceType.One2Many)

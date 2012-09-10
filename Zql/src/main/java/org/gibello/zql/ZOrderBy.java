@@ -61,4 +61,11 @@ public class ZOrderBy implements java.io.Serializable {
 	public String toString() {
 		return exp_.toString() + " " + (asc_ ? "ASC" : "DESC");
 	}
+
+	public ZOrderBy copy() {
+		ZOrderBy zo = new ZOrderBy(exp_.copy());
+		zo.asc_ = asc_;
+
+		return zo;
+	}
 };

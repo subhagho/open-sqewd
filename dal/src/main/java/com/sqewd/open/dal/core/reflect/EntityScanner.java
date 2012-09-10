@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.sqewd.open.dal.api.utils.LogUtils;
+import com.sqewd.open.dal.core.Env;
 
 /**
  * @author subhagho
@@ -48,8 +49,8 @@ public class EntityScanner {
 
 	private List<Class<?>> classes = new ArrayList<Class<?>>();
 
-	public EntityScanner() {
-		loader = new EntityClassLoader(getClass().getClassLoader());
+	public EntityScanner() throws Exception{
+		loader = Env.get().getEntityLoader();
 	}
 
 	public void scan(String prefix) throws Exception {

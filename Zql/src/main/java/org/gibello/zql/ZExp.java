@@ -22,4 +22,8 @@ package org.gibello.zql;
  * ZConstants are ZExps).
  */
 public interface ZExp extends java.io.Serializable {
+	public ZExp copy();
+
+	public boolean clean();
+
 };

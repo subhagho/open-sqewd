@@ -53,34 +53,44 @@ public abstract class AbstractJoinGraph {
 
 	protected HashMap<String, String> columns = new HashMap<String, String>();
 
-	protected boolean hasAlias(String alias) {
+	public Class<?> getType() {
+		return type;
+	}
+
+	public boolean hasAlias(final String alias) {
 		if (parent == null)
-			if (usedaliases.containsKey(alias)) {
+			if (usedaliases.containsKey(alias))
 				return true;
-			} else
+			else
 				return false;
 		else
 			return parent.hasAlias(alias);
 	}
 
-	protected void addalias(String alias, String table) {
-		if (parent == null) {
-			if (usedaliases == null)
+	protected void addalias(final String alias, final String table,
+			final boolean owner) {
+		if (owner || parent == null) {
+			if (usedaliases == null) {
 				usedaliases = new HashMap<String, String>();
+			}
 			usedaliases.put(alias, table);
-		} else
-			parent.addalias(alias, table);
+		}
+		if (parent != null) {
+			parent.addalias(alias, table, false);
+		}
 	}
 
-	protected void addcolumn(String column) {
-		if (parent != null)
-			parent.addcolumn(column);
-		else {
+	protected void addcolumn(final String column, final boolean owner) {
+		if (owner || parent == null) {
 			if (columns == null) {
 				columns = new HashMap<String, String>();
 			}
 			columns.put(column, column);
 		}
+		if (parent != null) {
+			parent.addcolumn(column, false);
+		}
+
 	}
 
 	/**
@@ -99,12 +109,13 @@ public abstract class AbstractJoinGraph {
 		return usedaliases;
 	}
 
-	protected String getPathString(Stack<KeyValuePair<Class<?>>> path) {
+	protected String getPathString(final Stack<KeyValuePair<Class<?>>> path) {
 		StringBuffer buff = new StringBuffer();
 
 		for (KeyValuePair<Class<?>> cls : path) {
-			if (buff.length() != 0)
+			if (buff.length() != 0) {
 				buff.append("-->");
+			}
 			buff.append(cls.getValue().getCanonicalName() + "[" + cls.getKey()
 					+ "]");
 		}
@@ -119,6 +130,8 @@ public abstract class AbstractJoinGraph {
 	 * @return
 	 */
 	public abstract String getJoinCondition();
+
+	public abstract boolean resolveColumn(String column) throws Exception;
 
 	public abstract KeyValuePair<String> getAliasFor(
 			Stack<KeyValuePair<Class<?>>> path, String column, int index)
@@ -150,7 +163,8 @@ public abstract class AbstractJoinGraph {
 	 * @return
 	 * @throws Exception
 	 */
-	public static AbstractJoinGraph lookup(Class<?> type) throws Exception {
+	public static AbstractJoinGraph lookup(final Class<?> type)
+			throws Exception {
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
 		String key = enref.Entity;
@@ -163,8 +177,8 @@ public abstract class AbstractJoinGraph {
 				NativeJoinGraph ng = new NativeJoinGraph(type);
 				graphs.put(key, ng);
 			} else {
-				throw new Exception("Join Type [" + enref.Join.Type.name()
-						+ "] not implemented.");
+				ExternalJoinGraph eg = new ExternalJoinGraph(type);
+				graphs.put(key, eg);
 			}
 		}
 		return graphs.get(key);

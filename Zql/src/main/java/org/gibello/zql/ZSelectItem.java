@@ -108,4 +108,24 @@ public class ZSelectItem extends ZAliasedName {
 	 * TBD public String toString() { String agg = getAggregate(); if(agg ==
 	 * null) agg = ""; return agg + super.toString(); }
 	 **/
+	
+	public ZSelectItem copy() {
+		ZSelectItem zi = new ZSelectItem();
+		if (aggregate_ != null)
+			zi.aggregate_ = new String(aggregate_);
+		if (expression_ != null)
+			zi.expression_ = expression_.copy();
+		if (alias_ != null)
+			zi.alias_ = new String(alias_);
+		if (column_ != null)
+			zi.column_ = new String(column_);
+		zi.form_ = form_;
+		if (schema_ != null)
+			zi.schema_ = new String(schema_);
+		if (strform_ != null)
+			zi.strform_ = new String(strform_);
+		if (table_ != null)
+			zi.table_ = new String(table_);
+		return zi;
+	}
 };

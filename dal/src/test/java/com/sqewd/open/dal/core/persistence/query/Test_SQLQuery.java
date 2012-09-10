@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.core.persistence.DataManager;
@@ -75,14 +76,16 @@ public class Test_SQLQuery {
 	private void isNativeJoin(StructEntityReflect enref) throws Exception {
 		AbstractPersister pers = null;
 
-		for (String entity : enref.Join.Entities) {
+		for (StructAttributeReflect attr : enref.Attributes) {
+			if (attr.Reference == null)
+				continue;
+			Class<?> type = Class.forName(attr.Reference.Class);
 			StructEntityReflect subref = ReflectionUtils.get()
-					.getEntityMetadata(entity);
+					.getEntityMetadata(type);
 			if (subref == null)
-				throw new Exception("No entity defined for name [" + entity
-						+ "]");
-			Class<?> cls = Class.forName(subref.Class);
-			AbstractPersister p = DataManager.get().getPersister(cls);
+				throw new Exception("No entity defined for name ["
+						+ attr.Column + "]");
+			AbstractPersister p = DataManager.get().getPersister(type);
 			if (pers == null)
 				pers = p;
 			else if (!p.equals(pers)) {
@@ -122,9 +125,9 @@ public class Test_SQLQuery {
 	public void testLoadParse() {
 		try {
 			SQLQuery sq = new SQLQuery(OrganizationView.class);
-			sq.parse(
-					"(ORGANIZATION.EMPLOYEE.ID LIKE '10%';ORGMANAGER.ID LIKE '10%')",
-					30);
+			log.info(sq
+					.parse("(ORGANIZATION.EMPLOYEE.ID LIKE '10%' OR ORGMANAGER.ID LIKE '10%') ORDER BY ORGMANAGER.ID, ORGANIZATION.EMPLOYEE.ID DESC",
+							30));
 			long stime = System.currentTimeMillis();
 			int size = 10000;
 

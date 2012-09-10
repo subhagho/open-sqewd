@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename NativeJoinGraph.java
- * @created Aug 27, 2012
+ * @filename ExternalJoinGraph.java
+ * @created Sep 3, 2012
  * @author subhagho
  *
  */
@@ -23,52 +23,40 @@ package com.sqewd.open.dal.core.persistence.db;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
+import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
+import com.sqewd.open.dal.core.persistence.DataManager;
 
 /**
+ * TODO: <comment>
+ * 
  * @author subhagho
  * 
- *         TODO: <comment>
- * 
  */
-public class NativeJoinGraph extends AbstractJoinGraph {
-	protected HashMap<String, InternalJoinGraph> joins = new HashMap<String, InternalJoinGraph>();
-	protected String qjoin = null;
+public class ExternalJoinGraph extends AbstractJoinGraph {
+	private final HashMap<String, JoinMap> joins = new HashMap<String, JoinMap>();
+	private String qjoin = null;
 
-	protected NativeJoinGraph() {
-
-	}
-
-	public NativeJoinGraph(final Class<?> type) throws Exception {
+	public ExternalJoinGraph(final Class<?> type) throws Exception {
 		this.type = type;
 		this.parent = null;
-		process(null);
+		process();
 	}
 
-	public NativeJoinGraph(final String alias, final Class<?> type)
-			throws Exception {
-		this.type = type;
-		this.parent = null;
-		process(alias);
-	}
-
-	private void process(final String rootalias) throws Exception {
+	private void process() throws Exception {
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
 		table = enref.Entity;
-		if (rootalias == null || rootalias.isEmpty()) {
-			alias = enref.Entity;
-		} else {
-			alias = rootalias;
-		}
+		alias = enref.Entity;
 
-		if (!enref.IsJoin || enref.Join.Type != EnumJoinType.Native)
+		if (!enref.IsJoin || enref.Join.Type != EnumJoinType.Virtual)
 			throw new Exception("Invalid entity [" + enref.Class
 					+ "], does not represent a native join.");
 		qjoin = enref.Join.Join;
@@ -84,10 +72,16 @@ public class NativeJoinGraph extends AbstractJoinGraph {
 					name = name + _ALIAS_SUFFIX_ + count;
 					count++;
 				}
-				InternalJoinGraph ig = new InternalJoinGraph(
-						Class.forName(attr.Reference.Class), this, name,
+				Class<?> jt = Class.forName(attr.Reference.Class);
+				InternalJoinGraph ig = new InternalJoinGraph(jt, this, name,
 						attr.Column);
-				joins.put(ig.alias, ig);
+				AbstractPersister pers = DataManager.get().getPersister(jt);
+				if (!joins.containsKey(pers.key())) {
+					JoinMap map = new JoinMap();
+					map.setPersisterKey(pers.key());
+					joins.put(pers.key(), map);
+				}
+				joins.get(pers.key()).addGraph(ig.alias, ig);
 			}
 		}
 	}
@@ -116,11 +110,15 @@ public class NativeJoinGraph extends AbstractJoinGraph {
 		List<String> path = new ArrayList<String>();
 		if (column.indexOf('.') > 0) {
 			String[] parts = column.split("\\.");
-			if (joins.containsKey(parts[0])) {
-				AbstractJoinGraph ag = joins.get(parts[0]);
-				column = column.substring(column.indexOf('.') + 1);
-				return ag.getPath(column);
+			for (String key : joins.keySet()) {
+				JoinMap map = joins.get(key);
+				if (map.containsKey(parts[0])) {
+					AbstractJoinGraph ag = map.getGraph(parts[0]);
+					column = column.substring(column.indexOf('.') + 1);
+					return ag.getPath(column);
+				}
 			}
+
 		} else {
 			if (joins.containsKey(column)) {
 				path.add(column);
@@ -140,16 +138,63 @@ public class NativeJoinGraph extends AbstractJoinGraph {
 	public String getJoinCondition() {
 		StringBuffer buff = new StringBuffer();
 		if (joins != null && joins.size() > 0) {
-			for (String key : joins.keySet()) {
-				InternalJoinGraph gr = joins.get(key);
-				String ref = gr.getJoinCondition();
-				if (ref != null && !ref.isEmpty()) {
-					if (buff.length() > 0) {
-						buff.append(" and ");
+			for (String jkey : joins.keySet()) {
+				JoinMap map = joins.get(jkey);
+				for (String key : map.keySet()) {
+					InternalJoinGraph gr = map.getGraph(key);
+					String ref = gr.getJoinCondition();
+					if (ref != null && !ref.isEmpty()) {
+						if (buff.length() > 0) {
+							buff.append(" and ");
+						}
+						buff.append(ref);
 					}
-					buff.append(ref);
 				}
 			}
+		}
+
+		if (buff.length() > 0) {
+			buff.insert(0, "(").append(")");
+			if (qjoin != null && qjoin.length() > 0) {
+				buff.append(" and ");
+			}
+		}
+		if (qjoin != null && qjoin.length() > 0) {
+			buff.append(" ").append(qjoin);
+		}
+		return buff.toString();
+	}
+
+	public Set<String> getPersisters() {
+		if (joins != null && joins.size() > 0)
+			return joins.keySet();
+		return null;
+	}
+
+	public JoinMap getPersisterQueryMap(final String key) {
+		if (joins != null && joins.containsKey(key))
+			return joins.get(key);
+		return null;
+	}
+
+	public String getJoinCondition(final String persister) throws Exception {
+		StringBuffer buff = new StringBuffer();
+		if (joins != null && joins.size() > 0) {
+			if (joins.containsKey(persister)) {
+				JoinMap map = joins.get(persister);
+				for (String key : map.keySet()) {
+					InternalJoinGraph gr = map.getGraph(key);
+					String ref = gr.getJoinCondition();
+					if (ref != null && !ref.isEmpty()) {
+						if (buff.length() > 0) {
+							buff.append(" and ");
+						}
+						buff.append(ref);
+					}
+				}
+			} else
+				throw new Exception("Persister with ID [" + persister
+						+ "] not present in the join table.");
 		}
 
 		if (buff.length() > 0) {
@@ -179,20 +224,17 @@ public class NativeJoinGraph extends AbstractJoinGraph {
 		if (cls.getValue().equals(type)) {
 			if (index == path.size() - 1)
 				return new KeyValuePair<String>(alias, table);
-			for (String key : joins.keySet()) {
-				if (key.compareTo(cls.getKey()) == 0)
-					return joins.get(key).getAliasFor(path, column, index + 1);
+			for (String jkey : joins.keySet()) {
+				JoinMap map = joins.get(jkey);
+				for (String key : map.keySet()) {
+					if (key.compareTo(cls.getKey()) == 0)
+						return map.getGraph(key).getAliasFor(path, column,
+								index + 1);
+				}
 			}
 		}
 		throw new Exception("Invalid Path : Root element isn't of type ["
 				+ type.getCanonicalName() + "]");
-	}
-
-	public AbstractJoinGraph getElementGraph(final String column)
-			throws Exception {
-		if (joins.containsKey(column))
-			return joins.get(column);
-		throw new Exception("No joins specified for column [" + column + "]");
 	}
 
 	/*
@@ -203,33 +245,7 @@ public class NativeJoinGraph extends AbstractJoinGraph {
 	 * (java.lang.String)
 	 */
 	@Override
-	public boolean resolveColumn(String column) throws Exception {
-		String[] parts = column.split("\\.");
-		String talias = parts[0];
-		if (hasAlias(talias)) {
-			if (alias.compareTo(talias) == 0) {
-				if (parts.length == 2) {
-					if (columns != null && columns.containsKey(parts[1]))
-						return true;
-					else
-						return false;
-				} else {
-					if (joins.containsKey(talias)) {
-						AbstractJoinGraph ag = joins.get(talias);
-						column = column.substring(column.indexOf('.') + 1);
-						return ag.resolveColumn(column);
-					}
-				}
-			} else {
-				boolean retval = false;
-				for (String key : joins.keySet()) {
-					AbstractJoinGraph ag = joins.get(key);
-					retval = ag.resolveColumn(column);
-					if (retval)
-						return true;
-				}
-			}
-		}
-		return false;
+	public boolean resolveColumn(final String column) throws Exception {
+		throw new Exception("Should not be called.");
 	}
 }

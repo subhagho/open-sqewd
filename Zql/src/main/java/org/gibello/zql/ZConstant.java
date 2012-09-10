@@ -67,4 +67,20 @@ public class ZConstant implements ZExp {
 		else
 			return val_;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.gibello.zql.ZExp#copy()
+	 */
+	public ZExp copy() {
+		return new ZConstant(val_, type_);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gibello.zql.ZExp#clean()
+	 */
+	public boolean clean() {
+		return false;
+	}
 };

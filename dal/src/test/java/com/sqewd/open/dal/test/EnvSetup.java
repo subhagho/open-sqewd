@@ -44,6 +44,8 @@ public class EnvSetup {
 		File wdi = new File(_SETUP_ROOTDIR_ + "/run/h2/");
 		wdi.mkdirs();
 
+		Env.get().setEntityLoader(Env.get().getClass().getClassLoader());
+
 		DataManager.create(Env.get().getConfig());
 	}
 
@@ -52,7 +54,7 @@ public class EnvSetup {
 				"CSVPERSISTER");
 		DataImport importer = new DataImport(persister);
 		importer.load(new String[] { "ROLE", "EMPLOYEE", "TEAM", "MEMBERSHIP",
-				"DEPARTMENT", "ORGANIZATION" });
+				"DEPARTMENT", "ORGANIZATION", "SALARY" });
 	}
 
 	private static void cleanup() throws Exception {

@@ -319,4 +319,55 @@ public class ZQuery implements ZStatement, ZExp {
 		return buf.toString();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.gibello.zql.ZExp#copy()
+	 */
+	public ZExp copy() {
+		ZQuery zq = new ZQuery();
+		zq.distinct_ = distinct_;
+		zq.forupdate_ = forupdate_;
+		if (from_ != null && from_.size() > 0) {
+			zq.from_ = new Vector<ZFromItem>();
+			for (ZFromItem fi : from_) {
+				zq.from_.add(fi.copy());
+			}
+		}
+		if (orderby_ != null && orderby_.size() > 0) {
+			zq.orderby_ = new Vector<ZOrderBy>();
+			for (ZOrderBy zo : orderby_) {
+				zq.orderby_.add(zo.copy());
+			}
+		}
+		if (select_ != null && select_.size() > 0) {
+			zq.select_ = new Vector<ZSelectItem>();
+			for (ZSelectItem si : select_) {
+				zq.select_.add(si.copy());
+			}
+		}
+		if (setclause_ != null)
+			zq.setclause_ = (ZExpression) setclause_.copy();
+		zq.top_ = top_;
+		if (where_ != null)
+			zq.where_ = where_.copy();
+		return zq;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.gibello.zql.ZExp#clean()
+	 */
+	public boolean clean() {
+		if (where_ != null) {
+			where_.clean();
+			if (where_ instanceof ZExpression) {
+				if (((ZExpression) where_).count() <= 0)
+					where_ = null;
+			}
+		}
+		return false;
+	}
+
 };

@@ -85,6 +85,7 @@ TOKEN: /* SQL Keywords. prefixed with K_ to avoid name clashes */
 {
     <K_ALL: "ALL">
 |   <K_AND: ";">
+|  < K_QAND: "AND" >
 |   <K_ANY: "ANY">
 |   <K_AS: "AS">
 |   <K_ASC:"ASC">
@@ -130,6 +131,7 @@ TOKEN: /* SQL Keywords. prefixed with K_ to avoid name clashes */
 |   <K_OF:"OF">
 |   <K_ONLY:"ONLY">
 |   <K_OR:",">
+|   <K_QOR:"OR">
 |   <K_ORDER:"ORDER">
 |   <K_PRIOR:"PRIOR">
 |   <K_QUIT:"QUIT">
@@ -255,7 +257,7 @@ ZExp SQLExpression():
 }
 {
     e1 = SQLAndExpression()
-    ("," e2 = SQLAndExpression() {
+    ((< K_OR > | < K_QOR >) e2 = SQLAndExpression() {
       if(single) { e = new ZExpression("OR", e1); }
       single=false;
       e.addOperand(e2);
@@ -286,11 +288,11 @@ ZExp SQLAndExpression():
 }
 {
     e1 = SQLUnaryLogicalExpression()
-    ( ";" e2 = SQLUnaryLogicalExpression() {
+    ( (< K_QAND > | < K_AND >)      e2 = SQLUnaryLogicalExpression()      {
       if(single) { e = new ZExpression("AND", e1); }
       single=false;
       e.addOperand(e2);
-    } )*
+    }   )*
     { return (single ? e1 : e); }
 }
 

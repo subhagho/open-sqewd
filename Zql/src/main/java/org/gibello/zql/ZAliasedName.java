@@ -157,4 +157,20 @@ public class ZAliasedName implements java.io.Serializable {
 	public void setAlias(String a) {
 		alias_ = new String(a);
 	}
+
+	public ZAliasedName copy() {
+		ZAliasedName zc = new ZAliasedName();
+		if (alias_ != null)
+			zc.alias_ = new String(alias_);
+		if (column_ != null)
+			zc.column_ = new String(column_);
+		zc.form_ = form_;
+		if (schema_ != null)
+			zc.schema_ = new String(schema_);
+		if (strform_ != null)
+			zc.strform_ = new String(strform_);
+		if (table_ != null)
+			zc.table_ = new String(table_);
+		return zc;
+	}
 }

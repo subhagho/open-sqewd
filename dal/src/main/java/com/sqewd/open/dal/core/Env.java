@@ -40,7 +40,9 @@ public class Env {
 	private String configf = null;
 	private String workdir = null;
 	private String tempdir = null;
-	private HashMap<String, Object> shared = new HashMap<String, Object>();
+	private final HashMap<String, Object> shared = new HashMap<String, Object>();
+
+	private ClassLoader entityLoader = null;
 
 	private Env(String filename) throws Exception {
 		XMLUtils.validate(filename, "/schema/moong-dal.xsd");
@@ -168,6 +170,21 @@ public class Env {
 		return null;
 	}
 
+	/**
+	 * @return the entityLoader
+	 */
+	public ClassLoader getEntityLoader() {
+		return entityLoader;
+	}
+
+	/**
+	 * @param entityLoader
+	 *            the entityLoader to set
+	 */
+	public void setEntityLoader(ClassLoader entityLoader) {
+		this.entityLoader = entityLoader;
+	}
+
 	// Instance
 	private static Env _instance = null;
 	private static Object _lock = new Object();
@@ -219,4 +236,5 @@ public class Env {
 		}
 		_instance = null;
 	}
+
 }

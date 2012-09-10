@@ -35,13 +35,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface EntityJoin {
 	/**
-	 * Array of entities to be joined.
-	 * 
-	 * @return
-	 */
-	String entities();
-
-	/**
 	 * Join condition (where clause). Note: Columns should be prefixed by the
 	 * Entity name.
 	 * 

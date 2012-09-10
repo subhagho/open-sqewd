@@ -270,5 +270,5 @@
 			</plugin>
 		</plugins>
 	</build>
-	<description>Lightweight implementation of a Data Access Layer. Also includes a preconfigured Jetty Server to expose the Data as Services.</description>
+	<description>Lightweight implementation of a Data and Application Layer. Also includes a pre-configured Jetty Server to expose the Data as Services.</description>
 </project>

@@ -14,11 +14,12 @@
  */
 package com.sqewd.open.dal.api.persistence;
 
+import java.sql.ResultSet;
 import java.util.List;
 
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.InitializedHandle;
-import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.api.utils.ListParam;
 
 /**
@@ -64,18 +65,35 @@ public abstract class AbstractPersister implements InitializedHandle {
 	public abstract void postinit() throws Exception;
 
 	/**
-	 * Load a list of entity records based on the column keys specified.
+	 * Read the entities of the specified from the persistence store.
 	 * 
-	 * @note Search keys are ANDED, no grouping operations are supported.
-	 * @param columnkeys
-	 *            - List of Column->Value to be used for searching.
+	 * @param query
+	 *            - Query Condition to filter the result set by.
 	 * @param type
-	 *            - Class type of the entity to search.
+	 *            - Entity type to fetch.
+	 * @param limit
+	 *            - Limit the size of the Results to.
 	 * @return
 	 * @throws Exception
 	 */
 	public abstract List<AbstractEntity> read(String query, Class<?> type,
 			int limit) throws Exception;
+
+	/**
+	 * Load the entity records for the specified entity and return as a SQL
+	 * ResultSet.
+	 * 
+	 * @param query
+	 *            - Query Condition to filter the result set by.
+	 * @param types
+	 *            - Entity types to fetch.
+	 * @param limit
+	 *            - Limit the size of the Results to.
+	 * @return - Will return ResultSet of type LocalResultSet.
+	 * @throws Exception
+	 */
+	public abstract ResultSet select(String query,
+			List<KeyValuePair<Class<?>>> types, int limit) throws Exception;
 
 	/**
 	 * Persist the specified entity record.

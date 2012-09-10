@@ -67,10 +67,10 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 			alias = alias + _ALIAS_SUFFIX_ + ii;
 			ii++;
 		}
-		addalias(alias, enref.Entity);
+		addalias(alias, enref.Entity, true);
 		for (String column : enref.ColumnMaps.keySet()) {
 			StructAttributeReflect attr = enref.get(column);
-			addcolumn(alias + "." + attr.Column);
+			addcolumn(alias + "." + attr.Column, true);
 			if (parent != null) {
 				columns.put(alias + "." + attr.Column, alias + "."
 						+ attr.Column);
@@ -89,6 +89,20 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 		}
 	}
 
+	public boolean searchAlias(String alias) {
+		if (usedaliases != null && usedaliases.containsKey(alias)) {
+			return true;
+		}
+		if (joins != null) {
+			for (String key : joins.keySet()) {
+				InternalJoinGraph ig = joins.get(key).getValue();
+				if (ig.searchAlias(alias))
+					return true;
+			}
+		}
+		return false;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -96,6 +110,7 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 	 * com.sqewd.open.dal.core.persistence.db.AbstractJoinGraph#getAliasFor(
 	 * java.util.Stack, java.lang.String, int)
 	 */
+	@Override
 	public KeyValuePair<String> getAliasFor(Stack<KeyValuePair<Class<?>>> path,
 			String column, int index) throws Exception {
 		KeyValuePair<Class<?>> cls = path.elementAt(index);
@@ -122,6 +137,7 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 	 * com.sqewd.open.dal.core.persistence.db.AbstractJoinGraph#getPath(java
 	 * .lang.String)
 	 */
+	@Override
 	public List<String> getPath(String column) throws Exception {
 		List<String> list = new ArrayList<String>();
 		if (column.indexOf('.') > 0) {
@@ -172,6 +188,7 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 	 * com.sqewd.open.dal.core.persistence.db.AbstractJoinGraph#getJoinCondition
 	 * ()
 	 */
+	@Override
 	public String getJoinCondition() {
 		StringBuffer buff = new StringBuffer();
 		if (joins != null && joins.size() > 0) {
@@ -240,6 +257,44 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 	public boolean hasJoins() {
 		if (joins != null && joins.size() > 0) {
 			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.db.AbstractJoinGraph#resolveColumn
+	 * (java.lang.String)
+	 */
+	@Override
+	public boolean resolveColumn(String column) throws Exception {
+		String[] parts = column.split("\\.");
+		String talias = parts[0];
+		if (hasAlias(talias)) {
+			if (alias.compareTo(talias) == 0) {
+				if (parts.length == 2) {
+					if (columns != null && columns.containsKey(column)) {
+						return true;
+					} else
+						return false;
+				} else {
+					if (joins.containsKey(talias)) {
+						AbstractJoinGraph ag = joins.get(talias).getValue();
+						column = column.substring(column.indexOf('.') + 1);
+						return ag.resolveColumn(column);
+					}
+				}
+			} else {
+				boolean retval = false;
+				for (String key : joins.keySet()) {
+					AbstractJoinGraph ag = joins.get(key).getValue();
+					retval = ag.resolveColumn(column);
+					if (retval)
+						return true;
+				}
+			}
 		}
 		return false;
 	}

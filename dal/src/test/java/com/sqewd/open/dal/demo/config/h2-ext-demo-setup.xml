@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<h2>
+	<db version="1.0">
+		<entities>
+			<entity class="com.sqewd.open.dal.demo.ext.entities.Salary">
+				<index name="INDX_SA_01" columns="ID" />
+			</entity>
+		</entities>
+	</db>
+</h2>

@@ -86,8 +86,8 @@ public class DalSqlParser implements DalSqlParserConstants {
         throw new ParseException();
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 89:
-        jj_consume_token(89);
+      case 91:
+        jj_consume_token(91);
         jj_consume_token(S_NUMBER);
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case K_OR:
@@ -98,7 +98,7 @@ public class DalSqlParser implements DalSqlParserConstants {
           jj_la1[1] = jj_gen;
           ;
         }
-        jj_consume_token(90);
+        jj_consume_token(92);
         break;
       default:
         jj_la1[2] = jj_gen;
@@ -160,9 +160,9 @@ public class DalSqlParser implements DalSqlParserConstants {
     case S_BIND:
     case S_CHAR_LITERAL:
     case S_QUOTED_IDENTIFIER:
-    case 89:
-    case 100:
-    case 101:
+    case 91:
+    case 102:
+    case 103:
       where = WhereClause();
       break;
     default:
@@ -191,13 +191,25 @@ public class DalSqlParser implements DalSqlParserConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case K_OR:
+      case K_QOR:
         ;
         break;
       default:
         jj_la1[6] = jj_gen;
         break label_1;
       }
-      jj_consume_token(K_OR);
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case K_OR:
+        jj_consume_token(K_OR);
+        break;
+      case K_QOR:
+        jj_consume_token(K_QOR);
+        break;
+      default:
+        jj_la1[7] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
       e2 = SQLAndExpression();
       if(single) { e = new ZExpression("OR", e1); }
       single=false;
@@ -210,14 +222,6 @@ public class DalSqlParser implements DalSqlParserConstants {
   final public String Relop() throws ParseException {
   Token op;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 91:
-      op = jj_consume_token(91);
-               {if (true) return op.toString();}
-      break;
-    case 92:
-      op = jj_consume_token(92);
-               {if (true) return op.toString();}
-      break;
     case 93:
       op = jj_consume_token(93);
                {if (true) return op.toString();}
@@ -242,8 +246,16 @@ public class DalSqlParser implements DalSqlParserConstants {
       op = jj_consume_token(98);
                {if (true) return op.toString();}
       break;
+    case 99:
+      op = jj_consume_token(99);
+               {if (true) return op.toString();}
+      break;
+    case 100:
+      op = jj_consume_token(100);
+               {if (true) return op.toString();}
+      break;
     default:
-      jj_la1[7] = jj_gen;
+      jj_la1[8] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -259,13 +271,25 @@ public class DalSqlParser implements DalSqlParserConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case K_AND:
+      case K_QAND:
         ;
         break;
       default:
-        jj_la1[8] = jj_gen;
+        jj_la1[9] = jj_gen;
         break label_2;
       }
-      jj_consume_token(K_AND);
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case K_QAND:
+        jj_consume_token(K_QAND);
+        break;
+      case K_AND:
+        jj_consume_token(K_AND);
+        break;
+      default:
+        jj_la1[10] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
       e2 = SQLUnaryLogicalExpression();
       if(single) { e = new ZExpression("AND", e1); }
       single=false;
@@ -284,7 +308,7 @@ public class DalSqlParser implements DalSqlParserConstants {
               not = true;
       break;
     default:
-      jj_la1[9] = jj_gen;
+      jj_la1[11] = jj_gen;
       ;
     }
     e1 = SQLRelationalExpression();
@@ -304,9 +328,9 @@ public class DalSqlParser implements DalSqlParserConstants {
   Vector<ZExp> v;
   boolean prior = false;
     if (jj_2_1(2147483647)) {
-      jj_consume_token(89);
+      jj_consume_token(91);
       v = SQLExpressionList();
-      jj_consume_token(90);
+      jj_consume_token(92);
        eleft = new ZExpression(",");
        ((ZExpression)eleft).setOperands(v);
     } else {
@@ -323,16 +347,16 @@ public class DalSqlParser implements DalSqlParserConstants {
       case S_BIND:
       case S_CHAR_LITERAL:
       case S_QUOTED_IDENTIFIER:
-      case 89:
-      case 100:
-      case 101:
+      case 91:
+      case 102:
+      case 103:
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case K_PRIOR:
           jj_consume_token(K_PRIOR);
                  prior = true;
           break;
         default:
-          jj_la1[10] = jj_gen;
+          jj_la1[12] = jj_gen;
           ;
         }
         e1 = SQLSimpleExpression();
@@ -340,7 +364,7 @@ public class DalSqlParser implements DalSqlParserConstants {
         else eleft = e1;
         break;
       default:
-        jj_la1[11] = jj_gen;
+        jj_la1[13] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -351,27 +375,27 @@ public class DalSqlParser implements DalSqlParserConstants {
     case K_IS:
     case K_LIKE:
     case K_NOT:
-    case 91:
-    case 92:
     case 93:
     case 94:
     case 95:
     case 96:
     case 97:
     case 98:
+    case 99:
+    case 100:
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 91:
-      case 92:
       case 93:
       case 94:
       case 95:
       case 96:
       case 97:
       case 98:
+      case 99:
+      case 100:
         eright = SQLRelationalOperatorExpression();
         break;
       default:
-        jj_la1[12] = jj_gen;
+        jj_la1[14] = jj_gen;
         if (jj_2_2(2)) {
           eright = SQLInClause();
         } else if (jj_2_3(2)) {
@@ -384,7 +408,7 @@ public class DalSqlParser implements DalSqlParserConstants {
             eright = IsNullClause();
             break;
           default:
-            jj_la1[13] = jj_gen;
+            jj_la1[15] = jj_gen;
             jj_consume_token(-1);
             throw new ParseException();
           }
@@ -392,7 +416,7 @@ public class DalSqlParser implements DalSqlParserConstants {
       }
       break;
     default:
-      jj_la1[14] = jj_gen;
+      jj_la1[16] = jj_gen;
       ;
     }
      if(eright == null) {if (true) return eleft;}
@@ -416,7 +440,7 @@ public class DalSqlParser implements DalSqlParserConstants {
         ;
         break;
       default:
-        jj_la1[15] = jj_gen;
+        jj_la1[17] = jj_gen;
         break label_3;
       }
       jj_consume_token(K_OR);
@@ -440,7 +464,7 @@ public class DalSqlParser implements DalSqlParserConstants {
                   unaryOp = "PRIOR";
       break;
     default:
-      jj_la1[16] = jj_gen;
+      jj_la1[18] = jj_gen;
       ;
     }
     e1 = SQLSimpleExpressionOrPreparedCol();
@@ -464,18 +488,18 @@ public class DalSqlParser implements DalSqlParserConstants {
     case S_BIND:
     case S_CHAR_LITERAL:
     case S_QUOTED_IDENTIFIER:
-    case 89:
-    case 100:
-    case 101:
+    case 91:
+    case 102:
+    case 103:
       e = SQLSimpleExpression();
                                {if (true) return e;}
       break;
-    case 99:
+    case 101:
       e = PreparedCol();
                        {if (true) return e;}
       break;
     default:
-      jj_la1[17] = jj_gen;
+      jj_la1[19] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -484,7 +508,7 @@ public class DalSqlParser implements DalSqlParserConstants {
 
 // For prepared columns ("?")
   final public ZExp PreparedCol() throws ParseException {
-    jj_consume_token(99);
+    jj_consume_token(101);
         {if (true) return new ZExpression("?");}
     throw new Error("Missing return statement in function");
   }
@@ -499,15 +523,15 @@ public class DalSqlParser implements DalSqlParserConstants {
            not = true;
       break;
     default:
-      jj_la1[18] = jj_gen;
+      jj_la1[20] = jj_gen;
       ;
     }
     jj_consume_token(K_IN);
          e = new ZExpression(not ? "NOT IN" : "IN");
-    jj_consume_token(89);
+    jj_consume_token(91);
     v = SQLExpressionList();
                                  e.setOperands(v);
-    jj_consume_token(90);
+    jj_consume_token(92);
     {if (true) return e;}
     throw new Error("Missing return statement in function");
   }
@@ -522,7 +546,7 @@ public class DalSqlParser implements DalSqlParserConstants {
            not = true;
       break;
     default:
-      jj_la1[19] = jj_gen;
+      jj_la1[21] = jj_gen;
       ;
     }
     jj_consume_token(K_BETWEEN);
@@ -555,13 +579,13 @@ public class DalSqlParser implements DalSqlParserConstants {
                       ob.setAscOrder(false);
         break;
       default:
-        jj_la1[20] = jj_gen;
+        jj_la1[22] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
       break;
     default:
-      jj_la1[21] = jj_gen;
+      jj_la1[23] = jj_gen;
       ;
     }
                                                   v.addElement(ob);
@@ -572,7 +596,7 @@ public class DalSqlParser implements DalSqlParserConstants {
         ;
         break;
       default:
-        jj_la1[22] = jj_gen;
+        jj_la1[24] = jj_gen;
         break label_4;
       }
       jj_consume_token(K_OR);
@@ -590,13 +614,13 @@ public class DalSqlParser implements DalSqlParserConstants {
                        ob.setAscOrder(false);
           break;
         default:
-          jj_la1[23] = jj_gen;
+          jj_la1[25] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
         break;
       default:
-        jj_la1[24] = jj_gen;
+        jj_la1[26] = jj_gen;
         ;
       }
                                                    v.addElement(ob);
@@ -615,7 +639,7 @@ public class DalSqlParser implements DalSqlParserConstants {
            not = true;
       break;
     default:
-      jj_la1[25] = jj_gen;
+      jj_la1[27] = jj_gen;
       ;
     }
     jj_consume_token(K_LIKE);
@@ -635,7 +659,7 @@ public class DalSqlParser implements DalSqlParserConstants {
                 not = true;
       break;
     default:
-      jj_la1[26] = jj_gen;
+      jj_la1[28] = jj_gen;
       ;
     }
     jj_consume_token(K_NULL);
@@ -654,27 +678,27 @@ public class DalSqlParser implements DalSqlParserConstants {
     label_5:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 100:
-      case 101:
       case 102:
+      case 103:
+      case 104:
         ;
         break;
       default:
-        jj_la1[27] = jj_gen;
+        jj_la1[29] = jj_gen;
         break label_5;
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 100:
-        op = jj_consume_token(100);
-        break;
-      case 101:
-        op = jj_consume_token(101);
-        break;
       case 102:
         op = jj_consume_token(102);
         break;
+      case 103:
+        op = jj_consume_token(103);
+        break;
+      case 104:
+        op = jj_consume_token(104);
+        break;
       default:
-        jj_la1[28] = jj_gen;
+        jj_la1[30] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -698,23 +722,23 @@ public class DalSqlParser implements DalSqlParserConstants {
     label_6:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 103:
-      case 104:
+      case 105:
+      case 106:
         ;
         break;
       default:
-        jj_la1[29] = jj_gen;
+        jj_la1[31] = jj_gen;
         break label_6;
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 103:
-        op = jj_consume_token(103);
+      case 105:
+        op = jj_consume_token(105);
         break;
-      case 104:
-        op = jj_consume_token(104);
+      case 106:
+        op = jj_consume_token(106);
         break;
       default:
-        jj_la1[30] = jj_gen;
+        jj_la1[32] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -737,14 +761,14 @@ public class DalSqlParser implements DalSqlParserConstants {
     label_7:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 105:
+      case 107:
         ;
         break;
       default:
-        jj_la1[31] = jj_gen;
+        jj_la1[33] = jj_gen;
         break label_7;
       }
-      op = jj_consume_token(105);
+      op = jj_consume_token(107);
       e2 = SQLUnaryExpression();
       if(single) e = new ZExpression(op.toString(), e1);
       single = false;
@@ -759,23 +783,23 @@ public class DalSqlParser implements DalSqlParserConstants {
   Token op = null;
   ZExp e1, e;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 100:
-    case 101:
+    case 102:
+    case 103:
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 100:
-        op = jj_consume_token(100);
+      case 102:
+        op = jj_consume_token(102);
         break;
-      case 101:
-        op = jj_consume_token(101);
+      case 103:
+        op = jj_consume_token(103);
         break;
       default:
-        jj_la1[32] = jj_gen;
+        jj_la1[34] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
       break;
     default:
-      jj_la1[33] = jj_gen;
+      jj_la1[35] = jj_gen;
       ;
     }
     e1 = SQLPrimaryExpression();
@@ -797,7 +821,7 @@ public class DalSqlParser implements DalSqlParserConstants {
                                                                               {if (true) return t.toString();}
       break;
     default:
-      jj_la1[34] = jj_gen;
+      jj_la1[36] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -811,23 +835,23 @@ public class DalSqlParser implements DalSqlParserConstants {
         s = OracleObjectName();
                              buf.append(s);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 106:
-      jj_consume_token(106);
+    case 108:
+      jj_consume_token(108);
       s = OracleObjectName();
                                    buf.append("." + s);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 106:
-        jj_consume_token(106);
+      case 108:
+        jj_consume_token(108);
         s = OracleObjectName();
                                    buf.append("." + s);
         break;
       default:
-        jj_la1[35] = jj_gen;
+        jj_la1[37] = jj_gen;
         ;
       }
       break;
     default:
-      jj_la1[36] = jj_gen;
+      jj_la1[38] = jj_gen;
       ;
     }
       {if (true) return buf.toString();}
@@ -858,17 +882,17 @@ public class DalSqlParser implements DalSqlParserConstants {
 
       break;
     default:
-      jj_la1[38] = jj_gen;
+      jj_la1[40] = jj_gen;
       if (jj_2_5(3)) {
         jj_consume_token(K_COUNT);
-        jj_consume_token(89);
-        jj_consume_token(103);
-        jj_consume_token(90);
+        jj_consume_token(91);
+        jj_consume_token(105);
+        jj_consume_token(92);
      {if (true) return new ZExpression("COUNT",
       new ZConstant("*", ZConstant.COLUMNNAME));}
       } else if (jj_2_6(3)) {
         s = AggregateFunc();
-        jj_consume_token(89);
+        jj_consume_token(91);
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case K_ALL:
           jj_consume_token(K_ALL);
@@ -879,12 +903,12 @@ public class DalSqlParser implements DalSqlParserConstants {
                                                modifier="distinct ";
           break;
         default:
-          jj_la1[37] = jj_gen;
+          jj_la1[39] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
         s2 = TableColumn();
-        jj_consume_token(90);
+        jj_consume_token(92);
        {if (true) return new ZExpression(s, new ZConstant(modifier + s2, ZConstant.COLUMNNAME));}
       } else if (jj_2_7(2)) {
         e = FunctionCall();
@@ -911,14 +935,14 @@ public class DalSqlParser implements DalSqlParserConstants {
           t = jj_consume_token(S_BIND);
                   {if (true) return new ZConstant(t.toString(), ZConstant.STRING);}
           break;
-        case 89:
-          jj_consume_token(89);
+        case 91:
+          jj_consume_token(91);
           e = SQLExpression();
-          jj_consume_token(90);
+          jj_consume_token(92);
                                  {if (true) return e;}
           break;
         default:
-          jj_la1[39] = jj_gen;
+          jj_la1[41] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -953,7 +977,7 @@ public class DalSqlParser implements DalSqlParserConstants {
                 {if (true) return t.toString();}
       break;
     default:
-      jj_la1[40] = jj_gen;
+      jj_la1[42] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -978,11 +1002,11 @@ public class DalSqlParser implements DalSqlParserConstants {
       s = AggregateFunc();
       break;
     default:
-      jj_la1[41] = jj_gen;
+      jj_la1[43] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
-    jj_consume_token(89);
+    jj_consume_token(91);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case K_AVG:
     case K_COUNT:
@@ -995,17 +1019,17 @@ public class DalSqlParser implements DalSqlParserConstants {
     case S_BIND:
     case S_CHAR_LITERAL:
     case S_QUOTED_IDENTIFIER:
-    case 89:
-    case 99:
-    case 100:
+    case 91:
     case 101:
+    case 102:
+    case 103:
       parm = SQLExpressionList();
       break;
     default:
-      jj_la1[42] = jj_gen;
+      jj_la1[44] = jj_gen;
       ;
     }
-    jj_consume_token(90);
+    jj_consume_token(92);
     int nparm = ZUtils.isCustomFunction(s);
     if(nparm < 0) nparm = (ZUtils.isAggregate(s) ? 1 : -1);
     if(nparm < 0)
@@ -1071,14 +1095,6 @@ public class DalSqlParser implements DalSqlParserConstants {
     finally { jj_save(6, xla); }
   }
 
-  private boolean jj_3R_44() {
-    if (jj_3R_46()) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_47()) jj_scanpos = xsp;
-    return false;
-  }
-
   private boolean jj_3R_57() {
     if (jj_scan_token(K_OR)) return true;
     if (jj_3R_20()) return true;
@@ -1118,9 +1134,9 @@ public class DalSqlParser implements DalSqlParserConstants {
   private boolean jj_3R_36() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_scan_token(100)) {
+    if (jj_scan_token(102)) {
     jj_scanpos = xsp;
-    if (jj_scan_token(101)) return true;
+    if (jj_scan_token(103)) return true;
     }
     return false;
   }
@@ -1173,7 +1189,7 @@ public class DalSqlParser implements DalSqlParserConstants {
   }
 
   private boolean jj_3_1() {
-    if (jj_scan_token(89)) return true;
+    if (jj_scan_token(91)) return true;
     if (jj_3R_8()) return true;
     if (jj_scan_token(K_OR)) return true;
     return false;
@@ -1185,7 +1201,7 @@ public class DalSqlParser implements DalSqlParserConstants {
   }
 
   private boolean jj_3R_34() {
-    if (jj_scan_token(105)) return true;
+    if (jj_scan_token(107)) return true;
     if (jj_3R_33()) return true;
     return false;
   }
@@ -1209,9 +1225,9 @@ public class DalSqlParser implements DalSqlParserConstants {
   }
 
   private boolean jj_3R_60() {
-    if (jj_scan_token(89)) return true;
+    if (jj_scan_token(91)) return true;
     if (jj_3R_54()) return true;
-    if (jj_scan_token(90)) return true;
+    if (jj_scan_token(92)) return true;
     return false;
   }
 
@@ -1230,9 +1246,9 @@ public class DalSqlParser implements DalSqlParserConstants {
   private boolean jj_3R_30() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_scan_token(103)) {
+    if (jj_scan_token(105)) {
     jj_scanpos = xsp;
-    if (jj_scan_token(104)) return true;
+    if (jj_scan_token(106)) return true;
     }
     if (jj_3R_29()) return true;
     return false;
@@ -1264,11 +1280,11 @@ public class DalSqlParser implements DalSqlParserConstants {
   private boolean jj_3R_17() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_scan_token(100)) {
+    if (jj_scan_token(102)) {
     jj_scanpos = xsp;
-    if (jj_scan_token(101)) {
+    if (jj_scan_token(103)) {
     jj_scanpos = xsp;
-    if (jj_scan_token(102)) return true;
+    if (jj_scan_token(104)) return true;
     }
     }
     if (jj_3R_16()) return true;
@@ -1291,7 +1307,12 @@ public class DalSqlParser implements DalSqlParserConstants {
   }
 
   private boolean jj_3R_56() {
-    if (jj_scan_token(K_AND)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_scan_token(7)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(6)) return true;
+    }
     if (jj_3R_55()) return true;
     return false;
   }
@@ -1311,11 +1332,6 @@ public class DalSqlParser implements DalSqlParserConstants {
     return false;
   }
 
-  private boolean jj_3R_78() {
-    if (jj_scan_token(98)) return true;
-    return false;
-  }
-
   private boolean jj_3R_67() {
     if (jj_scan_token(K_IS)) return true;
     Token xsp;
@@ -1325,33 +1341,38 @@ public class DalSqlParser implements DalSqlParserConstants {
     return false;
   }
 
+  private boolean jj_3R_78() {
+    if (jj_scan_token(100)) return true;
+    return false;
+  }
+
   private boolean jj_3R_77() {
-    if (jj_scan_token(97)) return true;
+    if (jj_scan_token(99)) return true;
     return false;
   }
 
   private boolean jj_3R_76() {
-    if (jj_scan_token(96)) return true;
+    if (jj_scan_token(98)) return true;
     return false;
   }
 
   private boolean jj_3R_75() {
-    if (jj_scan_token(95)) return true;
+    if (jj_scan_token(97)) return true;
     return false;
   }
 
   private boolean jj_3R_74() {
-    if (jj_scan_token(94)) return true;
+    if (jj_scan_token(96)) return true;
     return false;
   }
 
   private boolean jj_3R_73() {
-    if (jj_scan_token(93)) return true;
+    if (jj_scan_token(95)) return true;
     return false;
   }
 
   private boolean jj_3R_72() {
-    if (jj_scan_token(92)) return true;
+    if (jj_scan_token(94)) return true;
     return false;
   }
 
@@ -1384,7 +1405,7 @@ public class DalSqlParser implements DalSqlParserConstants {
   }
 
   private boolean jj_3R_71() {
-    if (jj_scan_token(91)) return true;
+    if (jj_scan_token(93)) return true;
     return false;
   }
 
@@ -1403,7 +1424,12 @@ public class DalSqlParser implements DalSqlParserConstants {
   }
 
   private boolean jj_3R_50() {
-    if (jj_scan_token(K_OR)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_scan_token(52)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(53)) return true;
+    }
     if (jj_3R_49()) return true;
     return false;
   }
@@ -1435,10 +1461,10 @@ public class DalSqlParser implements DalSqlParserConstants {
     jj_scanpos = xsp;
     if (jj_3R_28()) return true;
     }
-    if (jj_scan_token(89)) return true;
+    if (jj_scan_token(91)) return true;
     xsp = jj_scanpos;
     if (jj_3R_48()) jj_scanpos = xsp;
-    if (jj_scan_token(90)) return true;
+    if (jj_scan_token(92)) return true;
     return false;
   }
 
@@ -1508,9 +1534,9 @@ public class DalSqlParser implements DalSqlParserConstants {
   }
 
   private boolean jj_3R_43() {
-    if (jj_scan_token(89)) return true;
+    if (jj_scan_token(91)) return true;
     if (jj_3R_45()) return true;
-    if (jj_scan_token(90)) return true;
+    if (jj_scan_token(92)) return true;
     return false;
   }
 
@@ -1529,9 +1555,9 @@ public class DalSqlParser implements DalSqlParserConstants {
     xsp = jj_scanpos;
     if (jj_3R_18()) jj_scanpos = xsp;
     if (jj_scan_token(K_IN)) return true;
-    if (jj_scan_token(89)) return true;
+    if (jj_scan_token(91)) return true;
     if (jj_3R_54()) return true;
-    if (jj_scan_token(90)) return true;
+    if (jj_scan_token(92)) return true;
     return false;
   }
 
@@ -1566,13 +1592,13 @@ public class DalSqlParser implements DalSqlParserConstants {
   }
 
   private boolean jj_3R_35() {
-    if (jj_scan_token(99)) return true;
+    if (jj_scan_token(101)) return true;
     return false;
   }
 
   private boolean jj_3_6() {
     if (jj_3R_12()) return true;
-    if (jj_scan_token(89)) return true;
+    if (jj_scan_token(91)) return true;
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_13()) {
@@ -1580,7 +1606,7 @@ public class DalSqlParser implements DalSqlParserConstants {
     if (jj_3R_14()) return true;
     }
     if (jj_3R_44()) return true;
-    if (jj_scan_token(90)) return true;
+    if (jj_scan_token(92)) return true;
     return false;
   }
 
@@ -1591,9 +1617,9 @@ public class DalSqlParser implements DalSqlParserConstants {
 
   private boolean jj_3_5() {
     if (jj_scan_token(K_COUNT)) return true;
-    if (jj_scan_token(89)) return true;
-    if (jj_scan_token(103)) return true;
-    if (jj_scan_token(90)) return true;
+    if (jj_scan_token(91)) return true;
+    if (jj_scan_token(105)) return true;
+    if (jj_scan_token(92)) return true;
     return false;
   }
 
@@ -1663,17 +1689,25 @@ public class DalSqlParser implements DalSqlParserConstants {
   }
 
   private boolean jj_3R_53() {
-    if (jj_scan_token(106)) return true;
+    if (jj_scan_token(108)) return true;
     if (jj_3R_46()) return true;
     return false;
   }
 
   private boolean jj_3R_47() {
-    if (jj_scan_token(106)) return true;
+    if (jj_scan_token(108)) return true;
     if (jj_3R_46()) return true;
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_53()) jj_scanpos = xsp;
+    return false;
+  }
+
+  private boolean jj_3R_44() {
+    if (jj_3R_46()) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_47()) jj_scanpos = xsp;
     return false;
   }
 
@@ -1688,7 +1722,7 @@ public class DalSqlParser implements DalSqlParserConstants {
   private Token jj_scanpos, jj_lastpos;
   private int jj_la;
   private int jj_gen;
-  final private int[] jj_la1 = new int[43];
+  final private int[] jj_la1 = new int[45];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static private int[] jj_la1_2;
@@ -1700,16 +1734,16 @@ public class DalSqlParser implements DalSqlParserConstants {
       jj_la1_init_3();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x8008000,0x0,0x0,0x810b000,0x0,0x80400,0x0,0x0,0x40,0x0,0x0,0x80400,0x0,0x0,0x800,0x0,0x0,0x80400,0x0,0x0,0x400200,0x400200,0x0,0x400200,0x400200,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x800020,0x0,0x0,0x80400,0x80400,0x80400,};
+      jj_la1_0 = new int[] {0x10010000,0x0,0x0,0x10216000,0x0,0x100800,0x0,0x0,0x0,0xc0,0xc0,0x0,0x0,0x100800,0x0,0x0,0x1000,0x0,0x0,0x100800,0x0,0x0,0x800400,0x800400,0x0,0x800400,0x800400,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1000020,0x0,0x0,0x100800,0x100800,0x100800,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x1011004,0x80000,0x0,0x1011004,0x100000,0x20a300,0x80000,0x0,0x0,0x2000,0x200000,0x208300,0x0,0x20,0x2061,0x80000,0x200000,0x8300,0x2000,0x2000,0x0,0x0,0x80000,0x0,0x0,0x2000,0x2000,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x8000,0x0,0x300,0x300,0x8300,};
+      jj_la1_1 = new int[] {0x4022008,0x100000,0x0,0x4022008,0x400000,0x814600,0x300000,0x300000,0x0,0x0,0x0,0x4000,0x800000,0x810600,0x0,0x40,0x40c2,0x100000,0x800000,0x10600,0x4000,0x4000,0x0,0x0,0x100000,0x0,0x0,0x4000,0x4000,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x10000,0x0,0x600,0x600,0x10600,};
    }
    private static void jj_la1_init_2() {
-      jj_la1_2 = new int[] {0xc0,0x0,0x2000000,0xc0,0x0,0x3c81001,0x0,0xf8000000,0x0,0x0,0x0,0x3c81001,0xf8000000,0x0,0xf8000000,0x0,0x0,0x3c81001,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1080000,0x0,0x0,0x0,0x0,0x3c81000,0x1,0x80001,0x3c81001,};
+      jj_la1_2 = new int[] {0x300,0x0,0x8000000,0x300,0x0,0xf204004,0x0,0x0,0xe0000000,0x0,0x0,0x0,0x0,0xf204004,0xe0000000,0x0,0xe0000000,0x0,0x0,0xf204004,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x4200000,0x0,0x0,0x0,0x0,0xf204000,0x4,0x200004,0xf204004,};
    }
    private static void jj_la1_init_3() {
-      jj_la1_3 = new int[] {0x0,0x0,0x0,0x0,0x0,0x30,0x0,0x7,0x0,0x0,0x0,0x30,0x7,0x0,0x7,0x0,0x0,0x38,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x70,0x70,0x180,0x180,0x200,0x30,0x30,0x0,0x400,0x400,0x0,0x0,0x0,0x0,0x0,0x38,};
+      jj_la1_3 = new int[] {0x0,0x0,0x0,0x0,0x0,0xc0,0x0,0x0,0x1f,0x0,0x0,0x0,0x0,0xc0,0x1f,0x0,0x1f,0x0,0x0,0xe0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1c0,0x1c0,0x600,0x600,0x800,0xc0,0xc0,0x0,0x1000,0x1000,0x0,0x0,0x0,0x0,0x0,0xe0,};
    }
   final private JJCalls[] jj_2_rtns = new JJCalls[7];
   private boolean jj_rescan = false;
@@ -1726,7 +1760,7 @@ public class DalSqlParser implements DalSqlParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 43; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 45; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1741,7 +1775,7 @@ public class DalSqlParser implements DalSqlParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 43; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 45; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1752,7 +1786,7 @@ public class DalSqlParser implements DalSqlParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 43; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 45; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1763,7 +1797,7 @@ public class DalSqlParser implements DalSqlParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 43; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 45; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1773,7 +1807,7 @@ public class DalSqlParser implements DalSqlParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 43; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 45; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1783,7 +1817,7 @@ public class DalSqlParser implements DalSqlParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 43; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 45; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1895,12 +1929,12 @@ public class DalSqlParser implements DalSqlParserConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[107];
+    boolean[] la1tokens = new boolean[109];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 43; i++) {
+    for (int i = 0; i < 45; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -1918,7 +1952,7 @@ public class DalSqlParser implements DalSqlParserConstants {
         }
       }
     }
-    for (int i = 0; i < 107; i++) {
+    for (int i = 0; i < 109; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

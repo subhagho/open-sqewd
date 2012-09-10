@@ -27,7 +27,6 @@ package com.sqewd.open.dal.api.persistence;
  * 
  */
 public class StructJoinedEntityView {
-	public String[] Entities;
 	public String Join;
 	public EnumJoinType Type = EnumJoinType.Unknown;
 }

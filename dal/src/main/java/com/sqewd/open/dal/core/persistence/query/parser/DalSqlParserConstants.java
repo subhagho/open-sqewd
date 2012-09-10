@@ -15,169 +15,173 @@ public interface DalSqlParserConstants {
   /** RegularExpression Id. */
   int K_AND = 6;
   /** RegularExpression Id. */
-  int K_ANY = 7;
+  int K_QAND = 7;
   /** RegularExpression Id. */
-  int K_AS = 8;
+  int K_ANY = 8;
   /** RegularExpression Id. */
-  int K_ASC = 9;
+  int K_AS = 9;
   /** RegularExpression Id. */
-  int K_AVG = 10;
+  int K_ASC = 10;
   /** RegularExpression Id. */
-  int K_BETWEEN = 11;
+  int K_AVG = 11;
   /** RegularExpression Id. */
-  int K_BINARY_INTEGER = 12;
+  int K_BETWEEN = 12;
   /** RegularExpression Id. */
-  int K_BOOLEAN = 13;
+  int K_BINARY_INTEGER = 13;
   /** RegularExpression Id. */
-  int K_BY = 14;
+  int K_BOOLEAN = 14;
   /** RegularExpression Id. */
-  int K_CHAR = 15;
+  int K_BY = 15;
   /** RegularExpression Id. */
-  int K_COMMENT = 16;
+  int K_CHAR = 16;
   /** RegularExpression Id. */
-  int K_COMMIT = 17;
+  int K_COMMENT = 17;
   /** RegularExpression Id. */
-  int K_CONNECT = 18;
+  int K_COMMIT = 18;
   /** RegularExpression Id. */
-  int K_COUNT = 19;
+  int K_CONNECT = 19;
   /** RegularExpression Id. */
-  int K_DATE = 20;
+  int K_COUNT = 20;
   /** RegularExpression Id. */
-  int K_DELETE = 21;
+  int K_DATE = 21;
   /** RegularExpression Id. */
-  int K_DESC = 22;
+  int K_DELETE = 22;
   /** RegularExpression Id. */
-  int K_DISTINCT = 23;
+  int K_DESC = 23;
   /** RegularExpression Id. */
-  int K_EXCLUSIVE = 24;
+  int K_DISTINCT = 24;
   /** RegularExpression Id. */
-  int K_EXISTS = 25;
+  int K_EXCLUSIVE = 25;
   /** RegularExpression Id. */
-  int K_EXIT = 26;
+  int K_EXISTS = 26;
   /** RegularExpression Id. */
-  int K_FLOAT = 27;
+  int K_EXIT = 27;
   /** RegularExpression Id. */
-  int K_FOR = 28;
+  int K_FLOAT = 28;
   /** RegularExpression Id. */
-  int K_FROM = 29;
+  int K_FOR = 29;
   /** RegularExpression Id. */
-  int K_GROUP = 30;
+  int K_FROM = 30;
   /** RegularExpression Id. */
-  int K_HAVING = 31;
+  int K_GROUP = 31;
   /** RegularExpression Id. */
-  int K_IN = 32;
+  int K_HAVING = 32;
   /** RegularExpression Id. */
-  int K_INSERT = 33;
+  int K_IN = 33;
   /** RegularExpression Id. */
-  int K_INTEGER = 34;
+  int K_INSERT = 34;
   /** RegularExpression Id. */
-  int K_INTERSECT = 35;
+  int K_INTEGER = 35;
   /** RegularExpression Id. */
-  int K_INTO = 36;
+  int K_INTERSECT = 36;
   /** RegularExpression Id. */
-  int K_IS = 37;
+  int K_INTO = 37;
   /** RegularExpression Id. */
-  int K_LIKE = 38;
+  int K_IS = 38;
   /** RegularExpression Id. */
-  int K_LOCK = 39;
+  int K_LIKE = 39;
   /** RegularExpression Id. */
-  int K_MAX = 40;
+  int K_LOCK = 40;
   /** RegularExpression Id. */
-  int K_MIN = 41;
+  int K_MAX = 41;
   /** RegularExpression Id. */
-  int K_MINUS = 42;
+  int K_MIN = 42;
   /** RegularExpression Id. */
-  int K_MODE = 43;
+  int K_MINUS = 43;
   /** RegularExpression Id. */
-  int K_NATURAL = 44;
+  int K_MODE = 44;
   /** RegularExpression Id. */
-  int K_NOT = 45;
+  int K_NATURAL = 45;
   /** RegularExpression Id. */
-  int K_NOWAIT = 46;
+  int K_NOT = 46;
   /** RegularExpression Id. */
-  int K_NULL = 47;
+  int K_NOWAIT = 47;
   /** RegularExpression Id. */
-  int K_NUMBER = 48;
+  int K_NULL = 48;
   /** RegularExpression Id. */
-  int K_OF = 49;
+  int K_NUMBER = 49;
   /** RegularExpression Id. */
-  int K_ONLY = 50;
+  int K_OF = 50;
   /** RegularExpression Id. */
-  int K_OR = 51;
+  int K_ONLY = 51;
   /** RegularExpression Id. */
-  int K_ORDER = 52;
+  int K_OR = 52;
   /** RegularExpression Id. */
-  int K_PRIOR = 53;
+  int K_QOR = 53;
   /** RegularExpression Id. */
-  int K_QUIT = 54;
+  int K_ORDER = 54;
   /** RegularExpression Id. */
-  int K_READ = 55;
+  int K_PRIOR = 55;
   /** RegularExpression Id. */
-  int K_REAL = 56;
+  int K_QUIT = 56;
   /** RegularExpression Id. */
-  int K_ROLLBACK = 57;
+  int K_READ = 57;
   /** RegularExpression Id. */
-  int K_ROW = 58;
+  int K_REAL = 58;
   /** RegularExpression Id. */
-  int K_SELECT = 59;
+  int K_ROLLBACK = 59;
   /** RegularExpression Id. */
-  int K_SET = 60;
+  int K_ROW = 60;
   /** RegularExpression Id. */
-  int K_SHARE = 61;
+  int K_SELECT = 61;
   /** RegularExpression Id. */
-  int K_SMALLINT = 62;
+  int K_SET = 62;
   /** RegularExpression Id. */
-  int K_START = 63;
+  int K_SHARE = 63;
   /** RegularExpression Id. */
-  int K_SUM = 64;
+  int K_SMALLINT = 64;
   /** RegularExpression Id. */
-  int K_TABLE = 65;
+  int K_START = 65;
   /** RegularExpression Id. */
-  int K_TRANSACTION = 66;
+  int K_SUM = 66;
   /** RegularExpression Id. */
-  int K_UNION = 67;
+  int K_TABLE = 67;
   /** RegularExpression Id. */
-  int K_UPDATE = 68;
+  int K_TRANSACTION = 68;
   /** RegularExpression Id. */
-  int K_VALUES = 69;
+  int K_UNION = 69;
   /** RegularExpression Id. */
-  int K_VARCHAR2 = 70;
+  int K_UPDATE = 70;
   /** RegularExpression Id. */
-  int K_VARCHAR = 71;
+  int K_VALUES = 71;
   /** RegularExpression Id. */
-  int K_WHERE = 72;
+  int K_VARCHAR2 = 72;
   /** RegularExpression Id. */
-  int K_WITH = 73;
+  int K_VARCHAR = 73;
   /** RegularExpression Id. */
-  int K_WORK = 74;
+  int K_WHERE = 74;
   /** RegularExpression Id. */
-  int K_WRITE = 75;
+  int K_WITH = 75;
   /** RegularExpression Id. */
-  int S_NUMBER = 76;
+  int K_WORK = 76;
   /** RegularExpression Id. */
-  int FLOAT = 77;
+  int K_WRITE = 77;
   /** RegularExpression Id. */
-  int INTEGER = 78;
+  int S_NUMBER = 78;
   /** RegularExpression Id. */
-  int DIGIT = 79;
+  int FLOAT = 79;
   /** RegularExpression Id. */
-  int LINE_COMMENT = 80;
+  int INTEGER = 80;
   /** RegularExpression Id. */
-  int MULTI_LINE_COMMENT = 81;
+  int DIGIT = 81;
   /** RegularExpression Id. */
-  int S_VARNAME = 82;
+  int LINE_COMMENT = 82;
   /** RegularExpression Id. */
-  int S_IDENTIFIER = 83;
+  int MULTI_LINE_COMMENT = 83;
   /** RegularExpression Id. */
-  int LETTER = 84;
+  int S_VARNAME = 84;
   /** RegularExpression Id. */
-  int SPECIAL_CHARS = 85;
+  int S_IDENTIFIER = 85;
   /** RegularExpression Id. */
-  int S_BIND = 86;
+  int LETTER = 86;
   /** RegularExpression Id. */
-  int S_CHAR_LITERAL = 87;
+  int SPECIAL_CHARS = 87;
   /** RegularExpression Id. */
-  int S_QUOTED_IDENTIFIER = 88;
+  int S_BIND = 88;
+  /** RegularExpression Id. */
+  int S_CHAR_LITERAL = 89;
+  /** RegularExpression Id. */
+  int S_QUOTED_IDENTIFIER = 90;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -191,6 +195,7 @@ public interface DalSqlParserConstants {
     "\"\\n\"",
     "\"ALL\"",
     "\";\"",
+    "\"AND\"",
     "\"ANY\"",
     "\"AS\"",
     "\"ASC\"",
@@ -236,6 +241,7 @@ public interface DalSqlParserConstants {
     "\"OF\"",
     "\"ONLY\"",
     "\",\"",
+    "\"OR\"",
     "\"ORDER\"",
     "\"PRIOR\"",
     "\"QUIT\"",

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.db;
+
+import java.sql.Types;
 import java.util.Date;
 
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
@@ -51,7 +53,28 @@ public enum SQLDataType {
 	 */
 	VARCHAR2;
 
-	public static SQLDataType type(Class<?> type) throws Exception {
+	public static Class<?> type(final int type) throws Exception {
+		switch (type) {
+		case Types.SMALLINT:
+			return Short.class;
+		case Types.INTEGER:
+			return Integer.class;
+		case Types.BIGINT:
+			return Long.class;
+		case Types.REAL:
+			return Float.class;
+		case Types.BOOLEAN:
+			return Boolean.class;
+		case Types.DOUBLE:
+			return Double.class;
+		case Types.CHAR:
+		case Types.VARCHAR:
+			return String.class;
+		}
+		throw new Exception("Unsupport SQL Data type [" + type + "]");
+	}
+
+	public static SQLDataType type(final Class<?> type) throws Exception {
 		if (EnumPrimitives.isPrimitiveType(type)) {
 			EnumPrimitives prim = EnumPrimitives.type(type);
 			switch (prim) {
@@ -70,13 +93,12 @@ public enum SQLDataType {
 			default:
 				break;
 			}
-		} else if (type.equals(String.class)) {
+		} else if (type.equals(String.class))
 			return VARCHAR2;
-		} else if (type.equals(Date.class)) {
+		else if (type.equals(Date.class))
 			return BIGINT;
-		} else if (type.isEnum()) {
+		else if (type.isEnum())
 			return VARCHAR2;
-		}
 		throw new Exception("Unsupport SQL Data type ["
 				+ type.getCanonicalName() + "]");
 	}

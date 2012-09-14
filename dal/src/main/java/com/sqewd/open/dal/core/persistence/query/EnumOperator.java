@@ -1,120 +1,123 @@
 /**
- * Copyright 2012 Subho Ghosh (subho dot ghosh at outlook dot com)
+ * Copyright 2012 Subho Ghosh (subho.ghosh at outlook dot com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *        http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * @filename EnumConditionOperator.java
+ * @created Sep 11, 2012
+ * @author subhagho
+ *
  */
 package com.sqewd.open.dal.core.persistence.query;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * TODO: <comment>
+ * 
+ * @author subhagho
+ * 
+ */
 public enum EnumOperator {
-	/**
-	 * Value equals (=)
-	 */
-	Equal,
-	/**
-	 * Value not equal to (!=)
-	 */
-	NotEqual,
-	/**
-	 * Value less than (<)
-	 */
-	LessThan,
-	/**
-	 * Value less than equal to (<=)
-	 */
-	LessThanEqual,
-	/**
-	 * Value greater than (>)
-	 */
-	GreaterThan,
-	/**
-	 * Value greater than equal to (>=)
-	 */
-	GreaterThanEqual,
-	/**
-	 * Value like, condition can be a regular expression (if data store supports
-	 * regular expressions).
+	Equal("="), NotEqual("!="), GreaterThan(">"), GreaterThanEqual(">="), LessThan(
+			"<"), LessThanEqual("<="), Null("IS NULL"), NotNull("IS NOT NULL"), In(
+			"IN"), NotIn("NOT IN"), Between("BETWEEN"), Like("LIKE"), Plus("+"), Minus(
+			"-"), Multiply("*"), Divide("/"), Contains("CONTAINS");
+
+	private static List<String> _OPERATOR_TOKENS_ = null;
+	private static List<String> _OPERATOR_KEYWORDS_ = null;
+
+	private String value;
+
+	private EnumOperator(final String value) {
+		this.value = value;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * 
-	 * (like)
+	 * @see java.lang.Enum#toString()
 	 */
-	Like,
-	/**
-	 * Value is contained in List. (contains)
-	 */
-	Contains,
-	/**
-	 * Value between (between)
-	 */
-	Between,
-	/**
-	 * Value in List (in)
-	 */
-	In;
-
-	public static final String[] _OPERATOR_TOKENS_ = { "<=", ">=", "!=", "=",
-			"<", ">" };
-	public static final String[] _OPERATOR_KEYWORDS_ = { "like", "between",
-			"contains", "in" };
-
-	public static final int _INDEX_LEQ_ = 0;
-	public static final int _INDEX_GEQ_ = 1;
-	public static final int _INDEX_NEQ_ = 2;
-	public static final int _INDEX_EQ_ = 3;
-	public static final int _INDEX_LT_ = 4;
-	public static final int _INDEX_GT_ = 5;
-	public static final int _INDEX_LK_ = 0;
-	public static final int _INDEX_BT_ = 1;
-	public static final int _INDEX_CON_ = 2;
-	public static final int _INDEX_IN_ = 3;
+	@Override
+	public String toString() {
+		return value;
+	}
 
 	/**
-	 * Convert the specified query operator to the Operator Enum.
+	 * Parse the input value as a Condition operator.
 	 * 
-	 * @param oper
-	 *            - Operator string.
+	 * @param value
+	 *            - String value of the the operator. Note: this is not the enum
+	 *            name.
 	 * @return
 	 * @throws Exception
 	 */
-	public static final EnumOperator parse(String oper) throws Exception {
-		for (int ii = 0; ii < _OPERATOR_TOKENS_.length; ii++) {
-			if (oper.compareTo(_OPERATOR_TOKENS_[ii]) == 0) {
-				switch (ii) {
-				case _INDEX_LEQ_:
-					return LessThanEqual;
-				case _INDEX_GEQ_:
-					return GreaterThanEqual;
-				case _INDEX_NEQ_:
-					return NotEqual;
-				case _INDEX_EQ_:
-					return Equal;
-				case _INDEX_LT_:
-					return LessThan;
-				case _INDEX_GT_:
-					return GreaterThan;
-				}
+	public static EnumOperator parse(final String value) throws Exception {
+		String v = value.trim();
+		for (EnumOperator opr : EnumOperator.values()) {
+			if (v.compareToIgnoreCase(opr.value) == 0)
+				return opr;
+		}
+		throw new Exception("No enum constant found for [" + value + "]");
+	}
+
+	/**
+	 * Try to parse the give input as an operator.
+	 * 
+	 * @param value
+	 * @return
+	 */
+	public static EnumOperator tryParse(final String value) {
+		try {
+			return parse(value);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public static List<String> getOperators() {
+		synchronized (_OPERATOR_TOKENS_) {
+			if (_OPERATOR_TOKENS_ == null) {
+				_OPERATOR_TOKENS_ = new ArrayList<String>();
+				_OPERATOR_TOKENS_.add(Equal.value);
+				_OPERATOR_TOKENS_.add(NotEqual.value);
+				_OPERATOR_TOKENS_.add(LessThan.value);
+				_OPERATOR_TOKENS_.add(LessThanEqual.value);
+				_OPERATOR_TOKENS_.add(GreaterThan.value);
+				_OPERATOR_TOKENS_.add(GreaterThanEqual.value);
+				_OPERATOR_TOKENS_.add(Plus.value);
+				_OPERATOR_TOKENS_.add(Minus.value);
+				_OPERATOR_TOKENS_.add(Divide.value);
+				_OPERATOR_TOKENS_.add(Multiply.value);
 			}
 		}
-		for (int ii = 0; ii < _OPERATOR_KEYWORDS_.length; ii++) {
-			if (oper.compareTo(_OPERATOR_KEYWORDS_[ii]) == 0) {
-				switch (ii) {
-				case _INDEX_LK_:
-					return Like;
-				case _INDEX_BT_:
-					return Between;
-				case _INDEX_CON_:
-					return Contains;
-				case _INDEX_IN_:
-					return In;
-				}
+		return _OPERATOR_TOKENS_;
+	}
+
+	public static List<String> getKeywords() {
+		synchronized (_OPERATOR_KEYWORDS_) {
+			if (_OPERATOR_KEYWORDS_ == null) {
+				_OPERATOR_KEYWORDS_ = new ArrayList<String>();
+				_OPERATOR_KEYWORDS_.add(Between.value);
+				_OPERATOR_KEYWORDS_.add(Contains.value);
+				_OPERATOR_KEYWORDS_.add(In.value);
+				_OPERATOR_KEYWORDS_.add(Like.value);
+				_OPERATOR_KEYWORDS_.add(NotIn.value);
+				_OPERATOR_KEYWORDS_.add(Null.value);
+				_OPERATOR_KEYWORDS_.add(NotNull.value);
 			}
 		}
-		throw new Exception("Unsupported operator [" + oper + "]");
+		return _OPERATOR_KEYWORDS_;
 	}
 }

@@ -75,7 +75,7 @@ public abstract class AbstractJoinGraph {
 			}
 			usedaliases.put(alias, table);
 		}
-		if (parent != null) {
+		if (parent != null && !parent.hasAlias(alias)) {
 			parent.addalias(alias, table, false);
 		}
 	}

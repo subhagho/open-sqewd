@@ -54,51 +54,80 @@ public class SQLQuery {
 
 	private static HashMap<String, ZQuery> querycache = new HashMap<String, ZQuery>();
 
-	private ZQuery getCachedQuery(final Class<?> type) throws Exception {
-		if (!type.isAnnotationPresent(Entity.class))
-			throw new Exception("Class [" + type.getCanonicalName()
-					+ "] has not been annotated as an Entity.");
-		String selectq = null;
+	private Class<?> type;
 
-		try {
-			StructEntityReflect enref = ReflectionUtils.get()
-					.getEntityMetadata(type);
-			if (!querycache.containsKey(enref.Entity)) {
-				if (enref.IsView) {
-					if (!enref.IsJoin) {
-						selectq = enref.Query;
+	private String query;
+
+	private AbstractJoinGraph graph = null;
+
+	private ZQuery getCachedQuery(final Class<?> type) throws Exception {
+		if (type != null) {
+			if (!type.isAnnotationPresent(Entity.class))
+				throw new Exception("Class [" + type.getCanonicalName()
+						+ "] has not been annotated as an Entity.");
+
+			String selectq = null;
+
+			try {
+				StructEntityReflect enref = ReflectionUtils.get()
+						.getEntityMetadata(type);
+				if (!querycache.containsKey(enref.Entity)) {
+					if (enref.IsView) {
+						if (!enref.IsJoin) {
+							selectq = enref.Query;
+						} else {
+							if (enref.Join.Type == EnumJoinType.Native) {
+								selectq = getBasicSelect(graph);
+							} else
+								throw new Exception(
+										"This method should not be called for Joined Entities.");
+						}
 					} else {
-						if (enref.Join.Type == EnumJoinType.Native) {
-							selectq = getBasicSelect(graph);
-						} else
-							throw new Exception(
-									"This method should not be called for Joined Entities.");
+						selectq = getBasicSelect(graph);
 					}
-				} else {
-					selectq = getBasicSelect(graph);
+
+					selectq = selectq + ";";
+
+					// convert String into InputStream
+					InputStream is = new ByteArrayInputStream(
+							selectq.getBytes());
+					ZqlParser parser = new ZqlParser(is);
+
+					ZQuery zq = null;
+					ZStatement zst = parser.readStatement();
+					if (zst instanceof ZQuery) {
+						zq = (ZQuery) zst;
+						querycache.put(enref.Entity, zq);
+					} else
+						throw new Exception(
+								"Invalid parsed SQL : Statement of type ["
+										+ zst.getClass().getCanonicalName()
+										+ "]");
 				}
 
-				selectq = selectq + ";";
+				return querycache.get(enref.Entity);
 
-				// convert String into InputStream
-				InputStream is = new ByteArrayInputStream(selectq.getBytes());
-				ZqlParser parser = new ZqlParser(is);
-
-				ZQuery zq = null;
-				ZStatement zst = parser.readStatement();
-				if (zst instanceof ZQuery) {
-					zq = (ZQuery) zst;
-					querycache.put(enref.Entity, zq);
-				} else
-					throw new Exception(
-							"Invalid parsed SQL : Statement of type ["
-									+ zst.getClass().getCanonicalName() + "]");
+			} catch (Exception e) {
+				log.debug("[QUERY : " + selectq + "]");
+				throw e;
 			}
+		} else {
+			String selectq = getBasicSelect(graph);
 
-			return querycache.get(enref.Entity);
-		} catch (Exception e) {
-			log.debug("[QUERY : " + selectq + "]");
-			throw e;
+			selectq = selectq + ";";
+
+			// convert String into InputStream
+			InputStream is = new ByteArrayInputStream(selectq.getBytes());
+			ZqlParser parser = new ZqlParser(is);
+
+			ZQuery zq = null;
+			ZStatement zst = parser.readStatement();
+			if (zst instanceof ZQuery) {
+				zq = (ZQuery) zst;
+			} else
+				throw new Exception("Invalid parsed SQL : Statement of type ["
+						+ zst.getClass().getCanonicalName() + "]");
+			return zq;
 		}
 	}
 
@@ -150,12 +179,6 @@ public class SQLQuery {
 		}
 		return qbuff.toString();
 	}
-
-	private Class<?> type;
-
-	private String query;
-
-	private AbstractJoinGraph graph = null;
 
 	public SQLQuery(final Class<?> type) throws Exception {
 		this.type = type;

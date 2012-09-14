@@ -81,7 +81,11 @@ public class ExternalJoinGraph extends AbstractJoinGraph {
 					map.setPersisterKey(pers.key());
 					joins.put(pers.key(), map);
 				}
-				joins.get(pers.key()).addGraph(ig.alias, ig);
+				JoinMap jm = joins.get(pers.key());
+				jm.addGraph(ig.alias, ig);
+				if (attr.IsKeyColumn) {
+					jm.setKeyQuery(true);
+				}
 			}
 		}
 	}
@@ -207,6 +211,17 @@ public class ExternalJoinGraph extends AbstractJoinGraph {
 			buff.append(" ").append(qjoin);
 		}
 		return buff.toString();
+	}
+
+	public List<JoinMap> getJoinKeys() {
+		List<JoinMap> keys = new ArrayList<JoinMap>();
+		for (String key : joins.keySet()) {
+			JoinMap jm = joins.get(key);
+			if (jm.isKeyQuery()) {
+				keys.add(jm);
+			}
+		}
+		return keys;
 	}
 
 	/*

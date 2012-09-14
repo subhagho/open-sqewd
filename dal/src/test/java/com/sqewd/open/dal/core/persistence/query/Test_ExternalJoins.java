@@ -20,7 +20,8 @@
  */
 package com.sqewd.open.dal.core.persistence.query;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
@@ -71,7 +72,7 @@ public class Test_ExternalJoins {
 	@Test
 	public void test() {
 		try {
-			String query = "EMPLOYEEKEY.ID IN ('1000', '1001', '1002');SALARY.SALARY > 50500.00;EMPLOYEEKEY.DATEOFBIRTH > 0";
+			String query = "(EMPLOYEEKEY.ID IN ('1000', '1001', '1002')|EMPLOYEEKEY.DATEOFBIRTH > 0);SALARY.SALARY > 50500.00";
 			List<AbstractEntity> entities = DataManager.get().read(query,
 					SalaryView.class, -1);
 			assertEquals((entities.size() == 1), true);

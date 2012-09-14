@@ -39,16 +39,28 @@ import com.sqewd.open.dal.api.utils.KeyValuePair;
 public class InternalJoinGraph extends AbstractJoinGraph {
 	private HashMap<String, KeyValuePair<InternalJoinGraph>> joins = null;
 
-	public InternalJoinGraph(Class<?> type, AbstractJoinGraph parent,
-			String name, String columname) throws Exception {
+	public InternalJoinGraph(final Class<?> type,
+			final AbstractJoinGraph parent, final String name,
+			final String columname, final boolean aliased) throws Exception {
 		this.type = type;
 		this.parent = parent;
 		this.columname = columname;
 
-		process(name);
+		process(name, aliased);
 	}
 
-	private void process(String name) throws Exception {
+	public InternalJoinGraph(final Class<?> type,
+			final AbstractJoinGraph parent, final String name,
+			final String columname) throws Exception {
+		this.type = type;
+		this.parent = parent;
+		this.columname = columname;
+
+		process(name, false);
+	}
+
+	private void process(final String name, final boolean aliased)
+			throws Exception {
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
 		if (enref.IsJoin)
@@ -57,15 +69,18 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 		table = enref.Entity;
 		if (name != null) {
 			alias = name;
-		} else
+		} else {
 			alias = table;
-		int ii = 0;
-		while (true) {
-			if (parent == null || !parent.hasAlias(alias)) {
-				break;
+		}
+		if (!aliased) {
+			int ii = 0;
+			while (true) {
+				if (parent == null || !parent.hasAlias(alias)) {
+					break;
+				}
+				alias = alias + _ALIAS_SUFFIX_ + ii;
+				ii++;
 			}
-			alias = alias + _ALIAS_SUFFIX_ + ii;
-			ii++;
 		}
 		addalias(alias, enref.Entity, true);
 		for (String column : enref.ColumnMaps.keySet()) {
@@ -75,24 +90,25 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 				columns.put(alias + "." + attr.Column, alias + "."
 						+ attr.Column);
 			}
-			if (attr.Reference == null)
+			if (attr.Reference == null) {
 				continue;
+			}
 			Class<?> rt = Class.forName(attr.Reference.Class);
 			InternalJoinGraph graph = new InternalJoinGraph(rt, this,
 					attr.Column, attr.Column);
 			KeyValuePair<InternalJoinGraph> kvp = new KeyValuePair<InternalJoinGraph>(
 					attr.Reference.Field, graph);
-			if (joins == null)
+			if (joins == null) {
 				joins = new HashMap<String, KeyValuePair<InternalJoinGraph>>();
+			}
 			joins.put(column, kvp);
 
 		}
 	}
 
-	public boolean searchAlias(String alias) {
-		if (usedaliases != null && usedaliases.containsKey(alias)) {
+	public boolean searchAlias(final String alias) {
+		if (usedaliases != null && usedaliases.containsKey(alias))
 			return true;
-		}
 		if (joins != null) {
 			for (String key : joins.keySet()) {
 				InternalJoinGraph ig = joins.get(key).getValue();
@@ -111,18 +127,18 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 	 * java.util.Stack, java.lang.String, int)
 	 */
 	@Override
-	public KeyValuePair<String> getAliasFor(Stack<KeyValuePair<Class<?>>> path,
-			String column, int index) throws Exception {
+	public KeyValuePair<String> getAliasFor(
+			final Stack<KeyValuePair<Class<?>>> path, final String column,
+			final int index) throws Exception {
 		KeyValuePair<Class<?>> cls = path.elementAt(index);
 		if (cls.getValue().equals(type)) {
-			if (index == path.size() - 1) {
+			if (index == path.size() - 1)
 				return new KeyValuePair<String>(alias, table);
-			} else {
+			else {
 				for (String key : joins.keySet()) {
-					if (key.compareTo(cls.getKey()) == 0) {
+					if (key.compareTo(cls.getKey()) == 0)
 						return joins.get(key).getValue()
 								.getAliasFor(path, cls.getKey(), index + 1);
-					}
 				}
 			}
 		}
@@ -138,7 +154,7 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 	 * .lang.String)
 	 */
 	@Override
-	public List<String> getPath(String column) throws Exception {
+	public List<String> getPath(final String column) throws Exception {
 		List<String> list = new ArrayList<String>();
 		if (column.indexOf('.') > 0) {
 			String[] parts = column.split("\\.");
@@ -152,8 +168,8 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 		return list;
 	}
 
-	private void getPath(String[] parts, int index, List<String> list)
-			throws Exception {
+	private void getPath(final String[] parts, final int index,
+			final List<String> list) throws Exception {
 		if (parts[index].compareTo(alias) == 0 && index + 1 < parts.length) {
 			String column = alias + "." + parts[index + 1];
 			if (columns.containsKey(column)) {
@@ -194,16 +210,18 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 		if (joins != null && joins.size() > 0) {
 			for (String key : joins.keySet()) {
 				KeyValuePair<InternalJoinGraph> gr = joins.get(key);
-				if (buff.length() > 0)
+				if (buff.length() > 0) {
 					buff.append(" and ");
+				}
 
 				buff.append(alias).append('.').append(key).append(" = ")
 						.append(gr.getValue().alias).append('.')
 						.append(gr.getKey());
 				String ref = gr.getValue().getJoinCondition();
 				if (ref != null && !ref.isEmpty()) {
-					if (buff.length() > 0)
+					if (buff.length() > 0) {
 						buff.append(" and ");
+					}
 					buff.append(ref);
 				}
 			}
@@ -224,10 +242,11 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 			buff.append("[COLUMNS:");
 			boolean first = true;
 			for (String column : columns.keySet()) {
-				if (first)
+				if (first) {
 					first = false;
-				else
+				} else {
 					buff.append(", ");
+				}
 				buff.append(column);
 			}
 			buff.append("]\n");
@@ -236,10 +255,11 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 			buff.append("[TABLES:");
 			boolean first = true;
 			for (String key : usedaliases.keySet()) {
-				if (first)
+				if (first) {
 					first = false;
-				else
+				} else {
 					buff.append(", ");
+				}
 				buff.append(usedaliases.get(key)).append(" ").append(key);
 			}
 			buff.append("]\n");
@@ -255,9 +275,8 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 	 */
 	@Override
 	public boolean hasJoins() {
-		if (joins != null && joins.size() > 0) {
+		if (joins != null && joins.size() > 0)
 			return true;
-		}
 		return false;
 	}
 
@@ -275,9 +294,9 @@ public class InternalJoinGraph extends AbstractJoinGraph {
 		if (hasAlias(talias)) {
 			if (alias.compareTo(talias) == 0) {
 				if (parts.length == 2) {
-					if (columns != null && columns.containsKey(column)) {
+					if (columns != null && columns.containsKey(column))
 						return true;
-					} else
+					else
 						return false;
 				} else {
 					if (joins.containsKey(talias)) {

@@ -58,6 +58,24 @@ public class NativeJoinGraph extends AbstractJoinGraph {
 		process(alias);
 	}
 
+	public NativeJoinGraph(final List<KeyValuePair<Class<?>>> types,
+			final String qjoin) throws Exception {
+		alias = "TEMPJOIN";
+		for (KeyValuePair<Class<?>> kv : types) {
+			StructEntityReflect enref = ReflectionUtils.get()
+					.getEntityMetadata(kv.getValue());
+			addalias(kv.getKey(), enref.Entity, true);
+		}
+		for (KeyValuePair<Class<?>> kv : types) {
+			StructEntityReflect enref = ReflectionUtils.get()
+					.getEntityMetadata(kv.getValue());
+			InternalJoinGraph ig = new InternalJoinGraph(kv.getValue(), this,
+					kv.getKey(), enref.Entity, true);
+			joins.put(kv.getKey(), ig);
+		}
+		this.qjoin = qjoin;
+	}
+
 	private void process(final String rootalias) throws Exception {
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);

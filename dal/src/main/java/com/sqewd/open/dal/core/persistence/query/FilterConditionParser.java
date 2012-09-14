@@ -49,8 +49,8 @@ public class FilterConditionParser {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<FilterCondition> parse(List<Class<?>> tables, String query)
-			throws Exception {
+	public List<FilterCondition> parse(final List<Class<?>> tables,
+			final String query) throws Exception {
 		quoted.clear();
 		this.tables = tables;
 
@@ -59,15 +59,19 @@ public class FilterConditionParser {
 		String[] filters = filterstr.split(Query._QUERY_CONDITION_AND_);
 		if (filters != null) {
 			for (String filter : filters) {
-				if (filter.trim().isEmpty())
+				if (filter.trim().isEmpty()) {
 					continue;
-				if (parseLimit(filter))
+				}
+				if (parseLimit(filter)) {
 					continue;
-				if (parseSort(filter))
+				}
+				if (parseSort(filter)) {
 					continue;
+				}
 				FilterCondition cond = parseCondition(filter);
-				if (cond != null)
+				if (cond != null) {
 					conditions.add(cond);
+				}
 			}
 		}
 		return conditions;
@@ -111,8 +115,9 @@ public class FilterConditionParser {
 		return false;
 	}
 
-	private FilterCondition parseCondition(String filter) throws Exception {
-		for (String oper : EnumOperator._OPERATOR_TOKENS_) {
+	private FilterCondition parseCondition(final String filter)
+			throws Exception {
+		for (String oper : EnumOperator.getOperators()) {
 			if (filter.indexOf(oper) >= 0) {
 				String[] parts = filter.split(oper);
 				if (parts.length < 2)
@@ -135,7 +140,7 @@ public class FilterConditionParser {
 				return cond;
 			}
 		}
-		for (String oper : EnumOperator._OPERATOR_KEYWORDS_) {
+		for (String oper : EnumOperator.getKeywords()) {
 			String regex = "(.*) (?i)" + oper + "(.*)";
 			Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 			Matcher matcher = pattern.matcher(filter);
@@ -159,11 +164,13 @@ public class FilterConditionParser {
 					while (vmatch.find()) {
 						String[] values = new String[2];
 						values[0] = vmatch.group(1).trim();
-						if (quoted.containsKey(values[0]))
+						if (quoted.containsKey(values[0])) {
 							values[0] = quoted.get(values[0]);
+						}
 						values[1] = vmatch.group(2).trim();
-						if (quoted.containsKey(values[1]))
+						if (quoted.containsKey(values[1])) {
 							values[1] = quoted.get(values[1]);
+						}
 
 						FilterCondition bcond = new FilterCondition(null,
 								getTableType(column), column, eoper, values);
@@ -187,13 +194,15 @@ public class FilterConditionParser {
 								getTableType(column), column, eoper, values);
 						return bcond;
 					}
+				default:
+					break;
 				}
 			}
 		}
 		throw new Exception("Error parsing filter condition [" + filter + "]");
 	}
 
-	private Class<?> getTableType(String column) throws Exception {
+	private Class<?> getTableType(final String column) throws Exception {
 		String prefix = null;
 		String tabcol = null;
 
@@ -212,24 +221,23 @@ public class FilterConditionParser {
 					return type;
 			} else {
 				if (enref.Entity.compareTo(prefix) == 0
-						&& hasColumn(enref, tabcol)) {
+						&& hasColumn(enref, tabcol))
 					return type;
-				} else if (hasColumn(enref, prefix)) {
+				else if (hasColumn(enref, prefix))
 					return type;
-				}
 			}
 		}
 		return null;
 	}
 
-	private boolean hasColumn(StructEntityReflect enref, String column) {
-		if (enref.get(column) != null) {
+	private boolean hasColumn(final StructEntityReflect enref,
+			final String column) {
+		if (enref.get(column) != null)
 			return true;
-		}
 		return false;
 	}
 
-	private String parseQuoted(String condition) {
+	private String parseQuoted(final String condition) {
 		Pattern pattern = Pattern.compile(_QUOTES_REGEX_);
 		Matcher matcher = pattern.matcher(condition);
 		int index = quoted.size();

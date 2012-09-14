@@ -130,7 +130,7 @@ TOKEN: /* SQL Keywords. prefixed with K_ to avoid name clashes */
 |   <K_NUMBER:"NUMBER">
 |   <K_OF:"OF">
 |   <K_ONLY:"ONLY">
-|   <K_OR:",">
+|   <K_OR:"|">
 |   <K_QOR:"OR">
 |   <K_ORDER:"ORDER">
 |   <K_PRIOR:"PRIOR">

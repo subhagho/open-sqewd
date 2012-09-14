@@ -1174,10 +1174,12 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			final List<KeyValuePair<Class<?>>> types, final int limit,
 			final Connection conn) throws Exception {
 
-		// Make sure the type for the class is available.
-		SQLQuery parser = new SQLQuery(type);
+		NativeJoinGraph jg = new NativeJoinGraph(types, query);
 
-		String selectsql = parser.parse(query, limit);
+		// Make sure the type for the class is available.
+		SQLQuery parser = new SQLQuery(jg);
+
+		String selectsql = parser.parse("", limit);
 		Statement stmnt = conn.createStatement();
 		LocalResultSet entities = new LocalResultSet();
 
@@ -1185,7 +1187,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 			log.debug("SELECT SQL [" + selectsql + "]");
 			ResultSet rs = stmnt.executeQuery(selectsql);
 			try {
-				entities.create(type, rs);
+				entities.create(key, rs);
 			} finally {
 				if (rs != null && !rs.isClosed()) {
 					rs.close();

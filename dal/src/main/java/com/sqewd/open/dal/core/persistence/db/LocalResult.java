@@ -20,6 +20,7 @@
  */
 package com.sqewd.open.dal.core.persistence.db;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -31,16 +32,24 @@ import java.util.HashMap;
  */
 public class LocalResult {
 	private final ArrayList<Object> data = new ArrayList<Object>();
-	private HashMap<String, Integer> columns = null;
+	private HashMap<String, Boolean> persisters = new HashMap<String, Boolean>();
 
-	public LocalResult(final HashMap<String, Integer> columns) {
-		this.columns = columns;
-		initarray();
+	public LocalResult(final String persister, final int size) {
+		initarray(persister, size);
 	}
 
-	public void initarray() {
-		if (data.size() < columns.size() + 1) {
-			for (int ii = data.size(); ii <= columns.size() + 1; ii++) {
+	private LocalResult() {
+
+	}
+
+	public void initarray(final String persister, final int size) {
+		if (persister != null) {
+			if (persisters.containsKey(persister))
+				return;
+			persisters.put(persister, false);
+		}
+		if (data.size() < size + 1) {
+			for (int ii = data.size(); ii <= size + 1; ii++) {
 				data.add(null);
 			}
 		}
@@ -50,27 +59,45 @@ public class LocalResult {
 		data.set(index, value);
 	}
 
-	public void add(final String column, final Object value) throws Exception {
-		if (columns.containsKey(column)) {
-			int index = columns.get(column);
-			add(index, value);
-		} else
-			throw new Exception("Cannot find column [" + column + "]");
+	public Object get(final int index) throws SQLException {
+		if (index < data.size() && index > 0)
+			return data.get(index);
+		else
+			throw new SQLException("Cannot find column [" + index + "]");
 	}
 
-	public Object get(final String column) throws Exception {
-		if (columns.containsKey(column)) {
-			int index = columns.get(column);
-			return get(index);
-		} else
-			throw new Exception("Cannot find column [" + column + "]");
+	public boolean hasData(final String persister) {
+		boolean has = false;
+		if (persisters.containsKey(persister)) {
+			has = persisters.get(persister);
+		}
+		return has;
 	}
 
-	public Object get(final int index) {
-		return data.get(index);
+	public boolean hasColumns(final String persister) {
+		if (persisters.containsKey(persister))
+			return true;
+		return false;
 	}
 
-	protected HashMap<String, Integer> getColumns() {
-		return columns;
+	public void dataSet(final String persister) throws Exception {
+		if (!persisters.containsKey(persister))
+			throw new Exception("Data set for type [" + persister
+					+ "] not defined.");
+		else {
+			persisters.remove(persister);
+		}
+		persisters.put(persister, true);
+	}
+
+	public LocalResult copy() {
+		LocalResult rs = new LocalResult();
+		rs.initarray(null, this.data.size());
+		rs.persisters = this.persisters;
+
+		for (int ii = 0; ii < data.size(); ii++) {
+			rs.add(ii, data.get(ii));
+		}
+		return rs;
 	}
 }

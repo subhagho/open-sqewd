@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.query;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -23,9 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
-import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.utils.LogUtils;
 
 /**
@@ -38,11 +39,11 @@ public class EntityListSorter implements Comparator<AbstractEntity> {
 
 	private List<SortColumn> columns = null;
 
-	public EntityListSorter(List<SortColumn> columns) {
+	public EntityListSorter(final List<SortColumn> columns) {
 		this.columns = columns;
 	}
 
-	public <T extends AbstractEntity> void sort(List<T> entities)
+	public <T extends AbstractEntity> void sort(final List<T> entities)
 			throws Exception {
 		Collections.sort(entities, this);
 	}
@@ -52,7 +53,7 @@ public class EntityListSorter implements Comparator<AbstractEntity> {
 	 * 
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
-	public int compare(AbstractEntity o1, AbstractEntity o2) {
+	public int compare(final AbstractEntity o1, final AbstractEntity o2) {
 		int retval = 0;
 		for (SortColumn column : columns) {
 			try {
@@ -69,8 +70,8 @@ public class EntityListSorter implements Comparator<AbstractEntity> {
 		return retval;
 	}
 
-	private int compare(AbstractEntity esrc, AbstractEntity etgt,
-			SortColumn column) throws Exception {
+	private int compare(final AbstractEntity esrc, final AbstractEntity etgt,
+			final SortColumn column) throws Exception {
 		StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
 				esrc.getClass(), column.getColumn());
 
@@ -83,30 +84,34 @@ public class EntityListSorter implements Comparator<AbstractEntity> {
 			EnumPrimitives type = EnumPrimitives.type(ftype);
 			switch (type) {
 			case ECharacter:
-				retval = (int) ((Character) vsrc - (Character) vtgt);
+				retval = (Character) vsrc - (Character) vtgt;
 				break;
 			case EShort:
-				retval = (int) ((Short) vsrc - (Short) vtgt);
+				retval = (Short) vsrc - (Short) vtgt;
 				break;
 			case EInteger:
-				retval = (int) ((Integer) vsrc - (Integer) vtgt);
+				retval = (Integer) vsrc - (Integer) vtgt;
 				break;
 			case ELong:
 				retval = (int) ((Long) vsrc - (Long) vtgt);
 				break;
 			case EFloat:
 				float fval = ((Float) vsrc - (Float) vtgt);
-				if (fval < 0)
+				if (fval < 0) {
 					retval = -1;
-				else if (fval > 0)
+				} else if (fval > 0) {
 					retval = 1;
+				}
 				break;
 			case EDouble:
 				double dval = ((Double) vsrc - (Double) vtgt);
-				if (dval < 0)
+				if (dval < 0) {
 					retval = -1;
-				else if (dval > 0)
+				} else if (dval > 0) {
 					retval = 1;
+				}
+				break;
+			default:
 				break;
 			}
 		} else {

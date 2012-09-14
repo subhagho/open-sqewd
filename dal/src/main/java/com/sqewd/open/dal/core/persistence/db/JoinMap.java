@@ -42,6 +42,10 @@ public class JoinMap {
 
 	private ZQuery query;
 
+	private boolean isKeyQuery = false;
+
+	private boolean processed = false;
+
 	/**
 	 * @return the persisterKey
 	 */
@@ -120,5 +124,35 @@ public class JoinMap {
 	 */
 	public void setQuery(final ZQuery query) {
 		this.query = query;
+	}
+
+	/**
+	 * @return the isKeyQuery
+	 */
+	public boolean isKeyQuery() {
+		return isKeyQuery;
+	}
+
+	/**
+	 * @param isKeyQuery
+	 *            the isKeyQuery to set
+	 */
+	public void setKeyQuery(final boolean isKeyQuery) {
+		this.isKeyQuery = isKeyQuery;
+	}
+
+	/**
+	 * @return the processed
+	 */
+	public boolean isProcessed() {
+		return processed;
+	}
+
+	/**
+	 * @param processed
+	 *            the processed to set
+	 */
+	public void setProcessed(final boolean processed) {
+		this.processed = processed;
 	}
 }

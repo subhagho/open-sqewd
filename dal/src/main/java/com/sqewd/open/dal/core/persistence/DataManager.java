@@ -66,7 +66,7 @@ public class DataManager implements InitializedHandle {
 	private final HashMap<String, AbstractPersister> persistmap = new HashMap<String, AbstractPersister>();
 	private final HashMap<String, List<String>> scanjars = new HashMap<String, List<String>>();
 
-	private void init(XMLConfiguration config) throws Exception {
+	private void init(final XMLConfiguration config) throws Exception {
 		try {
 			state = EnumInstanceState.Running;
 
@@ -138,7 +138,7 @@ public class DataManager implements InitializedHandle {
 		}
 	}
 
-	private void scanEntities(List<Class<?>> classes) throws Exception {
+	private void scanEntities(final List<Class<?>> classes) throws Exception {
 		for (Class<?> type : classes) {
 			if (type.isAnnotationPresent(Entity.class)) {
 				log.debug("Found entity : [" + type.getCanonicalName() + "]["
@@ -149,7 +149,7 @@ public class DataManager implements InitializedHandle {
 		}
 	}
 
-	private void initPersisters(Element root) throws Exception {
+	private void initPersisters(final Element root) throws Exception {
 		List<AbstractPersister> pers = new ArrayList<AbstractPersister>();
 
 		NodeList pernl = XMLUtils.search(_CONFIG_PERSISTER_XPATH_, root);
@@ -168,14 +168,13 @@ public class DataManager implements InitializedHandle {
 					persistmap.put(cls.getCanonicalName(), ap);
 					persistmap.put(ap.key(), ap);
 					pers.add(ap);
-				} else {
+				} else
 					throw new Exception(
 							"Invalid Configuration : Persister class ["
 									+ cls.getCanonicalName()
 									+ "] does not extend ["
 									+ AbstractPersister.class
 											.getCanonicalName() + "]");
-				}
 			}
 		}
 		NodeList mapnl = XMLUtils.search(_CONFIG_PERSISTMAP_XPATH_, root);
@@ -184,24 +183,21 @@ public class DataManager implements InitializedHandle {
 				Element melm = (Element) mapnl.item(ii);
 				String classname = melm
 						.getAttribute(InstanceParam._PARAM_ATTR_CLASS_);
-				if (classname == null || classname.isEmpty()) {
+				if (classname == null || classname.isEmpty())
 					throw new Exception(
 							"Invalid Configuration : Missing map parameter ["
 									+ InstanceParam._PARAM_ATTR_CLASS_ + "]");
-				}
 				String persister = melm.getAttribute(_CONFIG_ATTR_PERSISTER_);
-				if (persister == null || persister.isEmpty()) {
+				if (persister == null || persister.isEmpty())
 					throw new Exception(
 							"Invalid Configuration : Missing map parameter ["
 									+ _CONFIG_ATTR_PERSISTER_ + "]");
-				}
 				if (persistmap.containsKey(persister)) {
 					persistmap.put(classname, persistmap.get(persister));
-				} else {
+				} else
 					throw new Exception(
 							"Invalid Configuration : Persister class ["
 									+ persister + "] does not exist.");
-				}
 			}
 		}
 		for (AbstractPersister per : pers) {
@@ -217,10 +213,10 @@ public class DataManager implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public AbstractPersister getPersisterByName(String name) throws Exception {
-		if (persistmap.containsKey(name)) {
+	public AbstractPersister getPersisterByName(final String name)
+			throws Exception {
+		if (persistmap.containsKey(name))
 			return persistmap.get(name);
-		}
 
 		throw new Exception("No persistence handler found for class [" + name
 				+ "]");
@@ -236,25 +232,23 @@ public class DataManager implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public AbstractPersister getPersister(Class<?> type) throws Exception {
+	public AbstractPersister getPersister(final Class<?> type) throws Exception {
 		String key = type.getCanonicalName();
-		if (persistmap.containsKey(key)) {
+		if (persistmap.containsKey(key))
 			return persistmap.get(key);
-		}
 		Class<?> ttype = type;
 		key = type.getPackage().getName();
-		if (persistmap.containsKey(key)) {
+		if (persistmap.containsKey(key))
 			return persistmap.get(key);
-		}
 		while (true) {
 			ttype = ttype.getSuperclass();
 			if (ttype.getCanonicalName().compareTo(
-					Object.class.getCanonicalName()) == 0)
+					Object.class.getCanonicalName()) == 0) {
 				break;
-			key = ttype.getCanonicalName();
-			if (persistmap.containsKey(key)) {
-				return persistmap.get(key);
 			}
+			key = ttype.getCanonicalName();
+			if (persistmap.containsKey(key))
+				return persistmap.get(key);
 		}
 		throw new Exception("No persistence handler found for class ["
 				+ type.getCanonicalName() + "]");
@@ -270,8 +264,8 @@ public class DataManager implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<AbstractEntity> read(String query, Class<?> type, int limit)
-			throws Exception {
+	public List<AbstractEntity> read(final String query, final Class<?> type,
+			final int limit) throws Exception {
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
 		if (enref.IsJoin) {
@@ -290,12 +284,13 @@ public class DataManager implements InitializedHandle {
 		}
 	}
 
-	private void isNativeJoin(StructEntityReflect enref) throws Exception {
+	private void isNativeJoin(final StructEntityReflect enref) throws Exception {
 		AbstractPersister pers = null;
 
 		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr.Reference == null)
+			if (attr.Reference == null) {
 				continue;
+			}
 			Class<?> type = Class.forName(attr.Reference.Class);
 			StructEntityReflect subref = ReflectionUtils.get()
 					.getEntityMetadata(type);
@@ -303,9 +298,9 @@ public class DataManager implements InitializedHandle {
 				throw new Exception("No entity defined for name ["
 						+ attr.Column + "]");
 			AbstractPersister p = getPersister(type);
-			if (pers == null)
+			if (pers == null) {
 				pers = p;
-			else if (!p.equals(pers)) {
+			} else if (!p.equals(pers)) {
 				enref.Join.Type = EnumJoinType.Virtual;
 				return;
 			}
@@ -326,8 +321,9 @@ public class DataManager implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<AbstractEntity> read(String query, AbstractPersister persister,
-			Class<?> type, int limit) throws Exception {
+	public List<AbstractEntity> read(final String query,
+			final AbstractPersister persister, final Class<?> type,
+			final int limit) throws Exception {
 		return persister.read(query, type, limit);
 	}
 
@@ -338,7 +334,7 @@ public class DataManager implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public OperationResponse save(AbstractEntity entity) throws Exception {
+	public OperationResponse save(final AbstractEntity entity) throws Exception {
 		if (!(entity instanceof AbstractPersistedEntity))
 			throw new Exception("Entity ["
 					+ entity.getClass().getCanonicalName()
@@ -372,7 +368,7 @@ public class DataManager implements InitializedHandle {
 	 * 
 	 * @see com.wookler.core.InitializedHandle#init(com.wookler.utils.ListParam)
 	 */
-	public void init(ListParam param) throws Exception {
+	public void init(final ListParam param) throws Exception {
 		throw new Exception("Should not be called.");
 	}
 
@@ -394,8 +390,9 @@ public class DataManager implements InitializedHandle {
 		if (persistmap != null && persistmap.size() > 0) {
 			for (String key : persistmap.keySet()) {
 				AbstractPersister pers = persistmap.get(key);
-				if (pers != null)
+				if (pers != null) {
 					pers.dispose();
+				}
 			}
 		}
 		return;
@@ -411,7 +408,7 @@ public class DataManager implements InitializedHandle {
 	 *            - Configuration
 	 * @throws Exception
 	 */
-	public static void create(XMLConfiguration config) throws Exception {
+	public static void create(final XMLConfiguration config) throws Exception {
 		synchronized (_instance) {
 			if (_instance.state == EnumInstanceState.Running)
 				return;
@@ -428,11 +425,10 @@ public class DataManager implements InitializedHandle {
 	 */
 	public static DataManager get() throws Exception {
 		synchronized (_instance) {
-			if (_instance.state != EnumInstanceState.Running) {
+			if (_instance.state != EnumInstanceState.Running)
 				throw new Exception(
 						"Invalid Instance State : Instance not available [state="
 								+ _instance.state.name() + "]");
-			}
 			return _instance;
 		}
 	}
@@ -461,14 +457,13 @@ public class DataManager implements InitializedHandle {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends AbstractEntity> T newInstance(Class<?> type)
+	public static <T extends AbstractEntity> T newInstance(final Class<?> type)
 			throws Exception {
 		Object obj = type.newInstance();
-		if (!(obj instanceof AbstractEntity)) {
+		if (!(obj instanceof AbstractEntity))
 			throw new Exception("Invalid Class : [" + type.getCanonicalName()
 					+ "] does not extend ["
 					+ AbstractEntity.class.getCanonicalName() + "]");
-		}
 
 		((AbstractEntity) obj).setState(EnumEntityState.New);
 

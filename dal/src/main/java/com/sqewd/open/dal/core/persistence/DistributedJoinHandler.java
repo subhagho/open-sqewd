@@ -26,19 +26,24 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Stack;
 import java.util.Vector;
 
 import org.gibello.zql.ZConstant;
 import org.gibello.zql.ZExp;
 import org.gibello.zql.ZExpression;
 import org.gibello.zql.ZQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.persistence.db.AbstractJoinGraph;
+import com.sqewd.open.dal.core.persistence.db.EntityHelper;
 import com.sqewd.open.dal.core.persistence.db.ExternalJoinGraph;
 import com.sqewd.open.dal.core.persistence.db.JoinMap;
 import com.sqewd.open.dal.core.persistence.db.LocalResultSet;
@@ -52,6 +57,9 @@ import com.sqewd.open.dal.core.persistence.query.parser.DalSqlParser;
  * 
  */
 public class DistributedJoinHandler {
+	private static final Logger log = LoggerFactory
+			.getLogger(DistributedJoinHandler.class);
+
 	private final HashMap<String, Class<?>> classmap = new HashMap<String, Class<?>>();
 	private final List<StructEntityReflect> keys = new ArrayList<StructEntityReflect>();
 	private StructEntityReflect enref = null;
@@ -126,10 +134,7 @@ public class DistributedJoinHandler {
 		List<JoinMap> keys = graph.getJoinKeys();
 		if (keys != null && !keys.isEmpty()) {
 			for (JoinMap qmap : keys) {
-				InputStream is = new ByteArrayInputStream(query.getBytes());
-				DalSqlParser parser = new DalSqlParser(is);
-
-				ZQuery zq = parser.QueryClause();
+				ZQuery zq = (ZQuery) combinedQuery.copy();
 
 				parseQuery(qmap, zq);
 
@@ -149,10 +154,8 @@ public class DistributedJoinHandler {
 			if (qmap.isProcessed()) {
 				continue;
 			}
-			InputStream is = new ByteArrayInputStream(query.getBytes());
-			DalSqlParser parser = new DalSqlParser(is);
 
-			ZQuery zq = parser.QueryClause();
+			ZQuery zq = (ZQuery) combinedQuery.copy();
 
 			parseQuery(qmap, zq);
 
@@ -163,9 +166,58 @@ public class DistributedJoinHandler {
 						+ rs.getClass().getCanonicalName() + "]");
 			addResult((LocalResultSet) rs, qmap);
 		}
+
+		return load();
+	}
+
+	private List<AbstractEntity> load() throws Exception {
 		if (!results.first())
 			throw new Exception("Error resetting cursor index.");
-		return null;
+
+		boolean joinedList = AbstractJoinGraph.hasJoinedList(enref);
+
+		List<AbstractEntity> entities = new ArrayList<AbstractEntity>();
+		HashMap<String, AbstractEntity> refindx = null;
+
+		try {
+			if (joinedList) {
+				refindx = new HashMap<String, AbstractEntity>();
+			}
+
+			Class<?> type = Class.forName(enref.Class);
+
+			while (results.next()) {
+
+				if (!joinedList) {
+					AbstractJoinGraph gr = AbstractJoinGraph.lookup(type);
+
+					Object obj = type.newInstance();
+					if (!(obj instanceof AbstractEntity))
+						throw new Exception("Unsupported Entity type ["
+								+ type.getCanonicalName() + "]");
+					AbstractEntity entity = (AbstractEntity) obj;
+					Stack<KeyValuePair<Class<?>>> path = new Stack<KeyValuePair<Class<?>>>();
+					KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
+					cls.setValue(entity.getClass());
+					path.push(cls);
+					EntityHelper.setEntity(entity, results, gr, path);
+					entities.add(entity);
+				} else {
+					EntityHelper.setEntity(enref, refindx, results);
+				}
+			}
+		} finally {
+			if (results != null && !results.isClosed()) {
+				results.close();
+			}
+		}
+		if (joinedList) {
+			for (String key : refindx.keySet()) {
+				entities.add(refindx.get(key));
+			}
+		}
+		return entities;
+
 	}
 
 	private void addResult(final LocalResultSet rs, final JoinMap jm)
@@ -193,6 +245,7 @@ public class DistributedJoinHandler {
 				}
 			}
 		}
+		rs.close();
 	}
 
 	private void parseQuery(final JoinMap pmap, final ZQuery zq)

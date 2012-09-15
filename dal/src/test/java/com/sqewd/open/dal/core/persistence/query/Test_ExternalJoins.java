@@ -72,10 +72,10 @@ public class Test_ExternalJoins {
 	@Test
 	public void test() {
 		try {
-			String query = "(EMPLOYEEKEY.ID IN ('1000', '1001', '1002')|EMPLOYEEKEY.DATEOFBIRTH > 0);SALARY.SALARY > 50500.00";
+			String query = "EMPLOYEEKEY.ID IN ('1000', '1001', '1002');SALARY.SALARY > 50500.00";
 			List<AbstractEntity> entities = DataManager.get().read(query,
 					SalaryView.class, -1);
-			assertEquals((entities.size() == 1), true);
+			assertEquals((entities.size() > 1), true);
 		} catch (Exception e) {
 			LogUtils.stacktrace(log, e);
 			e.printStackTrace();

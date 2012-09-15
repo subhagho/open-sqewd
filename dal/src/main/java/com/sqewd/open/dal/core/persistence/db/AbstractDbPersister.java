@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-import org.apache.commons.beanutils.MethodUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +40,6 @@ import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
 import com.sqewd.open.dal.api.persistence.EnumPersistenceOperation;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
-import com.sqewd.open.dal.api.persistence.EnumRefereceType;
 import com.sqewd.open.dal.api.persistence.OperationResponse;
 import com.sqewd.open.dal.api.persistence.PersistenceResponse;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
@@ -274,7 +272,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		// Make sure the type for the class is available.
 		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
 				type);
-		boolean joinedList = hasJoinedList(enref);
+		boolean joinedList = AbstractJoinGraph.hasJoinedList(enref);
 
 		SQLQuery parser = new SQLQuery(type);
 
@@ -305,10 +303,10 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 						KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
 						cls.setValue(entity.getClass());
 						path.push(cls);
-						setEntity(entity, rs, gr, path);
+						EntityHelper.setEntity(entity, rs, gr, path);
 						entities.add(entity);
 					} else {
-						setEntity(enref, refindx, rs);
+						EntityHelper.setEntity(enref, refindx, rs);
 					}
 				}
 			} finally {
@@ -327,340 +325,6 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 				stmnt.close();
 			}
 		}
-	}
-
-	private boolean hasJoinedList(final StructEntityReflect enref)
-			throws Exception {
-		boolean retval = false;
-		if (enref.IsJoin) {
-			for (StructAttributeReflect attr : enref.Attributes) {
-				if (attr.Reference != null
-						&& attr.Reference.Type == EnumRefereceType.One2Many) {
-					Class<?> ft = attr.Field.getType();
-					if (ft.equals(List.class)) {
-						retval = true;
-						continue;
-					}
-					Class<?>[] intfs = ft.getInterfaces();
-					if (intfs != null && intfs.length > 0) {
-						for (Class<?> intf : intfs) {
-							if (intf.equals(List.class)) {
-								retval = true;
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-		return retval;
-	}
-
-	private void setEntity(final StructEntityReflect enref,
-			final HashMap<String, AbstractEntity> entities, final ResultSet rs)
-			throws Exception {
-		Class<?> type = Class.forName(enref.Class);
-		Object obj = type.newInstance();
-		if (!(obj instanceof AbstractEntity))
-			throw new Exception("Unsupported Entity type ["
-					+ type.getCanonicalName() + "]");
-		AbstractEntity entity = (AbstractEntity) obj;
-		AbstractJoinGraph gr = AbstractJoinGraph.lookup(type);
-
-		for (StructAttributeReflect attr : enref.Attributes) {
-			Stack<KeyValuePair<Class<?>>> path = new Stack<KeyValuePair<Class<?>>>();
-			Class<?> at = attr.Field.getType();
-			KeyValuePair<Class<?>> ak = new KeyValuePair<Class<?>>();
-			ak.setValue(entity.getClass());
-			ak.setKey(attr.Column);
-			path.push(ak);
-
-			if (attr.Reference == null
-					|| attr.Reference.Type != EnumRefereceType.One2Many) {
-				setColumnValue(rs, attr, entity, gr, path);
-			} else if (attr.Reference != null) {
-				// Object ao = createListInstance(entity, attr);
-				Class<?> rt = Class.forName(attr.Reference.Class);
-				Object ro = rt.newInstance();
-				if (!(ro instanceof AbstractEntity))
-					throw new Exception("Reference [" + attr.Column
-							+ "] is of invalid type. [" + at.getCanonicalName()
-							+ "] does not extend from ["
-							+ AbstractEntity.class.getCanonicalName() + "]");
-				AbstractEntity ae = (AbstractEntity) getColumnValue(rs, attr,
-						entity, gr, path);
-				addListValue(ae, entity, attr);
-			}
-
-		}
-		String key = entity.getEntityKey();
-		if (!entities.containsKey(key)) {
-			entities.put(entity.getEntityKey(), entity);
-		} else {
-			AbstractEntity target = entities.get(key);
-			for (StructAttributeReflect attr : enref.Attributes) {
-				if (attr.Reference.Type == EnumRefereceType.One2Many) {
-					copyToList(entity, target, attr);
-				}
-			}
-		}
-	}
-
-	private <T extends AbstractEntity> void copyToList(final T source,
-			final T dest, final StructAttributeReflect attr) throws Exception {
-		Object so = PropertyUtils.getSimpleProperty(source,
-				attr.Field.getName());
-		Object to = PropertyUtils.getSimpleProperty(dest, attr.Field.getName());
-		if (so == null)
-			return;
-		if (to == null)
-			throw new Exception(
-					"Source List has not been intiialized for Field ["
-							+ attr.Column + "]");
-		if (!(so instanceof List<?>))
-			throw new Exception("Source element [" + attr.Column
-					+ "] is not a List");
-		if (!(to instanceof List<?>))
-			throw new Exception("Target element [" + attr.Column
-					+ "] is not a List");
-		MethodUtils.invokeMethod(to, "addAll", new Object[] { so });
-	}
-
-	private <T extends AbstractEntity> Object createListInstance(
-			final AbstractEntity entity, final StructAttributeReflect attr)
-			throws Exception {
-		Object vo = PropertyUtils.getSimpleProperty(entity,
-				attr.Field.getName());
-		if (vo == null) {
-			vo = new ArrayList<T>();
-			PropertyUtils.setSimpleProperty(entity, attr.Field.getName(), vo);
-		}
-		return vo;
-	}
-
-	private <T extends AbstractEntity> void addListValue(
-			final AbstractEntity entity, final AbstractEntity parent,
-			final StructAttributeReflect attr) throws Exception {
-		Object vo = createListInstance(parent, attr);
-		MethodUtils.invokeMethod(vo, "add", new Object[] { entity });
-	}
-
-	private void setEntity(final AbstractEntity entity, final ResultSet rs,
-			final AbstractJoinGraph gr, final Stack<KeyValuePair<Class<?>>> path)
-			throws Exception {
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				entity.getClass());
-
-		for (StructAttributeReflect attr : enref.Attributes) {
-			setColumnValue(rs, attr, entity, gr, path);
-		}
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void setColumnValue(final ResultSet rs,
-			final StructAttributeReflect attr, final AbstractEntity entity,
-			final AbstractJoinGraph gr, final Stack<KeyValuePair<Class<?>>> path)
-			throws Exception {
-
-		KeyValuePair<String> alias = gr.getAliasFor(path, attr.Column, 0);
-		String tabprefix = alias.getKey();
-
-		if (EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
-			EnumPrimitives prim = EnumPrimitives.type(attr.Field.getType());
-			switch (prim) {
-			case ECharacter:
-				String sv = rs.getString(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), sv.charAt(0));
-				}
-				break;
-			case EShort:
-				short shv = rs.getShort(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), shv);
-				}
-				break;
-			case EInteger:
-				int iv = rs.getInt(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), iv);
-				}
-				break;
-			case ELong:
-				long lv = rs.getLong(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), lv);
-				}
-				break;
-			case EFloat:
-				float fv = rs.getFloat(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), fv);
-				}
-				break;
-			case EDouble:
-				double dv = rs.getDouble(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), dv);
-				}
-				break;
-			default:
-				throw new Exception("Unsupported Data type [" + prim.name()
-						+ "]");
-			}
-		} else if (attr.Convertor != null) {
-			String value = rs.getString(tabprefix + "." + attr.Column);
-			if (!rs.wasNull()) {
-				attr.Convertor.load(entity, attr.Column, value);
-			}
-		} else if (attr.Field.getType().equals(String.class)) {
-			String value = rs.getString(tabprefix + "." + attr.Column);
-			if (!rs.wasNull()) {
-				PropertyUtils.setSimpleProperty(entity, attr.Field.getName(),
-						value);
-			}
-		} else if (attr.Field.getType().equals(Date.class)) {
-			long value = rs.getLong(tabprefix + "." + attr.Column);
-			if (!rs.wasNull()) {
-				Date dt = new Date(value);
-				PropertyUtils.setSimpleProperty(entity, attr.Field.getName(),
-						dt);
-			}
-		} else if (attr.Field.getType().isEnum()) {
-			String value = rs.getString(tabprefix + "." + attr.Column);
-			if (!rs.wasNull()) {
-				Class ecls = attr.Field.getType();
-				Object evalue = Enum.valueOf(ecls, value);
-				PropertyUtils.setSimpleProperty(entity, attr.Field.getName(),
-						evalue);
-			}
-		} else if (attr.Reference != null) {
-			Class<?> rt = Class.forName(attr.Reference.Class);
-			Object obj = rt.newInstance();
-			if (!(obj instanceof AbstractEntity))
-				throw new Exception("Unsupported Entity type ["
-						+ rt.getCanonicalName() + "]");
-			AbstractEntity rentity = (AbstractEntity) obj;
-			if (path.size() > 0) {
-				path.peek().setKey(attr.Column);
-			}
-
-			KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
-			cls.setValue(rentity.getClass());
-			path.push(cls);
-			setEntity(rentity, rs, gr, path);
-			PropertyUtils.setSimpleProperty(entity, attr.Field.getName(),
-					rentity);
-			path.pop();
-		}
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Object getColumnValue(final ResultSet rs,
-			final StructAttributeReflect attr, final AbstractEntity entity,
-			final AbstractJoinGraph gr, final Stack<KeyValuePair<Class<?>>> path)
-			throws Exception {
-
-		Object value = null;
-
-		KeyValuePair<String> alias = gr.getAliasFor(path, attr.Column, 0);
-		String tabprefix = alias.getKey();
-
-		if (EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
-			EnumPrimitives prim = EnumPrimitives.type(attr.Field.getType());
-			switch (prim) {
-			case ECharacter:
-				String sv = rs.getString(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), sv.charAt(0));
-				}
-				break;
-			case EShort:
-				short shv = rs.getShort(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), shv);
-				}
-				break;
-			case EInteger:
-				int iv = rs.getInt(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), iv);
-				}
-				break;
-			case ELong:
-				long lv = rs.getLong(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), lv);
-				}
-				break;
-			case EFloat:
-				float fv = rs.getFloat(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), fv);
-				}
-				break;
-			case EDouble:
-				double dv = rs.getDouble(tabprefix + "." + attr.Column);
-				if (!rs.wasNull()) {
-					PropertyUtils.setSimpleProperty(entity,
-							attr.Field.getName(), dv);
-				}
-				break;
-			default:
-				throw new Exception("Unsupported Data type [" + prim.name()
-						+ "]");
-			}
-		} else if (attr.Convertor != null) {
-			// TODO : Not supported at this time.
-			value = rs.getString(tabprefix + "." + attr.Column);
-
-		} else if (attr.Field.getType().equals(String.class)) {
-			value = rs.getString(tabprefix + "." + attr.Column);
-			if (rs.wasNull()) {
-				value = null;
-			}
-		} else if (attr.Field.getType().equals(Date.class)) {
-			long lvalue = rs.getLong(tabprefix + "." + attr.Column);
-			if (!rs.wasNull()) {
-				Date dt = new Date(lvalue);
-				value = dt;
-			}
-		} else if (attr.Field.getType().isEnum()) {
-			String svalue = rs.getString(tabprefix + "." + attr.Column);
-			if (!rs.wasNull()) {
-				Class ecls = attr.Field.getType();
-				value = Enum.valueOf(ecls, svalue);
-			}
-		} else if (attr.Reference != null) {
-			Class<?> rt = Class.forName(attr.Reference.Class);
-			Object obj = rt.newInstance();
-			if (!(obj instanceof AbstractEntity))
-				throw new Exception("Unsupported Entity type ["
-						+ rt.getCanonicalName() + "]");
-			AbstractEntity rentity = (AbstractEntity) obj;
-			if (path.size() > 0) {
-				path.peek().setKey(attr.Column);
-			}
-
-			KeyValuePair<Class<?>> cls = new KeyValuePair<Class<?>>();
-			cls.setValue(rentity.getClass());
-			path.push(cls);
-			setEntity(rentity, rs, gr, path);
-			value = rentity;
-			path.pop();
-		}
-		return value;
 	}
 
 	/*
@@ -1180,6 +844,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		SQLQuery parser = new SQLQuery(jg);
 
 		String selectsql = parser.parse("", limit);
+		log.debug("SELECT SQL [" + selectsql + "]");
 		Statement stmnt = conn.createStatement();
 		LocalResultSet entities = new LocalResultSet();
 

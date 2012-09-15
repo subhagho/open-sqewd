@@ -112,7 +112,7 @@ public class LocalResultSet implements ResultSet {
 	public void append(final String type, final LocalResultSet rs)
 			throws Exception {
 		if (!types.containsKey(type)) {
-			int index = columns.size();
+			int index = columns.size() + 1;
 			for (String column : rs.columns.keySet()) {
 				StructDbColumn ocol = rs.columns.get(column);
 				StructDbColumn ncol = new StructDbColumn();
@@ -137,6 +137,7 @@ public class LocalResultSet implements ResultSet {
 			int index = rs.columns.get(column).Index;
 			Object value = lrtgt.get(index);
 			if (value != null) {
+				index = columns.get(column).Index;
 				lrsrc.add(index, value);
 			}
 		}

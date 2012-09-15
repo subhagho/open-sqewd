@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Stack;
 
 import com.sqewd.open.dal.api.persistence.EnumJoinType;
+import com.sqewd.open.dal.api.persistence.EnumRefereceType;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 
@@ -182,6 +184,33 @@ public abstract class AbstractJoinGraph {
 			}
 		}
 		return graphs.get(key);
+	}
+
+	public static boolean hasJoinedList(final StructEntityReflect enref)
+			throws Exception {
+		boolean retval = false;
+		if (enref.IsJoin) {
+			for (StructAttributeReflect attr : enref.Attributes) {
+				if (attr.Reference != null
+						&& attr.Reference.Type == EnumRefereceType.One2Many) {
+					Class<?> ft = attr.Field.getType();
+					if (ft.equals(List.class)) {
+						retval = true;
+						continue;
+					}
+					Class<?>[] intfs = ft.getInterfaces();
+					if (intfs != null && intfs.length > 0) {
+						for (Class<?> intf : intfs) {
+							if (intf.equals(List.class)) {
+								retval = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		return retval;
 	}
 
 }

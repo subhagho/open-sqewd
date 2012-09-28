@@ -23,10 +23,10 @@ import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
-import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
+import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.persistence.db.SQLDataType;
@@ -37,7 +37,7 @@ import com.sqewd.open.dal.core.persistence.db.SQLDataType;
  * @author subhagho
  * 
  */
-public class SimpleDbQuery extends SimpleFilterQuery {
+public class SimpleDbQuery {
 	public static enum EnumQueryType {
 		SELECT, INSERT, UPDATE, DELETE;
 	}
@@ -45,26 +45,24 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 	private static final Logger log = LoggerFactory
 			.getLogger(SimpleDbQuery.class);
 
-	private List<FilterCondition> postconditions = null;
-
 	private static HashMap<String, HashMap<String, String>> queryCache = new HashMap<String, HashMap<String, String>>();
 
 	public SimpleDbQuery() {
-		parser = new FilterConditionParser();
 	}
 
-	private synchronized void addToCache(EnumQueryType type, Class<?> cls,
-			String sql) {
+	private synchronized void addToCache(final EnumQueryType type,
+			final Class<?> cls, final String sql) {
 		if (!queryCache.containsKey(type.name())) {
 			queryCache.put(type.name(), new HashMap<String, String>());
 		}
 		HashMap<String, String> cache = queryCache.get(type.name());
-		if (cache.containsKey(cls.getName()))
+		if (cache.containsKey(cls.getName())) {
 			cache.remove(cls.getName());
+		}
 		cache.put(cls.getName(), sql);
 	}
 
-	private String getCachedQuery(EnumQueryType type, Class<?> cls) {
+	private String getCachedQuery(final EnumQueryType type, final Class<?> cls) {
 		if (queryCache.containsKey(type.name())) {
 			HashMap<String, String> cache = queryCache.get(type.name());
 			if (cache.containsKey(cls.getName()))
@@ -81,7 +79,7 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 	 * @return
 	 * @throws Exception
 	 */
-	public String getInsertQuery(Class<?> type) throws Exception {
+	public String getInsertQuery(final Class<?> type) throws Exception {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
@@ -104,11 +102,12 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		boolean first = true;
 
 		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr == null)
+			if (attr == null) {
 				continue;
-			if (first)
+			}
+			if (first) {
 				first = false;
-			else {
+			} else {
 				query.append(',');
 				values.append(',');
 			}
@@ -119,8 +118,9 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		query.append(" ) ");
 		values.append(" ) ");
 
-		if (values != null)
+		if (values != null) {
 			query.append(values);
+		}
 		addToCache(EnumQueryType.INSERT, type, query.toString());
 
 		return query.toString();
@@ -134,7 +134,7 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 	 * @return
 	 * @throws Exception
 	 */
-	public String getUpdateQuery(Class<?> type) throws Exception {
+	public String getUpdateQuery(final Class<?> type) throws Exception {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
@@ -157,8 +157,9 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		boolean wfirst = true;
 
 		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr == null)
+			if (attr == null) {
 				continue;
+			}
 			if (attr.IsKeyColumn
 					|| attr.Column
 							.compareTo(AbstractPersistedEntity._TX_TIMESTAMP_COLUMN_) == 0) {
@@ -166,29 +167,33 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 					where = new StringBuffer();
 					where.append(" where ");
 					wfirst = false;
-				} else
+				} else {
 					where.append(" and ");
+				}
 				where.append(attr.Column).append("=?");
-				if (attr.IsKeyColumn)
+				if (attr.IsKeyColumn) {
 					continue;
+				}
 			}
 
-			if (first)
+			if (first) {
 				first = false;
-			else
+			} else {
 				query.append(',');
+			}
 			query.append(attr.Column).append("=?");
 
 		}
-		if (where != null)
+		if (where != null) {
 			query.append(where);
+		}
 
 		addToCache(EnumQueryType.UPDATE, type, query.toString());
 
 		return query.toString();
 	}
 
-	public String getDeleteQuery(Class<?> type) throws Exception {
+	public String getDeleteQuery(final Class<?> type) throws Exception {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
@@ -209,22 +214,26 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		boolean wfirst = true;
 
 		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr == null)
+			if (attr == null) {
 				continue;
+			}
 			if (attr.IsKeyColumn) {
 				if (wfirst) {
 					where = new StringBuffer();
 					where.append(" where ");
 					wfirst = false;
-				} else
+				} else {
 					where.append(" and ");
+				}
 				where.append(attr.Column).append("=?");
-				if (attr.IsKeyColumn)
+				if (attr.IsKeyColumn) {
 					continue;
+				}
 			}
 		}
-		if (where != null)
+		if (where != null) {
 			query.append(where);
+		}
 
 		addToCache(EnumQueryType.DELETE, type, query.toString());
 		log.debug("[DELETE : " + query.toString() + "]");
@@ -241,7 +250,7 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 	 * 
 	 * @throws Exception
 	 */
-	public List<String> getCreateTableDDL(Class<?> type) throws Exception {
+	public List<String> getCreateTableDDL(final Class<?> type) throws Exception {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
@@ -262,12 +271,14 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 
 		// Get Columns
 		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr == null)
+			if (attr == null) {
 				continue;
+			}
 			columns.add(getColumnDDL(attr));
 			if (attr.IsKeyColumn) {
-				if (keycolumns == null)
+				if (keycolumns == null) {
 					keycolumns = new ArrayList<String>();
+				}
 				keycolumns.add(attr.Column);
 				if (attr.AutoIncrement) {
 					if (EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
@@ -275,8 +286,7 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 								.getType());
 						if (prim == EnumPrimitives.ELong
 								|| prim == EnumPrimitives.EInteger) {
-							Entity eann = (Entity) type
-									.getAnnotation(Entity.class);
+							Entity eann = type.getAnnotation(Entity.class);
 							List<String> ddls = createSequenceDDL(eann, attr);
 							if (ddls.size() > 0) {
 								stmnts.addAll(ddls);
@@ -292,10 +302,11 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		buff.append("create table ").append(table).append(" ( ");
 		boolean first = true;
 		for (String column : columns) {
-			if (first)
+			if (first) {
 				first = false;
-			else
+			} else {
 				buff.append(",");
+			}
 			buff.append(column);
 		}
 		buff.append(")");
@@ -309,10 +320,11 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 					.append(" add primary key (");
 			first = true;
 			for (String column : keycolumns) {
-				if (first)
+				if (first) {
 					first = false;
-				else
+				} else {
 					buff.append(",");
+				}
 				buff.append(column);
 			}
 			buff.append(")");
@@ -321,8 +333,8 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		return stmnts;
 	}
 
-	private List<String> createSequenceDDL(Entity entity,
-			StructAttributeReflect attr) throws Exception {
+	private List<String> createSequenceDDL(final Entity entity,
+			final StructAttributeReflect attr) throws Exception {
 		List<String> ddls = new ArrayList<String>();
 		String name = getSequenceName(entity, attr);
 		ddls.add("drop sequence if exists " + name);
@@ -330,8 +342,8 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		return ddls;
 	}
 
-	public static String getSequenceName(Entity entity,
-			StructAttributeReflect attr) {
+	public static String getSequenceName(final Entity entity,
+			final StructAttributeReflect attr) {
 		StringBuffer buff = new StringBuffer();
 		buff.append("SEQ_").append(entity.recordset()).append("_")
 				.append(attr.Column);
@@ -348,8 +360,8 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<String> getCreateIndexDDL(Class<?> type,
-			List<KeyValuePair<String>> keycolumns) throws Exception {
+	public List<String> getCreateIndexDDL(final Class<?> type,
+			final List<KeyValuePair<String>> keycolumns) throws Exception {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
@@ -364,11 +376,13 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 
 		for (KeyValuePair<String> keys : keycolumns) {
 			String idxname = keys.getKey();
-			if (idxname == null || idxname.isEmpty())
+			if (idxname == null || idxname.isEmpty()) {
 				continue;
+			}
 			String[] columns = keys.getValue().split(",");
-			if (columns == null || columns.length <= 0)
+			if (columns == null || columns.length <= 0) {
 				continue;
+			}
 
 			String dropstmnt = "drop index if exists " + idxname;
 			stmnts.add(dropstmnt);
@@ -379,10 +393,11 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 			buff.append(" ( ");
 			boolean first = true;
 			for (String column : columns) {
-				if (first)
+				if (first) {
 					first = false;
-				else
+				} else {
 					buff.append(",");
+				}
 				String cname = column.trim();
 				StructAttributeReflect attr = enref.get(cname);
 				if (attr == null)
@@ -398,7 +413,8 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		return stmnts;
 	}
 
-	private String getColumnDDL(StructAttributeReflect attr) throws Exception {
+	private String getColumnDDL(final StructAttributeReflect attr)
+			throws Exception {
 		Class<?> type = attr.Field.getType();
 		StructAttributeReflect tattr = attr;
 		StringBuffer coldef = new StringBuffer();
@@ -416,8 +432,9 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 		String def = sqlt.name();
 		if (sqlt == SQLDataType.VARCHAR2) {
 			int size = 128;
-			if (tattr.Size > 0)
+			if (tattr.Size > 0) {
 				size = tattr.Size;
+			}
 
 			def = sqlt.name().concat("(").concat(String.valueOf(size))
 					.concat(")");
@@ -437,40 +454,8 @@ public class SimpleDbQuery extends SimpleFilterQuery {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<AbstractEntity> postSelect(List<AbstractEntity> entities)
+	public List<AbstractEntity> postSelect(final List<AbstractEntity> entities)
 			throws Exception {
-		if (postconditions != null && postconditions.size() > 0) {
-			List<AbstractEntity> filtered = new ArrayList<AbstractEntity>();
-			for (AbstractEntity entity : entities) {
-				boolean select = true;
-				for (FilterCondition condition : postconditions) {
-					AbstractConditionPredicate acp = condition.getLeft();
-					if (!(acp instanceof ColumnConditionPredicate))
-						throw new Exception(
-								"Invalid Filter Condition : Expecting type ["
-										+ ColumnConditionPredicate.class
-												.getCanonicalName() + "]");
-					ColumnConditionPredicate ccp = (ColumnConditionPredicate) acp;
-
-					acp = condition.getRight();
-					if (!(acp instanceof ValueConditionPredicate))
-						throw new Exception(
-								"Invalid Filter Condition : Expecting type ["
-										+ ValueConditionPredicate.class
-												.getCanonicalName() + "]");
-					ValueConditionPredicate vcp = (ValueConditionPredicate) acp;
-
-					if (!matcher.match(entity, ccp.getColumn(),
-							condition.getComparator(), vcp.getValue())) {
-						select = false;
-						break;
-					}
-				}
-				if (select)
-					filtered.add(entity);
-			}
-			return filtered;
-		}
 		return entities;
 	}
 }

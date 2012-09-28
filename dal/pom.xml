@@ -8,7 +8,7 @@
 	<packaging>jar</packaging>
 
 	<name>dal</name>
-	<url>https://github.com/subhagho/open-sqewd</url>
+	<url>https://github.com/subhagho/xena</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -171,9 +171,9 @@
 			<version>0.9.8</version>
 		</dependency>
 		<dependency>
-		    <groupId>com.google.guava</groupId>
-		    <artifactId>guava</artifactId>
-		    <version>13.0.1</version>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>13.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jolbox</groupId>
@@ -183,11 +183,6 @@
 		<dependency>
 			<groupId>com.sqewd.open</groupId>
 			<artifactId>dal-api</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sqewd.open</groupId>
-			<artifactId>Zql</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>

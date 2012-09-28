@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.utils.DateUtils;
-import com.sqewd.open.dal.core.persistence.query.EnumOperator;
+import com.sqewd.open.sqlparser.expression.EnumOperator;
 
 /**
  * TODO: <comment>
@@ -61,34 +61,8 @@ public class ConditionMatchHelper {
 			return compareString(src, tgt, operator);
 		else if (type == Date.class)
 			return compareDate(src, tgt, operator);
-		else if (type.isArray()) {
-			if (operator != EnumOperator.Contains)
-				return false;
-			Class<?> atype = type.getComponentType();
-			if (EnumPrimitives.isPrimitiveType(atype)) {
-				EnumPrimitives etype = EnumPrimitives.type(atype);
-				switch (etype) {
-				case EShort:
-					return containsShortArray(src, tgt, atype);
-				case EInteger:
-					return containsIntArray(src, tgt, atype);
-				case ELong:
-					return containsLongArray(src, tgt, atype);
-				case EFloat:
-					return containsFloatArray(src, tgt, atype);
-				case EDouble:
-					return containsDoubleArray(src, tgt, atype);
-				case ECharacter:
-					return containsCharArray(src, tgt, atype);
-				default:
-					break;
-				}
-			} else
-				return containsObjectArray(src, tgt);
-		} else if (src instanceof Iterable<?>) {
-			if (operator != EnumOperator.Contains)
-				return false;
-			return containsObjectList(src, tgt);
+
+		else if (src instanceof Iterable<?>) {
 
 		} else if (src instanceof Enum)
 			return compareEnum(src, tgt);
@@ -129,17 +103,17 @@ public class ConditionMatchHelper {
 			if (primitive) {
 				switch (etype) {
 				case EShort:
-					retval = compareShort(obj, tgt, EnumOperator.Equal);
+					retval = compareShort(obj, tgt, EnumOperator.EqualsTo);
 				case EInteger:
-					retval = compareInt(obj, tgt, EnumOperator.Equal);
+					retval = compareInt(obj, tgt, EnumOperator.EqualsTo);
 				case ELong:
-					retval = compareLong(obj, tgt, EnumOperator.Equal);
+					retval = compareLong(obj, tgt, EnumOperator.EqualsTo);
 				case EFloat:
-					retval = compareFloat(obj, tgt, EnumOperator.Equal);
+					retval = compareFloat(obj, tgt, EnumOperator.EqualsTo);
 				case EDouble:
-					retval = compareDouble(obj, tgt, EnumOperator.Equal);
+					retval = compareDouble(obj, tgt, EnumOperator.EqualsTo);
 				case ECharacter:
-					retval = compareChar(obj, tgt, EnumOperator.Equal);
+					retval = compareChar(obj, tgt, EnumOperator.EqualsTo);
 				default:
 					break;
 				}
@@ -338,17 +312,17 @@ public class ConditionMatchHelper {
 	public static boolean compareString(final Object src, final Object tgt,
 			final EnumOperator oper) {
 		switch (oper) {
-		case Equal:
+		case EqualsTo:
 			return (((String) src).compareTo((String) tgt) == 0);
 		case GreaterThan:
 			return (((String) src).compareTo((String) tgt) > 0);
-		case GreaterThanEqual:
+		case GreaterThanEquals:
 			return (((String) src).compareTo((String) tgt) >= 0);
-		case LessThan:
+		case MinorThan:
 			return (((String) src).compareTo((String) tgt) < 0);
-		case LessThanEqual:
+		case MinorThanEquals:
 			return (((String) src).compareTo((String) tgt) <= 0);
-		case NotEqual:
+		case NotEquals:
 			return (((String) src).compareTo((String) tgt) != 0);
 		case In:
 			if (tgt.getClass().isArray()) {
@@ -378,17 +352,17 @@ public class ConditionMatchHelper {
 	public static boolean compareShort(final Object src, final Object tgt,
 			final EnumOperator oper) {
 		switch (oper) {
-		case Equal:
+		case EqualsTo:
 			return ((Short) src == Short.parseShort((String) tgt));
 		case GreaterThan:
 			return ((Short) src > Short.parseShort((String) tgt));
-		case GreaterThanEqual:
+		case GreaterThanEquals:
 			return ((Short) src >= Short.parseShort((String) tgt));
-		case LessThan:
+		case MinorThan:
 			return ((Short) src < Short.parseShort((String) tgt));
-		case LessThanEqual:
+		case MinorThanEquals:
 			return ((Short) src <= Short.parseShort((String) tgt));
-		case NotEqual:
+		case NotEquals:
 			return ((Short) src != Short.parseShort((String) tgt));
 		case Between:
 			if (tgt.getClass().isArray()) {
@@ -427,17 +401,17 @@ public class ConditionMatchHelper {
 	public static boolean compareInt(final Object src, final Object tgt,
 			final EnumOperator oper) {
 		switch (oper) {
-		case Equal:
+		case EqualsTo:
 			return ((Integer) src == Integer.parseInt((String) tgt));
 		case GreaterThan:
 			return ((Integer) src > Integer.parseInt((String) tgt));
-		case GreaterThanEqual:
+		case GreaterThanEquals:
 			return ((Integer) src >= Integer.parseInt((String) tgt));
-		case LessThan:
+		case MinorThan:
 			return ((Integer) src < Integer.parseInt((String) tgt));
-		case LessThanEqual:
+		case MinorThanEquals:
 			return ((Integer) src <= Integer.parseInt((String) tgt));
-		case NotEqual:
+		case NotEquals:
 			return ((Integer) src != Integer.parseInt((String) tgt));
 		case Between:
 			if (tgt.getClass().isArray()) {
@@ -477,17 +451,17 @@ public class ConditionMatchHelper {
 	public static boolean compareLong(final Object src, final Object tgt,
 			final EnumOperator oper) {
 		switch (oper) {
-		case Equal:
+		case EqualsTo:
 			return ((Long) src == Long.parseLong((String) tgt));
 		case GreaterThan:
 			return ((Long) src > Long.parseLong((String) tgt));
-		case GreaterThanEqual:
+		case GreaterThanEquals:
 			return ((Long) src >= Long.parseLong((String) tgt));
-		case LessThan:
+		case MinorThan:
 			return ((Long) src < Long.parseLong((String) tgt));
-		case LessThanEqual:
+		case MinorThanEquals:
 			return ((Long) src <= Long.parseLong((String) tgt));
-		case NotEqual:
+		case NotEquals:
 			return ((Long) src != Long.parseLong((String) tgt));
 		case Between:
 			if (tgt.getClass().isArray()) {
@@ -526,17 +500,17 @@ public class ConditionMatchHelper {
 	public static boolean compareFloat(final Object src, final Object tgt,
 			final EnumOperator oper) {
 		switch (oper) {
-		case Equal:
+		case EqualsTo:
 			return ((Float) src == Float.parseFloat((String) tgt));
 		case GreaterThan:
 			return ((Float) src > Float.parseFloat((String) tgt));
-		case GreaterThanEqual:
+		case GreaterThanEquals:
 			return ((Float) src >= Float.parseFloat((String) tgt));
-		case LessThan:
+		case MinorThan:
 			return ((Float) src < Float.parseFloat((String) tgt));
-		case LessThanEqual:
+		case MinorThanEquals:
 			return ((Float) src <= Float.parseFloat((String) tgt));
-		case NotEqual:
+		case NotEquals:
 			return ((Float) src != Float.parseFloat((String) tgt));
 		case Between:
 			if (tgt.getClass().isArray()) {
@@ -575,17 +549,17 @@ public class ConditionMatchHelper {
 	public static boolean compareDouble(final Object src, final Object tgt,
 			final EnumOperator oper) {
 		switch (oper) {
-		case Equal:
+		case EqualsTo:
 			return ((Double) src == Double.parseDouble((String) tgt));
 		case GreaterThan:
 			return ((Double) src > Double.parseDouble((String) tgt));
-		case GreaterThanEqual:
+		case GreaterThanEquals:
 			return ((Double) src >= Double.parseDouble((String) tgt));
-		case LessThan:
+		case MinorThan:
 			return ((Double) src < Double.parseDouble((String) tgt));
-		case LessThanEqual:
+		case MinorThanEquals:
 			return ((Double) src <= Double.parseDouble((String) tgt));
-		case NotEqual:
+		case NotEquals:
 			return ((Double) src != Double.parseDouble((String) tgt));
 		case Between:
 			if (tgt.getClass().isArray()) {
@@ -625,17 +599,17 @@ public class ConditionMatchHelper {
 	public static boolean compareChar(final Object src, final Object tgt,
 			final EnumOperator oper) {
 		switch (oper) {
-		case Equal:
+		case EqualsTo:
 			return ((Character) src == ((String) tgt).charAt(0));
 		case GreaterThan:
 			return ((Character) src > ((String) tgt).charAt(0));
-		case GreaterThanEqual:
+		case GreaterThanEquals:
 			return ((Character) src >= ((String) tgt).charAt(0));
-		case LessThan:
+		case MinorThan:
 			return ((Character) src < ((String) tgt).charAt(0));
-		case LessThanEqual:
+		case MinorThanEquals:
 			return ((Character) src <= ((String) tgt).charAt(0));
-		case NotEqual:
+		case NotEquals:
 			return ((Character) src != ((String) tgt).charAt(0));
 		case Between:
 			if (tgt.getClass().isArray()) {

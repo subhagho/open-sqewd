@@ -29,10 +29,6 @@ import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
-import org.gibello.zql.ZConstant;
-import org.gibello.zql.ZExp;
-import org.gibello.zql.ZExpression;
-import org.gibello.zql.ZQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +43,8 @@ import com.sqewd.open.dal.core.persistence.db.EntityHelper;
 import com.sqewd.open.dal.core.persistence.db.ExternalJoinGraph;
 import com.sqewd.open.dal.core.persistence.db.JoinMap;
 import com.sqewd.open.dal.core.persistence.db.LocalResultSet;
-import com.sqewd.open.dal.core.persistence.query.matcher.SQLConditionMatcher;
-import com.sqewd.open.dal.core.persistence.query.parser.DalSqlParser;
+import com.sqewd.open.dal.core.persistence.query.parser.SQLConditionMatcher;
+import com.sqewd.open.sqlparser.statement.select.Select;
 
 /**
  * TODO <comment>
@@ -65,7 +61,7 @@ public class DistributedJoinHandler {
 	private StructEntityReflect enref = null;
 	private String query = null;
 	private ExternalJoinGraph graph = null;
-	private ZQuery combinedQuery = null;
+	private Select combinedQuery = null;
 	private HashMap<String, String> refkeys = new HashMap<String, String>();
 	private LocalResultSet results = null;
 	private int limit = -1;

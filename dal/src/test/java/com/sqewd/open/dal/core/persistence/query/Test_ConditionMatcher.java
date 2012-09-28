@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import com.sqewd.open.dal.api.utils.DateUtils;
 import com.sqewd.open.dal.core.persistence.query.DummyEntitiesData.EntityMatchRoot;
+import com.sqewd.open.dal.core.persistence.query.parser.ConditionMatcher;
 
 /**
  * @author subhagho
@@ -30,7 +31,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test
@@ -62,7 +63,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test
@@ -99,7 +100,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test
@@ -150,7 +151,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test
@@ -189,7 +190,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test
@@ -264,7 +265,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test
@@ -288,7 +289,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test
@@ -373,7 +374,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test
@@ -458,7 +459,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test
@@ -533,7 +534,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test
@@ -608,7 +609,7 @@ public class Test_ConditionMatcher {
 
 	/**
 	 * Test method for
-	 * {@link com.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
+	 * {@link com.sqewd.open.dal.core.persistence.query.parser.wookler.core.persistence.query.ConditionMatcher#match(com.wookler.core.persistence.AbstractEntity, java.lang.String, com.wookler.core.persistence.query.EnumOperator, java.lang.Object)}
 	 * .
 	 */
 	@Test

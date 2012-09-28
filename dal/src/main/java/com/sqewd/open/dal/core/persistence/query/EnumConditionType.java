@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.core.persistence.query;
+
 public enum EnumConditionType {
 	Value, Join;
 }

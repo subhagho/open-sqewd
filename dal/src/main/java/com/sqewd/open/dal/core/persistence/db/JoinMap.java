@@ -25,9 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import org.gibello.zql.ZQuery;
-
 import com.sqewd.open.dal.api.utils.KeyValuePair;
+import com.sqewd.open.sqlparser.statement.select.Select;
 
 /**
  * TODO: <comment>
@@ -40,7 +39,7 @@ public class JoinMap {
 
 	private HashMap<String, InternalJoinGraph> graphs = null;
 
-	private ZQuery query;
+	private Select query;
 
 	private boolean isKeyQuery = false;
 
@@ -114,7 +113,7 @@ public class JoinMap {
 	/**
 	 * @return the query
 	 */
-	public ZQuery getQuery() {
+	public Select getQuery() {
 		return query;
 	}
 
@@ -122,7 +121,7 @@ public class JoinMap {
 	 * @param query
 	 *            the query to set
 	 */
-	public void setQuery(final ZQuery query) {
+	public void setQuery(final Select query) {
 		this.query = query;
 	}
 

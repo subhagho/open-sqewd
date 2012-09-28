@@ -13,48 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename Partition.java
- * @created Sep 27, 2012
+ * @filename SqlColumn.java
+ * @created Sep 28, 2012
  * @author subhagho
  *
  */
-package com.sqewd.open.dal.core.persistence.query;
+package com.sqewd.open.dal.core.persistence.query.sql;
+
+import com.sqewd.open.dal.core.persistence.query.SchemaObjectAttribute;
 
 /**
- * Base class for defining data partitions.
+ * Represent a SQL Column.
  * 
  * @author subhagho
  * 
  */
-public abstract class Partition<T extends PartitionKey, S extends SchemaObject> {
-	protected T key;
+public class SqlColumn extends SchemaObjectAttribute {
+	private String alias;
 
-	protected S type;
-
-	protected Partition(final S type) {
-		this.type = type;
+	/**
+	 * @param name
+	 * @param type
+	 */
+	protected SqlColumn(final String name, final SqlDataType<?> type) {
+		super(name, type);
 	}
 
 	/**
-	 * @return the key
+	 * @return the alias
 	 */
-	public T getKey() {
-		return key;
+	public String getAlias() {
+		return alias;
 	}
 
 	/**
-	 * @param key
-	 *            the key to set
+	 * @param alias
+	 *            the alias to set
 	 */
-	public void setKey(final T key) {
-		this.key = key;
-	}
-
-	/**
-	 * @return the type
-	 */
-	public S getType() {
-		return type;
+	public void setAlias(final String alias) {
+		this.alias = alias;
 	}
 
 }

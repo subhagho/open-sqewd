@@ -51,7 +51,7 @@ import com.sqewd.open.dal.api.utils.ListParam;
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.api.utils.ValueParam;
 import com.sqewd.open.dal.core.persistence.query.SQLQuery;
-import com.sqewd.open.dal.core.persistence.query.SimpleDbQuery;
+import com.sqewd.open.dal.core.persistence.query.sql.SimpleDbQuery;
 
 /**
  * @author subhagho

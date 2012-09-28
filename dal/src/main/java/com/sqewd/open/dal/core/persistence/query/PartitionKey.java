@@ -13,48 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename Partition.java
- * @created Sep 27, 2012
+ * @filename PartitionKey.java
+ * @created Sep 28, 2012
  * @author subhagho
  *
  */
 package com.sqewd.open.dal.core.persistence.query;
 
 /**
- * Base class for defining data partitions.
+ * Class is the base type for defining partition keys.
  * 
  * @author subhagho
  * 
  */
-public abstract class Partition<T extends PartitionKey, S extends SchemaObject> {
-	protected T key;
-
-	protected S type;
-
-	protected Partition(final S type) {
-		this.type = type;
-	}
-
-	/**
-	 * @return the key
-	 */
-	public T getKey() {
-		return key;
-	}
-
-	/**
-	 * @param key
-	 *            the key to set
-	 */
-	public void setKey(final T key) {
-		this.key = key;
-	}
-
-	/**
-	 * @return the type
-	 */
-	public S getType() {
-		return type;
-	}
+public abstract class PartitionKey {
 
 }

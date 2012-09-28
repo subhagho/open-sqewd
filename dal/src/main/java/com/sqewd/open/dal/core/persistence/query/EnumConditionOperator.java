@@ -13,48 +13,74 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename Partition.java
- * @created Sep 27, 2012
+ * @filename EnumConditionOperator.java
+ * @created Sep 28, 2012
  * @author subhagho
  *
  */
 package com.sqewd.open.dal.core.persistence.query;
 
 /**
- * Base class for defining data partitions.
+ * Enumeration type for Condition Operators.
  * 
  * @author subhagho
  * 
  */
-public abstract class Partition<T extends PartitionKey, S extends SchemaObject> {
-	protected T key;
-
-	protected S type;
-
-	protected Partition(final S type) {
-		this.type = type;
-	}
-
+public enum EnumConditionOperator {
 	/**
-	 * @return the key
+	 * Equal to (=)
 	 */
-	public T getKey() {
-		return key;
-	}
-
+	Equals,
 	/**
-	 * @param key
-	 *            the key to set
+	 * Less Than (<)
 	 */
-	public void setKey(final T key) {
-		this.key = key;
-	}
-
+	LessThan,
 	/**
-	 * @return the type
+	 * Less Than Equal To (<=)
 	 */
-	public S getType() {
-		return type;
-	}
-
+	LessThanEquals,
+	/**
+	 * More Than (>)
+	 */
+	MoreThan,
+	/**
+	 * More Than Equal To (>=)
+	 */
+	MoreThanEquals,
+	/**
+	 * Not Equal To (!=)
+	 */
+	NotEqualTo,
+	/**
+	 * Contained in List (IN)
+	 */
+	In,
+	/**
+	 * Between Given values. (BETWEEN)
+	 */
+	Between,
+	/**
+	 * Is NULL (ISNULL)
+	 */
+	IsNull,
+	/**
+	 * Is Not NULL (NOTNULL)
+	 */
+	IsNotNull,
+	/**
+	 * Add (+)
+	 */
+	Add,
+	/**
+	 * Subtract (-)
+	 */
+	Subtract,
+	/**
+	 * Multiply (*)
+	 */
+	Multiply,
+	/**
+	 * Divide (/)
+	 */
+	Divide;
 }

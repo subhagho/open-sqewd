@@ -20,6 +20,10 @@
  */
 package com.sqewd.open.dal.core.persistence.query;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 /**
  * Class is used to defining a Schema object such as table, column group, file,
  * etc.
@@ -30,29 +34,12 @@ package com.sqewd.open.dal.core.persistence.query;
 public abstract class SchemaObject {
 	protected String name;
 
-	protected String alias;
+	protected List<SchemaObjectAttribute> attributes;
 
-	protected SchemaObject(final String name, String alias) {
+	protected HashMap<String, Integer> nameindx;
+
+	protected SchemaObject(final String name) {
 		this.name = name;
-		if (alias == null || alias.isEmpty()) {
-			alias = name;
-		}
-		this.alias = alias;
-	}
-
-	/**
-	 * @return the alias
-	 */
-	public String getAlias() {
-		return alias;
-	}
-
-	/**
-	 * @param alias
-	 *            the alias to set
-	 */
-	public void setAlias(final String alias) {
-		this.alias = alias;
 	}
 
 	/**
@@ -61,4 +48,35 @@ public abstract class SchemaObject {
 	public String getName() {
 		return name;
 	}
+
+	/**
+	 * Add an attribute to this Schema Object.
+	 * 
+	 * @param attr
+	 * @throws Exception
+	 */
+	public void addAttribute(final SchemaObjectAttribute attr) throws Exception {
+		if (attributes == null) {
+			attributes = new ArrayList<SchemaObjectAttribute>();
+			nameindx = new HashMap<String, Integer>();
+		} else {
+			if (nameindx.containsKey(attr.name))
+				throw new Exception("Attribute already registered with name ["
+						+ attr.name + "]");
+		}
+		attributes.add(attr);
+		int index = attributes.size() - 1;
+		nameindx.put(attr.name, index);
+	}
+
+	/**
+	 * Get an attribute based on the name/alias.
+	 * 
+	 * @param name
+	 *            - Attribute name or Alias.
+	 * @return
+	 * @throws Exception
+	 */
+	public abstract SchemaObjectAttribute get(final String name)
+			throws Exception;
 }

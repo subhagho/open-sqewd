@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.persistence;
-import com.sqewd.open.dal.api.persistence.AbstractEntity;
 
 /**
  * Interface to be implemented for setting/getting custom data elements for an
@@ -22,32 +21,24 @@ import com.sqewd.open.dal.api.persistence.AbstractEntity;
  * @author subhagho
  * 
  */
-public interface CustomFieldDataHandler {
+public interface CustomFieldHandler {
 	/**
-	 * Load a field value from the data record.
+	 * Convert the passed data object to the specified type.
 	 * 
-	 * @param entity
-	 *            - Entity Instance
-	 * @param field
-	 *            - Field to load
-	 * @param record
-	 *            - Data record
-	 * @throws Exception
-	 */
-	public void load(AbstractEntity entity, String field, Object data)
-			throws Exception;
-
-	/**
-	 * Save a field value into the Data record.
-	 * 
-	 * @param entity
-	 *            - Entity Instance
-	 * @param field
-	 *            - Field to Save
+	 * @param data
 	 * @return
 	 * @throws Exception
 	 */
-	public Object save(AbstractEntity entity, String field) throws Exception;
+	public Object get(Object data) throws Exception;
+
+	/**
+	 * Convert the Entity field value to be persisted.
+	 * 
+	 * @param data
+	 * @return
+	 * @throws Exception
+	 */
+	public Object set(Object data) throws Exception;
 
 	/**
 	 * Get the data type used to persist this record.

@@ -12,7 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.sqewd.open.dal.api.persistence;
+
 public enum EnumPrimitives {
 	EShort, EInteger, ELong, EFloat, EDouble, EByte, ECharacter;
 
@@ -25,7 +27,7 @@ public enum EnumPrimitives {
 	 *            - Class type.
 	 * @return
 	 */
-	public static boolean isPrimitiveType(Class<?> type) {
+	public static boolean isPrimitiveType(final Class<?> type) {
 		if (type.equals(Short.class) || type.equals(Integer.class)
 				|| type.equals(Long.class) || type.equals(Float.class)
 				|| type.equals(Double.class) || type.equals(Boolean.class)
@@ -40,7 +42,7 @@ public enum EnumPrimitives {
 	 * @param type
 	 * @return
 	 */
-	public static EnumPrimitives type(Class<?> type) {
+	public static EnumPrimitives type(final Class<?> type) {
 		if (type.equals(short.class) || type.equals(Short.class))
 			return EShort;
 		if (type.equals(int.class) || type.equals(Integer.class))

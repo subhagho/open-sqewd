@@ -304,4 +304,31 @@ public class SqlDoubleType extends SqlDataType<Double> {
 		return source / value;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final Double source, final Double target) {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#toString
+	 * (java.lang.Object)
+	 */
+	@Override
+	public String toString(final Object value) {
+		if (value instanceof Double)
+			return value.toString();
+		else
+			return null;
+	}
+
 }

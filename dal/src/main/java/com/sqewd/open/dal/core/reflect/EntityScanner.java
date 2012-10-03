@@ -36,9 +36,10 @@ import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.core.Env;
 
 /**
- * @author subhagho
  * 
- *         TODO: <comment>
+ * Scan the specified package/jar for all the defined classes.
+ * 
+ * @author subhagho
  * 
  */
 public class EntityScanner {
@@ -49,11 +50,11 @@ public class EntityScanner {
 
 	private List<Class<?>> classes = new ArrayList<Class<?>>();
 
-	public EntityScanner() throws Exception{
+	public EntityScanner() throws Exception {
 		loader = Env.get().getEntityLoader();
 	}
 
-	public void scan(String prefix) throws Exception {
+	public void scan(final String prefix) throws Exception {
 		classes.clear();
 		Set<URL> urls = forPackage(prefix, loader);
 		for (URL url : urls) {
@@ -63,7 +64,8 @@ public class EntityScanner {
 		}
 	}
 
-	private void scan(Vfs.File file, String prefix) throws Exception {
+	private void scan(final Vfs.File file, final String prefix)
+			throws Exception {
 		String input = file.getRelativePath().replace('/', '.');
 		if (input.endsWith(".class") && !input.endsWith("package-info.class")) {
 			if (input.startsWith(prefix)) {
@@ -71,8 +73,9 @@ public class EntityScanner {
 				String classname = getClassName(input);
 				if (classname != null) {
 					Class<?> cls = loader.loadClass(classname);
-					if (cls != null)
+					if (cls != null) {
 						classes.add(cls);
+					}
 				}
 			}
 		}
@@ -82,7 +85,8 @@ public class EntityScanner {
 		return classes;
 	}
 
-	public static Set<URL> forPackage(String name, ClassLoader classLoader) {
+	public static Set<URL> forPackage(final String name,
+			final ClassLoader classLoader) {
 		final Set<URL> result = Sets.newHashSet();
 
 		final String resourceName = resourceName(name);
@@ -107,7 +111,7 @@ public class EntityScanner {
 		return result;
 	}
 
-	private static String resourceName(String name) {
+	private static String resourceName(final String name) {
 		if (name != null) {
 			String resourceName = name.replace(".", "/");
 			resourceName = resourceName.replace("\\", "/");
@@ -115,12 +119,11 @@ public class EntityScanner {
 				resourceName = resourceName.substring(1);
 			}
 			return resourceName;
-		} else {
+		} else
 			return name;
-		}
 	}
 
-	private static String getClassName(String input) {
+	private static String getClassName(final String input) {
 		if (input.endsWith(".class")) {
 			int index = input.indexOf(".class");
 			return input.substring(0, index);

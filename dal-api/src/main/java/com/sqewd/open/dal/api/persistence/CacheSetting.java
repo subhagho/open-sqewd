@@ -13,30 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename EnumJoinType.java
- * @created Aug 26, 2012
+ * @filename CacheSetting.java
+ * @created Oct 1, 2012
  * @author subhagho
  *
  */
 package com.sqewd.open.dal.api.persistence;
 
 /**
- * Enum defines the Join types for Entities declared as Joined.
+ * Represents the cache settings for an entity.
  * 
  * @author subhagho
  * 
  */
-public enum EnumJoinType {
+public class CacheSetting {
+	private boolean cached;
+
+	private EnumCachePolicy policy;
+
 	/**
-	 * All reference entities are provisioned by the same data source driver.
+	 * @return the cached
 	 */
-	Native,
+	public boolean isCached() {
+		return cached;
+	}
+
 	/**
-	 * Entity(s) referenced across data source drivers.
+	 * @param cached
+	 *            the cached to set
 	 */
-	Virtual,
+	public void setCached(final boolean cached) {
+		this.cached = cached;
+	}
+
 	/**
-	 * Join type not parsed yet.
+	 * @return the policy
 	 */
-	Unknown
+	public EnumCachePolicy getPolicy() {
+		return policy;
+	}
+
+	/**
+	 * @param policy
+	 *            the policy to set
+	 */
+	public void setPolicy(final EnumCachePolicy policy) {
+		this.policy = policy;
+	}
+
 }

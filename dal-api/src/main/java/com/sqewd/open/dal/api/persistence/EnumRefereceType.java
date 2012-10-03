@@ -13,6 +13,21 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.api.persistence;
+
+/**
+ * 
+ * Enumerates the cardinality of a Reference.
+ * 
+ * @author subhagho
+ * 
+ */
 public enum EnumRefereceType {
-	One2One, One2Many
+	/**
+	 * Represents a 1:1 relationship with the target entity.
+	 */
+	One2One,
+	/**
+	 * Represents a 1:* relationship with the target entity.
+	 */
+	One2Many;
 }

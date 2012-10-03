@@ -294,4 +294,30 @@ public class SqlBigIntType extends SqlDataType<Long> {
 		return source / value;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final Long source, final Long target) {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#toString
+	 * (java.lang.Object)
+	 */
+	@Override
+	public String toString(final Object value) {
+		if (value instanceof Long)
+			return value.toString();
+		return null;
+	}
+
 }

@@ -324,4 +324,32 @@ public class SqlDateType extends SqlDataType<Date> {
 		return null;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final Date source, final Date target) {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#toString
+	 * (java.lang.Object)
+	 */
+	@Override
+	public String toString(final Object value) {
+		if (value instanceof Date) {
+			SimpleDateFormat sdf = new SimpleDateFormat(_DEFAULT_DATE_FORMAT_);
+			return sdf.format((Date) value);
+		} else
+			return null;
+	}
+
 }

@@ -18,7 +18,9 @@ import org.apache.commons.beanutils.PropertyUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sqewd.open.dal.api.persistence.EnumEntityState;
+import com.sqewd.open.dal.api.ReferenceCache;
+import com.sqewd.open.dal.api.reflect.AttributeDef;
+import com.sqewd.open.dal.api.reflect.EntityDef;
 
 /**
  * Abstract class, to be inherited by all entities that are persisted.
@@ -42,8 +44,9 @@ public abstract class AbstractEntity {
 	protected void updated() {
 		if (state == EnumEntityState.New)
 			return;
-		if (state == EnumEntityState.Loaded)
+		if (state == EnumEntityState.Loaded) {
 			state = EnumEntityState.Updated;
+		}
 		if (state == EnumEntityState.Deleted)
 			return;
 	}
@@ -59,7 +62,7 @@ public abstract class AbstractEntity {
 	 * @param state
 	 *            the state to set
 	 */
-	public void setState(EnumEntityState state) {
+	public void setState(final EnumEntityState state) {
 		this.state = state;
 	}
 
@@ -72,15 +75,19 @@ public abstract class AbstractEntity {
 	@JsonIgnore
 	public String getEntityKey() throws Exception {
 		StringBuffer buff = new StringBuffer();
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				getClass());
 
-		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr.IsKeyColumn) {
-				if (buff.length() > 0)
+		EntityDef ed = ReferenceCache.get().getEntityDef(getClass());
+		if (ed == null)
+			throw new Exception(
+					"No entity definition found for AbstractEntity ["
+							+ getClass().getCanonicalName() + "]");
+		for (AttributeDef attr : ed.getAttributes()) {
+			if (attr.isKey()) {
+				if (buff.length() > 0) {
 					buff.append(_KEY_SEPARATOR_);
-				Object value = PropertyUtils.getSimpleProperty(this,
-						attr.Field.getName());
+				}
+				Object value = PropertyUtils.getSimpleProperty(this, attr
+						.getField().getName());
 				if (value instanceof AbstractEntity) {
 					buff.append(((AbstractEntity) value).getEntityKey());
 				} else {
@@ -88,6 +95,7 @@ public abstract class AbstractEntity {
 				}
 			}
 		}
+
 		if (buff.length() == 0)
 			return null;
 		return buff.toString();
@@ -102,16 +110,17 @@ public abstract class AbstractEntity {
 	public String toString() {
 		StringBuffer buff = new StringBuffer("\n");
 		try {
-			StructEntityReflect enref = ReflectionUtils.get()
-					.getEntityMetadata(this.getClass());
-			buff.append("[ENTITY:").append(enref.Entity).append("(")
-					.append(enref.Class).append(")");
-			for (StructAttributeReflect attr : enref.Attributes) {
+			EntityDef ed = ReferenceCache.get().getEntityDef(getClass());
+			if (ed == null)
+				throw new Exception(
+						"No entity definition found for AbstractEntity ["
+								+ getClass().getCanonicalName() + "]");
+			for (AttributeDef attr : ed.getAttributes()) {
 				buff.append("\n\t[")
-						.append(attr.Column)
+						.append(attr.getName())
 						.append(":")
-						.append(PropertyUtils.getSimpleProperty(this,
-								attr.Field.getName())).append("]");
+						.append(PropertyUtils.getSimpleProperty(this, attr
+								.getField().getName())).append("]");
 			}
 			buff.append("\n]");
 		} catch (Exception e) {

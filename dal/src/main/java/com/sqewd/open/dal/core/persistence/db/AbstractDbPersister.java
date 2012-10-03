@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Stack;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,16 +43,16 @@ import com.sqewd.open.dal.api.persistence.EnumPersistenceOperation;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.OperationResponse;
 import com.sqewd.open.dal.api.persistence.PersistenceResponse;
-import com.sqewd.open.dal.api.persistence.ReflectionUtils;
-import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
-import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.AbstractParam;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.api.utils.ListParam;
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.api.utils.ValueParam;
 import com.sqewd.open.dal.core.persistence.query.SQLQuery;
+import com.sqewd.open.dal.core.persistence.query.sql.SQLUtils;
 import com.sqewd.open.dal.core.persistence.query.sql.SimpleDbQuery;
+import com.sqewd.open.dal.core.persistence.query.sql.SqlColumn;
+import com.sqewd.open.dal.core.persistence.query.sql.SqlDataType;
 
 /**
  * @author subhagho
@@ -813,6 +814,44 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		}
 	}
 
+	/**
+	 * Retrieve the SQL Schema Object definition from the database.
+	 * 
+	 * @param schema
+	 *            - Schema name (can be null).
+	 * @param table
+	 *            - Table name to retrieve the metadata for.
+	 * @return
+	 * @throws Exception
+	 */
+	public List<SqlColumn> getTableDefinition(final String schema,
+			final String table) throws Exception {
+		Connection conn = getConnection(true);
+		try {
+			List<SqlColumn> columns = new ArrayList<SqlColumn>();
+			DatabaseMetaData metadata = conn.getMetaData();
+			ResultSet rs = metadata.getColumns(null, schema, table, null);
+			while (rs.next()) {
+				String name = rs.getString("COLUMN_NAME");
+				String type = rs.getString("TYPE_NAME");
+				if (name == null || name.isEmpty())
+					throw new Exception(
+							"Invalid Database column definition, NULL or empty column name.");
+				if (type == null || type.isEmpty())
+					throw new Exception(
+							"Invalid Database column definition, NULL or empty column type.");
+				SqlDataType<?> dt = SQLUtils.getSqlDatatype(type);
+				SqlColumn column = new SqlColumn(name, dt);
+				columns.add(column);
+			}
+			return columns;
+		} finally {
+			if (conn != null) {
+				releaseConnection(conn);
+			}
+		}
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -846,7 +885,7 @@ public abstract class AbstractDbPersister extends AbstractPersister {
 		String selectsql = parser.parse("", limit);
 		log.debug("SELECT SQL [" + selectsql + "]");
 		Statement stmnt = conn.createStatement();
-		LocalResultSet entities = new LocalResultSet();
+		DbResultSet entities = new DbResultSet();
 
 		try {
 			log.debug("SELECT SQL [" + selectsql + "]");

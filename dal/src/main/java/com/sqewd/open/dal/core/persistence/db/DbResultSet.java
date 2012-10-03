@@ -57,18 +57,18 @@ import java.util.Map;
  * @author subhagho
  * 
  */
-public class LocalResultSet implements ResultSet {
+public class DbResultSet implements ResultSet {
 	private boolean isOpen = false;
 
-	private final HashMap<String, StructDbColumn> columns = new HashMap<String, StructDbColumn>();
+	private final HashMap<String, DbColumnIndex> columns = new HashMap<String, DbColumnIndex>();
 	private int current = -1;
-	private ArrayList<LocalResult> results = null;
+	private ArrayList<DbRecord> results = null;
 	private Object lastObject = null;
 	private String cursorname = null;
 	private int fetchDirection = 1;
 	private HashMap<String, String> types = new HashMap<String, String>();
 
-	public LocalResultSet() {
+	public DbResultSet() {
 
 	}
 
@@ -84,15 +84,14 @@ public class LocalResultSet implements ResultSet {
 		ResultSetMetaData md = rs.getMetaData();
 		if (md != null) {
 			for (int ii = 1; ii <= md.getColumnCount(); ii++) {
-				StructDbColumn column = new StructDbColumn();
-				column.Name = md.getColumnLabel(ii);
-				column.Index = ii;
-				column.Type = SQLDataType.type(md.getColumnType(ii));
-				columns.put(column.Name, column);
+				DbColumnIndex column = new DbColumnIndex();
+				column.setName(md.getColumnLabel(ii));
+				column.setIndex(ii);
+				columns.put(column.getName(), column);
 			}
-			results = new ArrayList<LocalResult>();
+			results = new ArrayList<DbRecord>();
 			while (rs.next()) {
-				LocalResult lrs = new LocalResult(type, columns.size());
+				DbRecord lrs = new DbRecord(type, columns.size());
 				for (int ii = 1; ii <= md.getColumnCount(); ii++) {
 					String column = md.getColumnLabel(ii);
 					Object value = rs.getObject(column);
@@ -109,23 +108,21 @@ public class LocalResultSet implements ResultSet {
 			throw new SQLException("Invalid ResultSet, Meta-data is null.");
 	}
 
-	public void append(final String type, final LocalResultSet rs)
+	public void append(final String type, final DbResultSet rs)
 			throws Exception {
 		if (!types.containsKey(type)) {
 			int index = columns.size() + 1;
 			for (String column : rs.columns.keySet()) {
-				StructDbColumn ocol = rs.columns.get(column);
-				StructDbColumn ncol = new StructDbColumn();
-				ncol.Name = ocol.Name;
-				ncol.Type = ocol.Type;
-				ncol.Index = index;
+				DbColumnIndex ocol = rs.columns.get(column);
+				DbColumnIndex ncol = new DbColumnIndex(ocol);
+				ncol.setIndex(index);
 				columns.put(column, ncol);
 				index++;
 			}
 			types.put(type, type);
 		}
-		LocalResult lrtgt = rs.results.get(rs.current);
-		LocalResult lrsrc = results.get(current);
+		DbRecord lrtgt = rs.results.get(rs.current);
+		DbRecord lrsrc = results.get(current);
 		if (!lrsrc.hasColumns(type)) {
 			lrsrc.initarray(type, columns.size());
 		} else if (lrsrc.hasData(type)) {
@@ -134,31 +131,31 @@ public class LocalResultSet implements ResultSet {
 		lrsrc.dataSet(type);
 
 		for (String column : rs.columns.keySet()) {
-			int index = rs.columns.get(column).Index;
+			int index = rs.columns.get(column).getIndex();
 			Object value = lrtgt.get(index);
 			if (value != null) {
-				index = columns.get(column).Index;
+				index = columns.get(column).getIndex();
 				lrsrc.add(index, value);
 			}
 		}
 	}
 
-	public StructDbColumn getColumn(final String name) {
+	public DbColumnIndex getColumn(final String name) {
 		if (columns.containsKey(name))
 			return columns.get(name);
 		return null;
 	}
 
-	public LocalResult copyCurrent() throws SQLException {
+	public DbRecord copyCurrent() throws SQLException {
 		isResultSetValid();
 		if (current < 0 || current > results.size())
 			throw new SQLException("Invalid Current index. Index [" + current
 					+ "]");
-		LocalResult rs = results.get(current);
+		DbRecord rs = results.get(current);
 		if (rs == null)
 			throw new SQLException(
 					"Invalid data at current location. Result object is null.");
-		LocalResult cp = rs.copy();
+		DbRecord cp = rs.copy();
 		results.add(current + 1, cp);
 		current++;
 
@@ -289,7 +286,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public int findColumn(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0))
-			return columns.get(arg0).Index;
+			return columns.get(arg0).getIndex();
 		return -1;
 	}
 
@@ -331,7 +328,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public InputStream getAsciiStream(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
@@ -353,7 +350,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public InputStream getAsciiStream(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getAsciiStream(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -367,7 +364,7 @@ public class LocalResultSet implements ResultSet {
 	public BigDecimal getBigDecimal(final int arg0) throws SQLException {
 		isResultSetValid();
 
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof String) {
@@ -395,7 +392,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public BigDecimal getBigDecimal(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getBigDecimal(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -428,7 +425,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public InputStream getBinaryStream(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			byte[] bytes = null;
@@ -458,7 +455,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public InputStream getBinaryStream(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getBinaryStream(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -489,7 +486,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public boolean getBoolean(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof Boolean)
@@ -510,7 +507,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public boolean getBoolean(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getBoolean(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -523,7 +520,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public byte getByte(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof Byte)
@@ -542,7 +539,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public byte getByte(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getByte(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -555,7 +552,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public byte[] getBytes(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof byte[])
@@ -574,7 +571,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public byte[] getBytes(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getBytes(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -587,7 +584,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public Reader getCharacterStream(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			String value = null;
@@ -608,7 +605,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public Reader getCharacterStream(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getCharacterStream(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -658,7 +655,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public Date getDate(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof java.util.Date) {
@@ -682,7 +679,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public Date getDate(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getDate(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -715,7 +712,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public double getDouble(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof Double)
@@ -744,7 +741,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public double getDouble(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getDouble(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -775,7 +772,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public float getFloat(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof Long)
@@ -802,7 +799,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public float getFloat(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getFloat(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -825,7 +822,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public int getInt(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof Integer)
@@ -848,7 +845,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public int getInt(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getInt(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -861,7 +858,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public long getLong(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof Long)
@@ -886,7 +883,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public long getLong(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getLong(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -963,7 +960,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public Object getObject(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null)
 			return lastObject;
@@ -977,7 +974,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public Object getObject(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getObject(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -1074,7 +1071,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public short getShort(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof Short)
@@ -1095,7 +1092,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public short getShort(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getShort(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -1118,7 +1115,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public String getString(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof String)
@@ -1136,7 +1133,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public String getString(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getString(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -1149,7 +1146,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public Time getTime(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof java.util.Date) {
@@ -1173,7 +1170,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public Time getTime(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getTime(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");
@@ -1206,7 +1203,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public Timestamp getTimestamp(final int arg0) throws SQLException {
 		isResultSetValid();
-		LocalResult lr = results.get(current);
+		DbRecord lr = results.get(current);
 		lastObject = lr.get(arg0);
 		if (lastObject != null) {
 			if (lastObject instanceof java.util.Date) {
@@ -1230,7 +1227,7 @@ public class LocalResultSet implements ResultSet {
 	 */
 	public Timestamp getTimestamp(final String arg0) throws SQLException {
 		if (columns.containsKey(arg0)) {
-			int index = columns.get(arg0).Index;
+			int index = columns.get(arg0).getIndex();
 			return getTimestamp(index);
 		} else
 			throw new SQLException("Cannot find column [" + arg0 + "]");

@@ -19,6 +19,7 @@ import java.util.List;
 
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.InitializedHandle;
+import com.sqewd.open.dal.api.reflect.SchemaObject;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.api.utils.ListParam;
 
@@ -115,4 +116,13 @@ public abstract class AbstractPersister implements InitializedHandle {
 	public abstract PersistenceResponse save(List<AbstractEntity> records,
 			boolean overwrite) throws Exception;
 
+	/**
+	 * Load the persistence definition for the specified Schema Object.
+	 * 
+	 * @param name
+	 *            - Object name.
+	 * @return
+	 * @throws Exception
+	 */
+	public abstract SchemaObject getSchemaObject(String name) throws Exception;
 }

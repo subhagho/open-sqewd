@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename StructJoinedEntityView.java
- * @created Aug 26, 2012
+ * @filename ConditionElement.java
+ * @created Sep 30, 2012
  * @author subhagho
  *
  */
-package com.sqewd.open.dal.api.persistence;
+package com.sqewd.open.dal.core.persistence.query.conditions;
 
 /**
+ * Base type for representing condition elements. node.
+ * 
  * @author subhagho
  * 
- *         TODO: <comment>
- * 
  */
-public class StructJoinedEntityView {
-	public String Join;
-	public EnumJoinType Type = EnumJoinType.Unknown;
+public abstract class ConditionElement {
+
 }

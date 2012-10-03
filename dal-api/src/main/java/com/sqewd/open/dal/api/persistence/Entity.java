@@ -51,13 +51,6 @@ public @interface Entity {
 	boolean cached() default false;
 
 	/**
-	 * Time-to-Live for cached entities.
-	 * 
-	 * @return
-	 */
-	long TTL() default -1;
-
-	/**
 	 * Is this Entity type a view?
 	 * 
 	 * Note: Views require the custom select query to be specified and no CRUD

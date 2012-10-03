@@ -308,4 +308,31 @@ public class SqlDecimalType extends SqlDataType<BigDecimal> {
 		return source.divide(value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final BigDecimal source, final BigDecimal target) {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#toString
+	 * (java.lang.Object)
+	 */
+	@Override
+	public String toString(final Object value) {
+		if (value instanceof BigDecimal)
+			return value.toString();
+		else
+			return null;
+	}
+
 }

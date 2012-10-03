@@ -19,30 +19,28 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.google.common.collect.HashMultimap;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.InitializedHandle;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
-import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumEntityState;
-import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.OperationResponse;
-import com.sqewd.open.dal.api.persistence.ReflectionUtils;
-import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
-import com.sqewd.open.dal.api.persistence.StructEntityReflect;
 import com.sqewd.open.dal.api.utils.InstanceParam;
 import com.sqewd.open.dal.api.utils.ListParam;
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.api.utils.XMLUtils;
 import com.sqewd.open.dal.core.Env;
+import com.sqewd.open.dal.core.persistence.model.EntityModelLoader;
+import com.sqewd.open.dal.core.persistence.query.EnumJoinType;
 import com.sqewd.open.dal.core.reflect.EntityClassLoader;
-import com.sqewd.open.dal.core.reflect.EntityScanner;
 
 /**
  * The DataManager class manages persistence and data query.
@@ -64,7 +62,7 @@ public class DataManager implements InitializedHandle {
 	private EnumInstanceState state = EnumInstanceState.Unknown;
 
 	private final HashMap<String, AbstractPersister> persistmap = new HashMap<String, AbstractPersister>();
-	private final HashMap<String, List<String>> scanjars = new HashMap<String, List<String>>();
+	private final HashMultimap<String, String> scanjars = HashMultimap.create();
 
 	private void init(final XMLConfiguration config) throws Exception {
 		try {
@@ -95,19 +93,11 @@ public class DataManager implements InitializedHandle {
 					if (jar != null) {
 						String pack = jelm.getAttribute("package");
 						if (pack != null && !pack.isEmpty()) {
-							List<String> packs = null;
-							if (scanjars.containsKey(jar)) {
-								packs = scanjars.get(jar);
-							} else {
-								packs = new ArrayList<String>();
-								scanjars.put(jar, packs);
-							}
-
-							packs.add(pack);
+							scanjars.put(jar, pack);
 						}
 					}
 				}
-				scanEntities();
+				EntityModelLoader.create(scanjars);
 			}
 
 			NodeList pernl = XMLUtils.search(_CONFIG_PERSIST_XPATH_, dmroot);
@@ -120,32 +110,6 @@ public class DataManager implements InitializedHandle {
 			log.error(e.getLocalizedMessage());
 			state = EnumInstanceState.Exception;
 			LogUtils.stacktrace(log, e);
-		}
-	}
-
-	private void scanEntities() throws Exception {
-		if (scanjars.size() > 0) {
-			EntityScanner scanner = new EntityScanner();
-			for (String key : scanjars.keySet()) {
-				List<String> packs = scanjars.get(key);
-				if (packs.size() > 0) {
-					for (String pack : packs) {
-						scanner.scan(pack);
-						scanEntities(scanner.getClasses());
-					}
-				}
-			}
-		}
-	}
-
-	private void scanEntities(final List<Class<?>> classes) throws Exception {
-		for (Class<?> type : classes) {
-			if (type.isAnnotationPresent(Entity.class)) {
-				log.debug("Found entity : [" + type.getCanonicalName() + "]["
-						+ type.getClassLoader().getClass().getCanonicalName()
-						+ "]");
-				ReflectionUtils.get().load(type);
-			}
 		}
 	}
 
@@ -342,16 +306,6 @@ public class DataManager implements InitializedHandle {
 					+ AbstractPersistedEntity.class.getCanonicalName() + "]");
 		AbstractPersister persister = getPersister(entity.getClass());
 		return persister.save(entity, false);
-	}
-
-	public List<String> getEntityPackages() {
-		List<String> packages = new ArrayList<String>();
-
-		for (String key : scanjars.keySet()) {
-			List<String> packs = scanjars.get(key);
-			packages.addAll(packs);
-		}
-		return packages;
 	}
 
 	/*

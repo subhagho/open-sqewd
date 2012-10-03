@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.utils.DateUtils;
-import com.sqewd.open.sqlparser.expression.EnumOperator;
+import com.sqewd.open.dal.core.persistence.query.conditions.EnumConditionOperator;
 
 /**
  * TODO: <comment>
@@ -37,7 +37,8 @@ import com.sqewd.open.sqlparser.expression.EnumOperator;
  */
 public class ConditionMatchHelper {
 	public static boolean compare(final Object src, final Object tgt,
-			final EnumOperator operator, final Class<?> type) throws Exception {
+			final EnumConditionOperator operator, final Class<?> type)
+			throws Exception {
 		if (EnumPrimitives.isPrimitiveType(type)) {
 			EnumPrimitives etype = EnumPrimitives.type(type);
 			switch (etype) {
@@ -103,17 +104,20 @@ public class ConditionMatchHelper {
 			if (primitive) {
 				switch (etype) {
 				case EShort:
-					retval = compareShort(obj, tgt, EnumOperator.EqualsTo);
+					retval = compareShort(obj, tgt,
+							EnumConditionOperator.Equals);
 				case EInteger:
-					retval = compareInt(obj, tgt, EnumOperator.EqualsTo);
+					retval = compareInt(obj, tgt, EnumConditionOperator.Equals);
 				case ELong:
-					retval = compareLong(obj, tgt, EnumOperator.EqualsTo);
+					retval = compareLong(obj, tgt, EnumConditionOperator.Equals);
 				case EFloat:
-					retval = compareFloat(obj, tgt, EnumOperator.EqualsTo);
+					retval = compareFloat(obj, tgt,
+							EnumConditionOperator.Equals);
 				case EDouble:
-					retval = compareDouble(obj, tgt, EnumOperator.EqualsTo);
+					retval = compareDouble(obj, tgt,
+							EnumConditionOperator.Equals);
 				case ECharacter:
-					retval = compareChar(obj, tgt, EnumOperator.EqualsTo);
+					retval = compareChar(obj, tgt, EnumConditionOperator.Equals);
 				default:
 					break;
 				}
@@ -253,11 +257,12 @@ public class ConditionMatchHelper {
 	}
 
 	public static boolean compareDate(final Object src, final Object tgt,
-			final EnumOperator oper) throws Exception {
+			final EnumConditionOperator oper) throws Exception {
 		Date ds = (Date) src;
 		long dsvalue = ds.getTime();
 		Object dtgt = null;
-		if (oper != EnumOperator.Between && oper != EnumOperator.In) {
+		if (oper != EnumConditionOperator.Between
+				&& oper != EnumConditionOperator.In) {
 			long dtvalue = -1;
 			try {
 				dtvalue = Long.parseLong((String) tgt);
@@ -310,19 +315,19 @@ public class ConditionMatchHelper {
 
 	@SuppressWarnings("unchecked")
 	public static boolean compareString(final Object src, final Object tgt,
-			final EnumOperator oper) {
+			final EnumConditionOperator oper) {
 		switch (oper) {
-		case EqualsTo:
+		case Equals:
 			return (((String) src).compareTo((String) tgt) == 0);
-		case GreaterThan:
+		case MoreThan:
 			return (((String) src).compareTo((String) tgt) > 0);
-		case GreaterThanEquals:
+		case MoreThanEquals:
 			return (((String) src).compareTo((String) tgt) >= 0);
-		case MinorThan:
+		case LessThan:
 			return (((String) src).compareTo((String) tgt) < 0);
-		case MinorThanEquals:
+		case LessThanEquals:
 			return (((String) src).compareTo((String) tgt) <= 0);
-		case NotEquals:
+		case NotEqualTo:
 			return (((String) src).compareTo((String) tgt) != 0);
 		case In:
 			if (tgt.getClass().isArray()) {

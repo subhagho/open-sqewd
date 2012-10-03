@@ -13,21 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename StructDbColumn.java
- * @created Sep 13, 2012
+ * @filename SchemaObjectAttribute.java
+ * @created Sep 28, 2012
  * @author subhagho
  *
  */
-package com.sqewd.open.dal.core.persistence.db;
+package com.sqewd.open.dal.api.reflect;
 
 /**
- * TODO: <comment>
+ * Base type for defining attributes for Schema Objects.
  * 
  * @author subhagho
  * 
  */
-public class StructDbColumn {
-	public String Name;
-	public int Index;
-	public Class<?> Type;
+public abstract class SchemaObjectAttribute {
+	protected SchemaObject parent;
+
+	protected String name;
+
+	protected SchemaObjectDatatype<?> type;
+
+	protected SchemaObjectAttribute(final String name,
+			final SchemaObjectDatatype<?> type, final SchemaObject parent) {
+		this.name = name;
+		this.type = type;
+		this.parent = parent;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public SchemaObjectDatatype<?> getType() {
+		return type;
+	}
+
 }

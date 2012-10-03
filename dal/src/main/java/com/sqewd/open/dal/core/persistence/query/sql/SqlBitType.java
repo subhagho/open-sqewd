@@ -290,4 +290,31 @@ public class SqlBitType extends SqlDataType<Boolean> {
 		return false;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final Boolean source, final Boolean target) {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#toString
+	 * (java.lang.Object)
+	 */
+	@Override
+	public String toString(final Object value) {
+		if (value instanceof Boolean)
+			return ((Boolean) value ? "1" : "0");
+		else
+			return null;
+	}
+
 }

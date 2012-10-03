@@ -22,6 +22,7 @@ package com.sqewd.open.dal.core.persistence.query.sql;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.List;
 
 /**
  * Represents a SQL REAL type.
@@ -101,6 +102,228 @@ public class SqlRealType extends SqlDataType<Float> {
 	public Float getValue(final ResultSet rs, final String column)
 			throws Exception {
 		return rs.getFloat(column);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean equals(final Float source, final Float target) {
+		int ret = compare(source, target);
+		if (ret == 0)
+			return true;
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#lessThan
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean lessThan(final Float source, final Float target) {
+		int ret = compare(source, target);
+		if (ret < 0)
+			return true;
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#lessThanEqual
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean lessThanEqual(final Float source, final Float target) {
+		int ret = compare(source, target);
+		if (ret <= 0)
+			return true;
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#moreThan
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean moreThan(final Float source, final Float target) {
+		int ret = compare(source, target);
+		if (ret > 0)
+			return true;
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#moreThanEqual
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean moreThanEqual(final Float source, final Float target) {
+		int ret = compare(source, target);
+		if (ret >= 0)
+			return true;
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#notEqual
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean notEqual(final Float source, final Float target) {
+		int ret = compare(source, target);
+		if (ret != 0)
+			return true;
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
+	 * .lang.Object, java.util.List)
+	 */
+	@Override
+	public boolean in(final Float source, final List<Float> target) {
+		for (float ff : target) {
+			int ret = compare(source, ff);
+			if (ret == 0)
+				return true;
+		}
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
+	 * (java.lang.Object, java.util.List)
+	 */
+	@Override
+	public boolean between(final Float source, final List<Float> target) {
+		int rl = compare(source, target.get(0));
+		int rr = compare(source, target.get(1));
+		if (rl > 0 && rr < 0)
+			return true;
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNull(final Float source) {
+		return (source == null);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNotNull(final Float source) {
+		return (source != null);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Float add(final Float source, final Float value) {
+		return source + value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#subtract
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Float subtract(final Float source, final Float value) {
+		return source - value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Float multiply(final Float source, final Float value) {
+		return source * value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Float divide(final Float source, final Float value) {
+		return source / value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final Float source, final Float target) {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#toString
+	 * (java.lang.Object)
+	 */
+	@Override
+	public String toString(final Object value) {
+		if (value instanceof Float)
+			return value.toString();
+		else
+			return null;
 	}
 
 }

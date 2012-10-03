@@ -42,7 +42,7 @@ import com.sqewd.open.dal.core.persistence.db.AbstractJoinGraph;
 import com.sqewd.open.dal.core.persistence.db.EntityHelper;
 import com.sqewd.open.dal.core.persistence.db.ExternalJoinGraph;
 import com.sqewd.open.dal.core.persistence.db.JoinMap;
-import com.sqewd.open.dal.core.persistence.db.LocalResultSet;
+import com.sqewd.open.dal.core.persistence.db.DbResultSet;
 import com.sqewd.open.dal.core.persistence.query.parser.SQLConditionMatcher;
 import com.sqewd.open.sqlparser.statement.select.Select;
 
@@ -63,7 +63,7 @@ public class DistributedJoinHandler {
 	private ExternalJoinGraph graph = null;
 	private Select combinedQuery = null;
 	private HashMap<String, String> refkeys = new HashMap<String, String>();
-	private LocalResultSet results = null;
+	private DbResultSet results = null;
 	private int limit = -1;
 
 	public DistributedJoinHandler(final Class<?> type, final String query,
@@ -137,10 +137,10 @@ public class DistributedJoinHandler {
 				ResultSet rs = DataManager.get()
 						.getPersisterByName(qmap.getPersisterKey())
 						.select(zq.getWhere().toString(), qmap.getTypes(), -1);
-				if (!(rs instanceof LocalResultSet))
+				if (!(rs instanceof DbResultSet))
 					throw new Exception("Invalid ResultSet returned. TYPE ["
 							+ rs.getClass().getCanonicalName() + "]");
-				addResult((LocalResultSet) rs, qmap);
+				addResult((DbResultSet) rs, qmap);
 
 				qmap.setProcessed(true);
 			}
@@ -157,10 +157,10 @@ public class DistributedJoinHandler {
 
 			ResultSet rs = DataManager.get().getPersisterByName(persister)
 					.select(zq.getWhere().toString(), qmap.getTypes(), -1);
-			if (!(rs instanceof LocalResultSet))
+			if (!(rs instanceof DbResultSet))
 				throw new Exception("Invalid ResultSet returned. TYPE ["
 						+ rs.getClass().getCanonicalName() + "]");
-			addResult((LocalResultSet) rs, qmap);
+			addResult((DbResultSet) rs, qmap);
 		}
 
 		return load();
@@ -216,7 +216,7 @@ public class DistributedJoinHandler {
 
 	}
 
-	private void addResult(final LocalResultSet rs, final JoinMap jm)
+	private void addResult(final DbResultSet rs, final JoinMap jm)
 			throws Exception {
 		if (refkeys.isEmpty()) {
 			results = rs;

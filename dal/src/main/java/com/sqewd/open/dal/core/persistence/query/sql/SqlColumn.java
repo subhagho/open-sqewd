@@ -20,7 +20,7 @@
  */
 package com.sqewd.open.dal.core.persistence.query.sql;
 
-import com.sqewd.open.dal.core.persistence.query.SchemaObjectAttribute;
+import com.sqewd.open.dal.api.reflect.SchemaObjectAttribute;
 
 /**
  * Represent a SQL Column.
@@ -35,8 +35,9 @@ public class SqlColumn extends SchemaObjectAttribute {
 	 * @param name
 	 * @param type
 	 */
-	protected SqlColumn(final String name, final SqlDataType<?> type) {
-		super(name, type);
+	public SqlColumn(final String name, final SqlDataType<?> type,
+			final SqlTable table) {
+		super(name, type, table);
 	}
 
 	/**
@@ -54,4 +55,15 @@ public class SqlColumn extends SchemaObjectAttribute {
 		this.alias = alias;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuffer bf = new StringBuffer();
+		bf.append(((SqlTable) parent).getAlias()).append('.').append(name);
+		return bf.toString();
+	}
 }

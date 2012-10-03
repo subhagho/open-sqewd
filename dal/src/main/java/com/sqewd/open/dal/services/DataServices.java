@@ -35,14 +35,14 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.OperationResponse;
-import com.sqewd.open.dal.api.persistence.ReflectionUtils;
-import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.reflect.EntityDef;
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.api.utils.Timer;
 import com.sqewd.open.dal.core.persistence.DataManager;
@@ -64,15 +64,15 @@ public class DataServices {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public JResponse<DALResponse> schema(
-			@Context HttpServletRequest req,
-			@DefaultValue(ServerConfig._EMPTY_PATH_ELEMENT_) @PathParam("type") String type)
+			@Context final HttpServletRequest req,
+			@DefaultValue(ServerConfig._EMPTY_PATH_ELEMENT_) @PathParam("type") final String type)
 			throws Exception {
 		try {
 			Timer timer = new Timer();
 
 			log.debug("[SESSIONID:" + req.getSession().getId() + "]");
 
-			List<StructEntityReflect> types = null;
+			List<EntityDef> types = null;
 			if (type.compareTo(ServerConfig._EMPTY_PATH_ELEMENT_) == 0) {
 				types = ReflectionUtils.get().getAllMetadata();
 			} else {
@@ -82,8 +82,9 @@ public class DataServices {
 					for (String name : names) {
 						StructEntityReflect enref = ReflectionUtils.get()
 								.getEntityMetadata(name);
-						if (enref != null && !types.contains(enref))
+						if (enref != null && !types.contains(enref)) {
 							types.add(enref);
+						}
 
 					}
 				}
@@ -95,8 +96,9 @@ public class DataServices {
 				List<String> packages = DataManager.get().getEntityPackages();
 
 				for (StructEntityReflect enref : types) {
-					if (!showSchema(enref, packages))
+					if (!showSchema(enref, packages)) {
 						continue;
+					}
 
 					EntitySchema es = EntitySchema.loadSchema(enref);
 					schema.add(es);
@@ -119,8 +121,8 @@ public class DataServices {
 		}
 	}
 
-	private boolean showSchema(StructEntityReflect enref, List<String> packages)
-			throws Exception {
+	private boolean showSchema(final StructEntityReflect enref,
+			final List<String> packages) throws Exception {
 		Class<?> type = Class.forName(enref.Class);
 		String pname = type.getPackage().getName();
 		if (packages.contains(pname))
@@ -131,12 +133,12 @@ public class DataServices {
 	@Path("/read/{type}")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public JResponse<DALResponse> read(@Context HttpServletRequest req,
-			@PathParam("type") String type,
-			@DefaultValue("") @QueryParam("q") String query,
-			@DefaultValue("1") @QueryParam("p") String page,
-			@DefaultValue("20") @QueryParam("s") String size,
-			@DefaultValue("off") @QueryParam("d") String debugs)
+	public JResponse<DALResponse> read(@Context final HttpServletRequest req,
+			@PathParam("type") final String type,
+			@DefaultValue("") @QueryParam("q") final String query,
+			@DefaultValue("1") @QueryParam("p") final String page,
+			@DefaultValue("20") @QueryParam("s") final String size,
+			@DefaultValue("off") @QueryParam("d") final String debugs)
 			throws Exception {
 		try {
 			Timer timer = new Timer();
@@ -147,8 +149,9 @@ public class DataServices {
 			int limit = Integer.parseInt(size);
 			int count = pagec * limit;
 			boolean debug = false;
-			if (debugs.compareToIgnoreCase("on") == 0)
+			if (debugs.compareToIgnoreCase("on") == 0) {
 				debug = true;
+			}
 
 			DataManager dm = DataManager.get();
 
@@ -210,9 +213,9 @@ public class DataServices {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public JResponse<DALResponse> save(@Context HttpServletRequest req,
-			@PathParam("type") String type, String data,
-			@DefaultValue("off") @QueryParam("d") String debugs)
+	public JResponse<DALResponse> save(@Context final HttpServletRequest req,
+			@PathParam("type") final String type, final String data,
+			@DefaultValue("off") @QueryParam("d") final String debugs)
 			throws Exception {
 		try {
 			Timer timer = new Timer();
@@ -220,8 +223,9 @@ public class DataServices {
 			log.debug("[ENTITY TYPE:" + type + "]");
 
 			boolean debug = false;
-			if (debugs.compareToIgnoreCase("on") == 0)
+			if (debugs.compareToIgnoreCase("on") == 0) {
 				debug = true;
+			}
 
 			DataManager dm = DataManager.get();
 
@@ -234,8 +238,9 @@ public class DataServices {
 			ObjectMapper mapper = new ObjectMapper();
 			AbstractEntity entity = (AbstractEntity) mapper.readValue(data,
 					typec);
-			if (debug)
+			if (debug) {
 				log.debug(entity.toString());
+			}
 
 			DALResponse response = new DALResponse();
 

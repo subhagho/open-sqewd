@@ -30,15 +30,15 @@ import java.util.HashMap;
  * @author subhagho
  * 
  */
-public class LocalResult {
+public class DbRecord {
 	private final ArrayList<Object> data = new ArrayList<Object>();
 	private HashMap<String, Boolean> persisters = new HashMap<String, Boolean>();
 
-	public LocalResult(final String persister, final int size) {
+	public DbRecord(final String persister, final int size) {
 		initarray(persister, size);
 	}
 
-	private LocalResult() {
+	private DbRecord() {
 
 	}
 
@@ -90,8 +90,8 @@ public class LocalResult {
 		persisters.put(persister, true);
 	}
 
-	public LocalResult copy() {
-		LocalResult rs = new LocalResult();
+	public DbRecord copy() {
+		DbRecord rs = new DbRecord();
 		rs.initarray(null, this.data.size());
 		rs.persisters = this.persisters;
 

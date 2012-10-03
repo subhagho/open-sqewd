@@ -13,26 +13,35 @@
  * limitations under the License.
  */
 package com.sqewd.open.dal.utils;
-import java.util.Date;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.reflect.ReflectionHelper;
 
 /**
  * @author subhagho
  * 
  */
 public class AdHocTests {
-	static enum TestEnum {
-		One, Two, Three
-	}
+	private ArrayList<AbstractEntity> entities = null;
 
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 
 		try {
-			System.out.println("DATE:" + new Date().getTime());
+			Class<?> ct = AdHocTests.class;
+			List<Field> fields = ReflectionHelper.getFields(ct);
+			for (Field fd : fields) {
+				if (ReflectionHelper.isEntityListType(fd) != null) {
+					System.out.println("Is List...");
+				}
+			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

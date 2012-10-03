@@ -27,10 +27,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.Entity;
-import com.sqewd.open.dal.api.persistence.ReflectionUtils;
-import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
-import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.reflect.AttributeDef;
+import com.sqewd.open.dal.api.reflect.EntityDef;
 import com.sqewd.open.dal.core.persistence.DataManager;
+import com.sqewd.open.dal.core.persistence.model.EntityModelLoader;
 
 /**
  * @author subhagho
@@ -64,7 +64,7 @@ public class EntitySchema {
 	 * @param name
 	 *            the name to set
 	 */
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
 
@@ -79,7 +79,7 @@ public class EntitySchema {
 	 * @param classname
 	 *            the classname to set
 	 */
-	public void setClassname(String classname) {
+	public void setClassname(final String classname) {
 		this.classname = classname;
 	}
 
@@ -94,7 +94,7 @@ public class EntitySchema {
 	 * @param properties
 	 *            the properties to set
 	 */
-	public void setProperties(List<PropertySchema> properties) {
+	public void setProperties(final List<PropertySchema> properties) {
 		this.properties = properties;
 	}
 
@@ -109,7 +109,7 @@ public class EntitySchema {
 	 * @param persister
 	 *            the persister to set
 	 */
-	public void setPersister(String persister) {
+	public void setPersister(final String persister) {
 		this.persister = persister;
 	}
 
@@ -124,27 +124,26 @@ public class EntitySchema {
 	 * @param jsonname
 	 *            the jsonname to set
 	 */
-	public void setJsonname(String jsonname) {
+	public void setJsonname(final String jsonname) {
 		this.jsonname = jsonname;
 	}
 
-	public static EntitySchema loadSchema(Class<?> type) throws Exception {
+	public static EntitySchema loadSchema(final Class<?> type) throws Exception {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
 
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
+		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
 
 		return loadSchema(enref);
 	}
 
-	public static EntitySchema loadSchema(StructEntityReflect enref)
+	public static EntitySchema loadSchema(final EntityDef enref)
 			throws Exception {
 		EntitySchema entity = new EntitySchema();
-		Class<?> type = Class.forName(enref.Class);
+		Class<?> type = enref.getClasstype();
 
-		entity.name = enref.Entity;
+		entity.name = enref.getName();
 		AbstractPersister pers = DataManager.get().getPersister(type);
 		entity.persister = pers.getClass().getCanonicalName();
 		entity.classname = type.getCanonicalName();
@@ -156,11 +155,12 @@ public class EntitySchema {
 
 		entity.properties = new ArrayList<PropertySchema>();
 
-		for (StructAttributeReflect attr : enref.Attributes) {
-			PropertySchema pdef = PropertySchema.load(type,
-					attr.Field.getName());
-			if (pdef != null)
+		for (AttributeDef attr : enref.getAttributes()) {
+			PropertySchema pdef = PropertySchema.load(type, attr.getField()
+					.getName());
+			if (pdef != null) {
 				entity.properties.add(pdef);
+			}
 		}
 		return entity;
 	}

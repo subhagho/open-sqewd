@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="ehcache.xsd" updateCheck="false"
+	monitoring="autodetect" dynamicConfig="true" name="reference.cache.manager"
+	maxBytesLocalHeap="512M" maxBytesLocalDisk="10G">
+	
+	<diskStore path="java.io.tmpdir" />
+	
+	<!-- Entity Reference Cache handle -->
+	<cache name="reference.entity" eternal="true" overflowToDisk="true">
+		<persistence strategy=”localTempSwap” />
+	</cache>
+</ehcache>

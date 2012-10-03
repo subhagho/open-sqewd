@@ -29,8 +29,8 @@ package com.sqewd.open.dal.services;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import com.sqewd.open.dal.api.persistence.ReflectionUtils;
-import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
+import com.sqewd.open.dal.api.reflect.AttributeDef;
+import com.sqewd.open.dal.core.persistence.model.EntityModelLoader;
 
 /**
  * @author subhagho
@@ -62,7 +62,7 @@ public class PropertySchema {
 	 * @param name
 	 *            the name to set
 	 */
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
 
@@ -77,7 +77,7 @@ public class PropertySchema {
 	 * @param type
 	 *            the type to set
 	 */
-	public void setType(String type) {
+	public void setType(final String type) {
 		this.type = type;
 	}
 
@@ -92,7 +92,7 @@ public class PropertySchema {
 	 * @param jsonname
 	 *            the jsonname to set
 	 */
-	public void setJsonname(String jsonname) {
+	public void setJsonname(final String jsonname) {
 		this.jsonname = jsonname;
 	}
 
@@ -107,7 +107,7 @@ public class PropertySchema {
 	 * @param dbcolumn
 	 *            the dbcolumn to set
 	 */
-	public void setDbcolumn(String dbcolumn) {
+	public void setDbcolumn(final String dbcolumn) {
 		this.dbcolumn = dbcolumn;
 	}
 
@@ -122,37 +122,38 @@ public class PropertySchema {
 	 * @param dbsize
 	 *            the dbsize to set
 	 */
-	public void setDbsize(String dbsize) {
+	public void setDbsize(final String dbsize) {
 		this.dbsize = dbsize;
 	}
 
-	public static PropertySchema load(Class<?> type, String field)
+	public static PropertySchema load(final Class<?> type, final String field)
 			throws Exception {
-		StructAttributeReflect attr = ReflectionUtils.get().getAttribute(type,
-				field);
+		AttributeDef attr = EntityModelLoader.get().getEntityDef(type)
+				.getAttribute(field);
 		if (attr == null)
 			return null;
 		PropertySchema def = new PropertySchema();
-		def.dbcolumn = attr.Column;
-		def.name = attr.Field.getName();
-		def.type = attr.Field.getType().getCanonicalName();
-		if (attr.Field.isAnnotationPresent(JsonProperty.class)) {
-			JsonProperty xattr = attr.Field.getAnnotation(JsonProperty.class);
+		def.dbcolumn = attr.getName();
+		def.name = attr.getField().getName();
+		def.type = attr.getField().getType().getCanonicalName();
+		if (attr.getField().isAnnotationPresent(JsonProperty.class)) {
+			JsonProperty xattr = attr.getField().getAnnotation(
+					JsonProperty.class);
 			def.jsonname = xattr.value();
 		}
-		if (attr.Size > 0) {
-			def.dbsize = "" + attr.Size;
+		if (attr.getSize() > 0) {
+			def.dbsize = "" + attr.getSize();
 		} else {
 			def.dbsize = "-";
 		}
-		if (attr.Field.getType().isEnum()) {
-			def.enumeration = getEnumValues(attr.Field.getType());
+		if (attr.getField().getType().isEnum()) {
+			def.enumeration = getEnumValues(attr.getField().getType());
 		}
 		return def;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static <T extends Enum> String[] getEnumValues(Class<?> type)
+	private static <T extends Enum> String[] getEnumValues(final Class<?> type)
 			throws Exception {
 		T[] enums = (T[]) type.getEnumConstants();
 		if (enums != null && enums.length > 0) {
@@ -176,7 +177,7 @@ public class PropertySchema {
 	 * @param enumeration
 	 *            the enumeration to set
 	 */
-	public void setEnumeration(String[] enumeration) {
+	public void setEnumeration(final String[] enumeration) {
 		this.enumeration = enumeration;
 	}
 }

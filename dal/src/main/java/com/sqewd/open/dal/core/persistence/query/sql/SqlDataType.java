@@ -22,8 +22,9 @@ package com.sqewd.open.dal.core.persistence.query.sql;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Date;
 
-import com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype;
+import com.sqewd.open.dal.api.reflect.SchemaObjectDatatype;
 
 /**
  * Abstract SQL Data type.
@@ -70,4 +71,32 @@ public abstract class SqlDataType<T> extends SchemaObjectDatatype<T> {
 	 * @throws Exception
 	 */
 	public abstract T getValue(ResultSet rs, String column) throws Exception;
+
+	/**
+	 * Get the corresponding SQL type for specified Java type.
+	 * 
+	 * @param type
+	 * @return
+	 * @throws Exception
+	 */
+	public static EnumSqlTypes getSqlType(final Class<?> type) throws Exception {
+		if (type.equals(String.class))
+			return EnumSqlTypes.VARCHAR2;
+		else if (type.equals(Boolean.class))
+			return EnumSqlTypes.BIT;
+		else if (type.equals(Character.class))
+			return EnumSqlTypes.CHAR;
+		else if (type.equals(Date.class))
+			return EnumSqlTypes.TIMESTAMP;
+		else if (type.equals(Double.class))
+			return EnumSqlTypes.DOUBLE;
+		else if (type.equals(Float.class))
+			return EnumSqlTypes.FLOAT;
+		else if (type.equals(Short.class))
+			return EnumSqlTypes.SHORT;
+		else if (type.equals(Byte.class))
+			return EnumSqlTypes.TINYINT;
+		throw new Exception("Unsupported SQL type [" + type.getCanonicalName()
+				+ "]");
+	}
 }

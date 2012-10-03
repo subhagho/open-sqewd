@@ -25,11 +25,11 @@ import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersistedEntity;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
-import com.sqewd.open.dal.api.persistence.ReflectionUtils;
-import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
-import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.reflect.AttributeDef;
+import com.sqewd.open.dal.api.reflect.AttributeReferenceDef;
+import com.sqewd.open.dal.api.reflect.EntityDef;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
-import com.sqewd.open.dal.core.persistence.db.SQLDataType;
+import com.sqewd.open.dal.core.persistence.model.EntityModelLoader;
 
 /**
  * Class encapsulates the Query definition for a JDBC compliant Database.
@@ -89,9 +89,8 @@ public class SimpleDbQuery {
 			return isql;
 
 		// Get table name
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
-		String table = enref.Entity;
+		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		String table = enref.getName();
 
 		StringBuffer query = new StringBuffer();
 		query.append("insert into ").append(table).append(" ( ");
@@ -101,7 +100,7 @@ public class SimpleDbQuery {
 		// Get Columns
 		boolean first = true;
 
-		for (StructAttributeReflect attr : enref.Attributes) {
+		for (AttributeDef attr : enref.getAttributes()) {
 			if (attr == null) {
 				continue;
 			}
@@ -111,7 +110,7 @@ public class SimpleDbQuery {
 				query.append(',');
 				values.append(',');
 			}
-			query.append(attr.Column);
+			query.append(attr.getName());
 			values.append('?');
 
 		}
@@ -144,9 +143,8 @@ public class SimpleDbQuery {
 			return isql;
 
 		// Get table name
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
-		String table = enref.Entity;
+		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		String table = enref.getName();
 
 		StringBuffer query = new StringBuffer();
 		query.append("update ").append(table).append(" set ");
@@ -156,13 +154,13 @@ public class SimpleDbQuery {
 		boolean first = true;
 		boolean wfirst = true;
 
-		for (StructAttributeReflect attr : enref.Attributes) {
+		for (AttributeDef attr : enref.getAttributes()) {
 			if (attr == null) {
 				continue;
 			}
-			if (attr.IsKeyColumn
-					|| attr.Column
-							.compareTo(AbstractPersistedEntity._TX_TIMESTAMP_COLUMN_) == 0) {
+			if (attr.isKey()
+					|| attr.getName().compareTo(
+							AbstractPersistedEntity._TX_TIMESTAMP_COLUMN_) == 0) {
 				if (wfirst) {
 					where = new StringBuffer();
 					where.append(" where ");
@@ -170,8 +168,8 @@ public class SimpleDbQuery {
 				} else {
 					where.append(" and ");
 				}
-				where.append(attr.Column).append("=?");
-				if (attr.IsKeyColumn) {
+				where.append(attr.getName()).append("=?");
+				if (attr.isKey()) {
 					continue;
 				}
 			}
@@ -181,7 +179,7 @@ public class SimpleDbQuery {
 			} else {
 				query.append(',');
 			}
-			query.append(attr.Column).append("=?");
+			query.append(attr.getName()).append("=?");
 
 		}
 		if (where != null) {
@@ -203,9 +201,8 @@ public class SimpleDbQuery {
 			return isql;
 
 		// Get table name
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
-		String table = enref.Entity;
+		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		String table = enref.getName();
 
 		StringBuffer query = new StringBuffer();
 		query.append("delete from ").append(table);
@@ -213,11 +210,11 @@ public class SimpleDbQuery {
 
 		boolean wfirst = true;
 
-		for (StructAttributeReflect attr : enref.Attributes) {
+		for (AttributeDef attr : enref.getAttributes()) {
 			if (attr == null) {
 				continue;
 			}
-			if (attr.IsKeyColumn) {
+			if (attr.isKey()) {
 				if (wfirst) {
 					where = new StringBuffer();
 					where.append(" where ");
@@ -225,8 +222,8 @@ public class SimpleDbQuery {
 				} else {
 					where.append(" and ");
 				}
-				where.append(attr.Column).append("=?");
-				if (attr.IsKeyColumn) {
+				where.append(attr.getName()).append("=?");
+				if (attr.isKey()) {
 					continue;
 				}
 			}
@@ -262,28 +259,28 @@ public class SimpleDbQuery {
 		String table = null;
 
 		// Get table name
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
-		table = enref.Entity;
+		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		table = enref.getName();
 
 		// Drop table statement
 		stmnts.add("drop table if exists " + table + " cascade");
 
 		// Get Columns
-		for (StructAttributeReflect attr : enref.Attributes) {
+		for (AttributeDef attr : enref.getAttributes()) {
 			if (attr == null) {
 				continue;
 			}
 			columns.add(getColumnDDL(attr));
-			if (attr.IsKeyColumn) {
+			if (attr.isKey()) {
 				if (keycolumns == null) {
 					keycolumns = new ArrayList<String>();
 				}
-				keycolumns.add(attr.Column);
-				if (attr.AutoIncrement) {
-					if (EnumPrimitives.isPrimitiveType(attr.Field.getType())) {
-						EnumPrimitives prim = EnumPrimitives.type(attr.Field
-								.getType());
+				keycolumns.add(attr.getName());
+				if (attr.isAutoIncrement()) {
+					if (EnumPrimitives.isPrimitiveType(attr.getField()
+							.getType())) {
+						EnumPrimitives prim = EnumPrimitives.type(attr
+								.getField().getType());
 						if (prim == EnumPrimitives.ELong
 								|| prim == EnumPrimitives.EInteger) {
 							Entity eann = type.getAnnotation(Entity.class);
@@ -334,7 +331,7 @@ public class SimpleDbQuery {
 	}
 
 	private List<String> createSequenceDDL(final Entity entity,
-			final StructAttributeReflect attr) throws Exception {
+			final AttributeDef attr) throws Exception {
 		List<String> ddls = new ArrayList<String>();
 		String name = getSequenceName(entity, attr);
 		ddls.add("drop sequence if exists " + name);
@@ -343,10 +340,10 @@ public class SimpleDbQuery {
 	}
 
 	public static String getSequenceName(final Entity entity,
-			final StructAttributeReflect attr) {
+			final AttributeDef attr) {
 		StringBuffer buff = new StringBuffer();
 		buff.append("SEQ_").append(entity.recordset()).append("_")
-				.append(attr.Column);
+				.append(attr.getName());
 		return buff.toString();
 	}
 
@@ -370,9 +367,8 @@ public class SimpleDbQuery {
 		String table = null;
 
 		// Get table name
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
-		table = enref.Entity;
+		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		table = enref.getName();
 
 		for (KeyValuePair<String> keys : keycolumns) {
 			String idxname = keys.getKey();
@@ -399,13 +395,13 @@ public class SimpleDbQuery {
 					buff.append(",");
 				}
 				String cname = column.trim();
-				StructAttributeReflect attr = enref.get(cname);
+				AttributeDef attr = enref.getAttribute(cname);
 				if (attr == null)
 					throw new Exception(
 							"No column definition found for column [" + column
 									+ "] for Entity ["
 									+ type.getCanonicalName() + "]");
-				buff.append(attr.Column);
+				buff.append(attr.getName());
 			}
 			buff.append(")");
 			stmnts.add(buff.toString());
@@ -413,34 +409,31 @@ public class SimpleDbQuery {
 		return stmnts;
 	}
 
-	private String getColumnDDL(final StructAttributeReflect attr)
-			throws Exception {
-		Class<?> type = attr.Field.getType();
-		StructAttributeReflect tattr = attr;
+	private String getColumnDDL(final AttributeDef attr) throws Exception {
+		Class<?> type = attr.getField().getType();
+		AttributeDef tattr = attr;
 		StringBuffer coldef = new StringBuffer();
-		if (attr.Convertor != null) {
-			type = attr.Convertor.getDataType();
-		} else if (attr.Reference != null) {
-			Class<?> rtype = Class.forName(attr.Reference.Class);
-			StructAttributeReflect rattr = ReflectionUtils.get().getAttribute(
-					rtype, attr.Reference.Field);
-			type = rattr.Field.getType();
-			tattr = rattr;
+		if (attr.getHandler() != null) {
+			type = attr.getHandler().getDataType();
+		} else if (attr.isRefrenceAttr()) {
+			AttributeReferenceDef refd = (AttributeReferenceDef) attr.getType();
+			tattr = refd.getReferenceAttribute();
+			type = tattr.getType().getType();
 		}
 
-		SQLDataType sqlt = SQLDataType.type(type);
+		EnumSqlTypes sqlt = SqlDataType.getSqlType(type);
 		String def = sqlt.name();
-		if (sqlt == SQLDataType.VARCHAR2) {
+		if (sqlt == EnumSqlTypes.VARCHAR2) {
 			int size = 128;
-			if (tattr.Size > 0) {
-				size = tattr.Size;
+			if (tattr.getSize() > 0) {
+				size = tattr.getSize();
 			}
 
 			def = sqlt.name().concat("(").concat(String.valueOf(size))
 					.concat(")");
 		}
-		coldef.append(attr.Column).append(' ').append(def);
-		if (attr.IsKeyColumn) {
+		coldef.append(attr.getName()).append(' ').append(def);
+		if (attr.isKey()) {
 			coldef.append(" not null");
 		}
 		return coldef.toString();

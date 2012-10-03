@@ -20,6 +20,9 @@
  */
 package com.sqewd.open.dal.core.persistence.query;
 
+import com.sqewd.open.dal.api.persistence.AbstractPersister;
+import com.sqewd.open.dal.api.reflect.SchemaObject;
+
 /**
  * Base class for defining data partitions.
  * 
@@ -30,6 +33,8 @@ public abstract class Partition<T extends PartitionKey, S extends SchemaObject> 
 	protected T key;
 
 	protected S type;
+
+	protected AbstractPersister persister = null;
 
 	protected Partition(final S type) {
 		this.type = type;
@@ -55,6 +60,21 @@ public abstract class Partition<T extends PartitionKey, S extends SchemaObject> 
 	 */
 	public S getType() {
 		return type;
+	}
+
+	/**
+	 * @return the persister
+	 */
+	public AbstractPersister getPersister() {
+		return persister;
+	}
+
+	/**
+	 * @param persister
+	 *            the persister to set
+	 */
+	public void setPersister(final AbstractPersister persister) {
+		this.persister = persister;
 	}
 
 }

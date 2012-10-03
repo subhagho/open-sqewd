@@ -20,10 +20,14 @@
  */
 package com.sqewd.open.dal.core.persistence.query.sql;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
-import com.sqewd.open.dal.core.persistence.query.SchemaObject;
-import com.sqewd.open.dal.core.persistence.query.SchemaObjectAttribute;
+import com.sqewd.open.dal.api.persistence.AbstractPersister;
+import com.sqewd.open.dal.api.reflect.SchemaObject;
+import com.sqewd.open.dal.api.reflect.SchemaObjectAttribute;
+import com.sqewd.open.dal.core.persistence.db.AbstractDbPersister;
 
 /**
  * Class represents a SQL (RDBMS) table as a Schema Object.
@@ -38,13 +42,28 @@ public class SqlTable extends SchemaObject {
 
 	private HashMap<String, Integer> aliasindx;
 
-	/**
-	 * @param name
-	 * @param alias
-	 */
-	protected SqlTable(final String name, final String alias) {
-		super(name);
-		this.alias = alias;
+	public SqlTable(final String name, final String alias,
+			final AbstractPersister persister) throws Exception {
+		super(name, persister);
+		if (alias == null) {
+			this.alias = name;
+		} else {
+			this.alias = alias;
+		}
+		if (!(persister instanceof AbstractDbPersister))
+			throw new Exception(
+					"Invalid Persister. Specified persister is not of type ["
+							+ AbstractDbPersister.class.getCanonicalName()
+							+ "]");
+		List<SqlColumn> columns = ((AbstractDbPersister) persister)
+				.getTableDefinition(schema, name);
+		if (columns == null || columns.isEmpty())
+			throw new Exception("Cannot find schema definition for "
+					+ (schema != null && !schema.isEmpty() ? "[" + schema
+							+ "]." : "") + "[" + name + "]");
+		for (SqlColumn column : columns) {
+			addAttribute(column);
+		}
 	}
 
 	/**
@@ -75,6 +94,16 @@ public class SqlTable extends SchemaObject {
 	 */
 	public void setAlias(final String alias) {
 		this.alias = alias;
+	}
+
+	public List<String> getColumnSet() {
+		List<String> columns = new ArrayList<String>();
+		for (SchemaObjectAttribute attr : attributes) {
+			if (attr instanceof SqlColumn) {
+				columns.add(((SqlColumn) attr).getAlias());
+			}
+		}
+		return columns;
 	}
 
 	/*
@@ -110,18 +139,44 @@ public class SqlTable extends SchemaObject {
 	 */
 	@Override
 	public void addAttribute(final SchemaObjectAttribute attr) throws Exception {
-		if (!(attr instanceof SqlColumn))
-			throw new Exception("Invalid Column object. Expected type ["
-					+ SqlColumn.class.getCanonicalName() + "]");
+
 		if (aliasindx == null) {
 			aliasindx = new HashMap<String, Integer>();
 		} else {
-			if (aliasindx.containsKey(((SqlColumn) attr).getAlias()))
-				throw new Exception("Attribute already registered with alias ["
-						+ ((SqlColumn) attr).getAlias() + "]");
+			if (attr instanceof SqlColumn) {
+				((SqlColumn) attr).setAlias(this.alias + "." + attr.getName());
+
+				if (aliasindx.containsKey(((SqlColumn) attr).getAlias()))
+					throw new Exception(
+							"Attribute already registered with alias ["
+									+ ((SqlColumn) attr).getAlias() + "]");
+			}
 		}
 		super.addAttribute(attr);
-		aliasindx.put(((SqlColumn) attr).getAlias(), attributes.size() - 1);
+		if (attr instanceof SqlColumn) {
+			aliasindx.put(((SqlColumn) attr).getAlias(), attributes.size() - 1);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObject#isPartitioned()
+	 */
+	@Override
+	public boolean isPartitioned() {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.sqewd.open.dal.core.persistence.query.SchemaObject#getKey()
+	 */
+	@Override
+	public String getKey() {
+		return alias;
 	}
 
 }

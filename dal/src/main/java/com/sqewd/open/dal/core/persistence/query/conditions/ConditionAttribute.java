@@ -28,7 +28,9 @@ import com.sqewd.open.dal.api.reflect.SchemaObjectAttribute;
  * @author subhagho
  * 
  */
-public class ConditionAttribute extends ConditionElement {
+public class ConditionAttribute implements Condition {
+	protected String rawvalue;
+
 	protected SchemaObjectAttribute attribute;
 
 	public ConditionAttribute() {
@@ -46,11 +48,26 @@ public class ConditionAttribute extends ConditionElement {
 	}
 
 	/**
+	 * @return the rawvalue
+	 */
+	public String getRawvalue() {
+		return rawvalue;
+	}
+
+	/**
 	 * @param attribute
 	 *            the attribute to set
 	 */
 	public void setAttribute(final SchemaObjectAttribute attribute) {
 		this.attribute = attribute;
+	}
+
+	/**
+	 * @param rawvalue
+	 *            the rawvalue to set
+	 */
+	public void setRawvalue(final String rawvalue) {
+		this.rawvalue = rawvalue;
 	}
 
 }

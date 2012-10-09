@@ -34,24 +34,6 @@ import com.sqewd.open.dal.core.persistence.query.conditions.EnumConditionOperato
 public class SQLUtils {
 
 	/**
-	 * Convert the given value to a String.
-	 * 
-	 * @param value
-	 * @param attr
-	 * @return
-	 */
-	public String getSqlValue(final Object value,
-			final SchemaObjectAttribute attr) {
-		if (attr.getType() instanceof SqlVarcharType)
-			return "'" + value.toString() + "'";
-		else if (attr.getType() instanceof SqlLongVarcharType)
-			return "'" + value.toString() + "'";
-		else if (value instanceof String)
-			return (String) value;
-		return attr.getType().toString(value);
-	}
-
-	/**
 	 * Convert the Condition operator to the SQL operator.
 	 * 
 	 * @param operator
@@ -71,10 +53,6 @@ public class SQLUtils {
 			return "<=";
 		case NotEqualTo:
 			return "<>";
-		case IsNull:
-			return "IS NULL";
-		case IsNotNull:
-			return "IS NOT NULL";
 		case Like:
 			return "LIKE";
 		case Between:
@@ -155,5 +133,23 @@ public class SQLUtils {
 			pattern = pattern.replaceAll("%", ".*");
 		}
 		return Pattern.matches(pattern, source);
+	}
+
+	/**
+	 * Convert the given value to a String.
+	 * 
+	 * @param value
+	 * @param attr
+	 * @return
+	 */
+	public String getSqlValue(final Object value,
+			final SchemaObjectAttribute attr) {
+		if (attr.getType() instanceof SqlVarcharType)
+			return "'" + value.toString() + "'";
+		else if (attr.getType() instanceof SqlLongVarcharType)
+			return "'" + value.toString() + "'";
+		else if (value instanceof String)
+			return (String) value;
+		return attr.getType().toString(value);
 	}
 }

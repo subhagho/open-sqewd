@@ -26,7 +26,7 @@ package com.sqewd.open.dal.core.persistence.query.conditions;
  * @author subhagho
  * 
  */
-public interface QueryCondition {
+public interface QueryCondition extends Condition {
 	/**
 	 * Evaluate this Condition for the specified Source and Value.
 	 * 
@@ -38,4 +38,12 @@ public interface QueryCondition {
 	 * @throws Exception
 	 */
 	public boolean evaluate(Object src, Object value) throws Exception;
+
+	/**
+	 * Check if the condition has been completed defined. This method is only
+	 * relevant to the parser.
+	 * 
+	 * @return
+	 */
+	public boolean isComplete();
 }

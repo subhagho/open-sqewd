@@ -60,14 +60,6 @@ public enum EnumConditionOperator {
 	 */
 	Between,
 	/**
-	 * Is NULL (ISNULL)
-	 */
-	IsNull,
-	/**
-	 * Is Not NULL (NOTNULL)
-	 */
-	IsNotNull,
-	/**
 	 * String match operator, Implementing source dependent functionality
 	 */
 	Like,
@@ -87,4 +79,42 @@ public enum EnumConditionOperator {
 	 * Divide (/)
 	 */
 	Divide;
+
+	/**
+	 * Parse the passed value as a Condition operator enum.
+	 * 
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public static EnumConditionOperator parse(final String value)
+			throws Exception {
+		if (value.compareTo("==") == 0)
+			return Equals;
+		else if (value.compareTo("!=") == 0)
+			return NotEqualTo;
+		else if (value.compareTo("<") == 0)
+			return LessThan;
+		else if (value.compareTo("<=") == 0)
+			return LessThanEquals;
+		else if (value.compareTo(">") == 0)
+			return MoreThan;
+		else if (value.compareTo(">=") == 0)
+			return MoreThanEquals;
+		else if (value.compareTo("+") == 0)
+			return Add;
+		else if (value.compareTo("-") == 0)
+			return Subtract;
+		else if (value.compareTo("*") == 0)
+			return Multiply;
+		else if (value.compareTo("/") == 0)
+			return Divide;
+		else if (value.compareToIgnoreCase("in") == 0)
+			return In;
+		else if (value.compareToIgnoreCase("between") == 0)
+			return In;
+		else if (value.compareToIgnoreCase("like") == 0)
+			return In;
+		return null;
+	}
 }

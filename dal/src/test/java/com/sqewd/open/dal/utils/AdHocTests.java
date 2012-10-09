@@ -14,36 +14,36 @@
  */
 package com.sqewd.open.dal.utils;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.List;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
-import com.sqewd.open.dal.api.reflect.ReflectionHelper;
+import com.sqewd.open.dal.core.persistence.query.conditions.QueryCondition;
+import com.sqewd.open.dal.core.persistence.query.parser.ConditionParser;
 
 /**
  * @author subhagho
  * 
  */
 public class AdHocTests {
-	private ArrayList<AbstractEntity> entities = null;
-
 	/**
 	 * @param args
 	 */
 	public static void main(final String[] args) {
 
 		try {
-			Class<?> ct = AdHocTests.class;
-			List<Field> fields = ReflectionHelper.getFields(ct);
-			for (Field fd : fields) {
-				if (ReflectionHelper.isEntityListType(fd) != null) {
-					System.out.println("Is List...");
-				}
-			}
+			String query = "   (A.B ==    123123e-123 ; X >= +123),(THIS LIKE 'who' , THIS between[\"P\":\"X\"]);   NAME IN ['A':'B':'C']; NAME != 'whocares'";
+			// String query = "sort ASASDSD asc";
+
+			ConditionParser parser = new ConditionParser(query);
+			parser.parse();
+
+			QueryCondition qc = parser.get();
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
+	private ArrayList<AbstractEntity> entities = null;
 
 }

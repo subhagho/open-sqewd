@@ -22,7 +22,7 @@ package com.sqewd.open.dal.core.persistence.query.sql;
 
 import com.sqewd.open.dal.core.persistence.query.conditions.AndCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionAttribute;
-import com.sqewd.open.dal.core.persistence.query.conditions.ConditionElement;
+import com.sqewd.open.dal.core.persistence.query.conditions.Condition;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionTransformer;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionValue;
 import com.sqewd.open.dal.core.persistence.query.conditions.EnumConditionOperator;
@@ -96,7 +96,7 @@ public class SqlConditionTransformer implements ConditionTransformer {
 		return bf.toString();
 	}
 
-	private String visit(final ConditionElement element) throws Exception {
+	private String visit(final Condition element) throws Exception {
 		if (element instanceof ConditionAttribute)
 			return visit((ConditionAttribute) element);
 		else if (element instanceof ConditionValue)

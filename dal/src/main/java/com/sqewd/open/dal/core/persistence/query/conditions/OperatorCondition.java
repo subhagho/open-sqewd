@@ -26,13 +26,12 @@ package com.sqewd.open.dal.core.persistence.query.conditions;
  * @author subhagho
  * 
  */
-public class OperatorCondition extends ConditionElement implements
-		QueryCondition {
+public class OperatorCondition implements QueryCondition {
 	protected EnumConditionOperator operator;
 
-	protected ConditionElement left;
+	protected Condition left;
 
-	protected ConditionElement right;
+	protected Condition right;
 
 	/*
 	 * (non-Javadoc)
@@ -48,10 +47,48 @@ public class OperatorCondition extends ConditionElement implements
 	}
 
 	/**
+	 * @return the left
+	 */
+	public Condition getLeft() {
+		return left;
+	}
+
+	/**
 	 * @return the operator
 	 */
 	public EnumConditionOperator getOperator() {
 		return operator;
+	}
+
+	/**
+	 * @return the right
+	 */
+	public Condition getRight() {
+		return right;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.sqewd.open.dal.core.persistence.query.conditions.QueryCondition#
+	 * isComplete()
+	 */
+	public boolean isComplete() {
+		if (operator != EnumConditionOperator.Add
+				&& operator != EnumConditionOperator.Subtract
+				&& operator != EnumConditionOperator.Multiply
+				&& operator != EnumConditionOperator.Divide)
+			if (left != null && right != null && operator != null)
+				return true;
+		return false;
+	}
+
+	/**
+	 * @param left
+	 *            the left to set
+	 */
+	public void setLeft(final Condition left) {
+		this.left = left;
 	}
 
 	/**
@@ -63,32 +100,10 @@ public class OperatorCondition extends ConditionElement implements
 	}
 
 	/**
-	 * @return the left
-	 */
-	public ConditionElement getLeft() {
-		return left;
-	}
-
-	/**
-	 * @param left
-	 *            the left to set
-	 */
-	public void setLeft(final ConditionElement left) {
-		this.left = left;
-	}
-
-	/**
-	 * @return the right
-	 */
-	public ConditionElement getRight() {
-		return right;
-	}
-
-	/**
 	 * @param right
 	 *            the right to set
 	 */
-	public void setRight(final ConditionElement right) {
+	public void setRight(final Condition right) {
 		this.right = right;
 	}
 

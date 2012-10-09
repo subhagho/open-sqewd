@@ -21,11 +21,11 @@
 package com.sqewd.open.dal.core.persistence.query.conditions;
 
 /**
- * Base type for representing condition elements. node.
+ * Base interface for representing condition elements.
  * 
  * @author subhagho
  * 
  */
-public abstract class ConditionElement {
+public interface Condition {
 
 }

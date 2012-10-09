@@ -33,5 +33,5 @@ public interface ConditionVisitor {
 	 * @param element
 	 * @throws Exception
 	 */
-	public void visit(ConditionElement element) throws Exception;
+	public void visit(Condition element) throws Exception;
 }

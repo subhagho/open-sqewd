@@ -13,30 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename OrCondition.java
- * @created Sep 30, 2012
+ * @filename GroupCondition.java
+ * @created Oct 7, 2012
  * @author subhagho
  *
  */
 package com.sqewd.open.dal.core.persistence.query.conditions;
 
 /**
- * Represents an Or Condition node.
+ * Represents a condition group.
  * 
  * @author subhagho
  * 
  */
-public class OrCondition implements QueryCondition {
-	protected QueryCondition left;
-	protected QueryCondition right;
+public class GroupCondition implements QueryCondition {
+	private QueryCondition condition;
 
-	public OrCondition() {
-	}
-
-	public OrCondition(final QueryCondition left, final QueryCondition right) {
-		this.left = left;
-		this.right = right;
-	}
+	private boolean complete = false;
 
 	/*
 	 * (non-Javadoc)
@@ -47,27 +40,14 @@ public class OrCondition implements QueryCondition {
 	 */
 	public boolean evaluate(final Object src, final Object value)
 			throws Exception {
-		if (!left.evaluate(src, value)) {
-			if (right.evaluate(src, value))
-				return true;
-			else
-				return false;
-		} else
-			return true;
+		return condition.evaluate(src, value);
 	}
 
 	/**
-	 * @return the left
+	 * @return the condition
 	 */
-	public QueryCondition getLeft() {
-		return left;
-	}
-
-	/**
-	 * @return the right
-	 */
-	public QueryCondition getRight() {
-		return right;
+	public QueryCondition getCondition() {
+		return condition;
 	}
 
 	/*
@@ -77,25 +57,24 @@ public class OrCondition implements QueryCondition {
 	 * isComplete()
 	 */
 	public boolean isComplete() {
-		if (left != null && right != null)
-			return true;
-		return false;
+		return complete;
 	}
 
 	/**
-	 * @param left
-	 *            the left to set
+	 * Set the Group condition as parse complete. Essentially brace has been
+	 * closed. Only relevant to the parser.
+	 * 
 	 */
-	public void setLeft(final QueryCondition left) {
-		this.left = left;
+	public void setComplete() {
+		complete = true;
 	}
 
 	/**
-	 * @param right
-	 *            the right to set
+	 * @param condition
+	 *            the condition to set
 	 */
-	public void setRight(final QueryCondition right) {
-		this.right = right;
+	public void setCondition(final QueryCondition condition) {
+		this.condition = condition;
 	}
 
 }

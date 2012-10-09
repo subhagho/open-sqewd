@@ -26,7 +26,7 @@ package com.sqewd.open.dal.core.persistence.query.conditions;
  * @author subhagho
  * 
  */
-public class AndCondition extends ConditionElement implements QueryCondition {
+public class AndCondition implements QueryCondition {
 	protected QueryCondition left;
 	protected QueryCondition right;
 
@@ -62,18 +62,30 @@ public class AndCondition extends ConditionElement implements QueryCondition {
 	}
 
 	/**
+	 * @return the right
+	 */
+	public QueryCondition getRight() {
+		return right;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.sqewd.open.dal.core.persistence.query.conditions.QueryCondition#
+	 * isComplete()
+	 */
+	public boolean isComplete() {
+		if (left != null && right != null)
+			return true;
+		return false;
+	}
+
+	/**
 	 * @param left
 	 *            the left to set
 	 */
 	public void setLeft(final QueryCondition left) {
 		this.left = left;
-	}
-
-	/**
-	 * @return the right
-	 */
-	public QueryCondition getRight() {
-		return right;
 	}
 
 	/**

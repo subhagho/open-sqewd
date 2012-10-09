@@ -28,7 +28,7 @@ import com.sqewd.open.dal.api.reflect.SchemaObjectDatatype;
  * @author subhagho
  * 
  */
-public class ConditionValue extends ConditionElement {
+public class ConditionValue implements Condition {
 	protected Object value;
 
 	protected SchemaObjectDatatype<?> type = null;
@@ -41,25 +41,17 @@ public class ConditionValue extends ConditionElement {
 	}
 
 	/**
-	 * @return the value
-	 */
-	public Object getValue() {
-		return value;
-	}
-
-	/**
-	 * @param value
-	 *            the value to set
-	 */
-	public void setValue(final Object value) {
-		this.value = value;
-	}
-
-	/**
 	 * @return the type
 	 */
 	public SchemaObjectDatatype<?> getType() {
 		return type;
+	}
+
+	/**
+	 * @return the value
+	 */
+	public Object getValue() {
+		return value;
 	}
 
 	/**
@@ -68,6 +60,14 @@ public class ConditionValue extends ConditionElement {
 	 */
 	public void setType(final SchemaObjectDatatype<?> type) {
 		this.type = type;
+	}
+
+	/**
+	 * @param value
+	 *            the value to set
+	 */
+	public void setValue(final Object value) {
+		this.value = value;
 	}
 
 }

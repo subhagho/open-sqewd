@@ -33,6 +33,8 @@ public class ConditionAttribute implements Condition {
 
 	protected SchemaObjectAttribute attribute;
 
+	protected Condition parent = null;
+
 	public ConditionAttribute() {
 	}
 
@@ -45,6 +47,17 @@ public class ConditionAttribute implements Condition {
 	 */
 	public SchemaObjectAttribute getAttribute() {
 		return attribute;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#getParent
+	 * ()
+	 */
+	public Condition getParent() {
+		return parent;
 	}
 
 	/**
@@ -62,12 +75,33 @@ public class ConditionAttribute implements Condition {
 		this.attribute = attribute;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#setParent
+	 * (com.sqewd.open.dal.core.persistence.query.conditions.Condition)
+	 */
+	public void setParent(final Condition parent) {
+		this.parent = parent;
+	}
+
 	/**
 	 * @param rawvalue
 	 *            the rawvalue to set
 	 */
 	public void setRawvalue(final String rawvalue) {
 		this.rawvalue = rawvalue;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return rawvalue;
 	}
 
 }

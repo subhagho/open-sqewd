@@ -67,15 +67,10 @@ public class Token {
 	/**
 	 * Extract the original value that represents this token from the stream.
 	 * 
-	 * @param stream
 	 * @return
 	 * @throws Exception
 	 */
-	public String getValue(final char[] stream) throws Exception {
-		if (value == null) {
-			value = new String(stream, startIndex, endIndex - startIndex)
-					.trim();
-		}
+	public String getValue() throws Exception {
 		return value;
 	}
 
@@ -91,6 +86,20 @@ public class Token {
 	}
 
 	/**
+	 * Check if token is an arithmetic operator.
+	 * 
+	 * @return
+	 */
+	public boolean isArithmeticOperator() {
+		if (token != null) {
+			if (token.compareTo("+") == 0 || token.compareTo("-") == 0
+					|| token.compareTo("*") == 0 || token.compareTo("/") == 0)
+				return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Check if the current token represents an open Brace
 	 * 
 	 * @return
@@ -98,6 +107,19 @@ public class Token {
 	public boolean isCloseBrace() {
 		if (token != null && token.compareTo(")") == 0)
 			return true;
+		return false;
+	}
+
+	/**
+	 * Check if the token is an empty or blank string.
+	 * 
+	 * @return
+	 */
+	public boolean isEmptyToken() {
+		if (!isSpecialToken()) {
+			if (value == null || value.isEmpty())
+				return true;
+		}
 		return false;
 	}
 
@@ -194,5 +216,28 @@ public class Token {
 	 */
 	public void setToken(final String part) {
 		token = part;
+	}
+
+	/**
+	 * Set the value based on the start and end indexes.
+	 * 
+	 * @param stream
+	 * @throws Exception
+	 */
+	public void setValue(final char[] stream) throws Exception {
+		if (value == null) {
+			value = new String(stream, startIndex, endIndex - startIndex)
+					.trim();
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return value;
 	}
 }

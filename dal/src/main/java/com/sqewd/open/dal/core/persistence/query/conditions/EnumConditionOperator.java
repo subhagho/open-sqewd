@@ -112,9 +112,9 @@ public enum EnumConditionOperator {
 		else if (value.compareToIgnoreCase("in") == 0)
 			return In;
 		else if (value.compareToIgnoreCase("between") == 0)
-			return In;
+			return Between;
 		else if (value.compareToIgnoreCase("like") == 0)
-			return In;
+			return Like;
 		return null;
 	}
 }

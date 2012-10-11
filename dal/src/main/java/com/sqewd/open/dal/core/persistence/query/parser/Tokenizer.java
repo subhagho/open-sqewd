@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class Tokenizer {
 	public static final String[] _TOKENS_ = { "(", ";", ",", ")", "==", "!=",
-			">", ">=", "<", "<=", "in", "between", "like", "null", "+", "-",
+			">=", ">", "<=", "<", "in", "between", "like", "null", "+", "-",
 			"*", "/", "sort", "[", "]", ":" };
 
 	private char[] buffer;
@@ -55,8 +55,8 @@ public class Tokenizer {
 		if (token.compareTo(">") == 0 || token.compareTo("<") == 0) {
 			if (buffer[index + 1] == '=')
 				return false;
-		} else if (token.compareTo("in") == 0
-				|| token.compareTo("between") == 0) {
+		} else if (token.compareToIgnoreCase("in") == 0
+				|| token.compareToIgnoreCase("between") == 0) {
 			if (index > 0 && !Character.isWhitespace(buffer[index - 1]))
 				return false;
 			if (Character.isWhitespace(buffer[index + token.length()]))
@@ -65,8 +65,9 @@ public class Tokenizer {
 				return true;
 			else
 				return false;
-		} else if (token.compareTo("like") == 0 || token.compareTo("not") == 0
-				|| token.compareTo("null") == 0 || token.compareTo("sort") == 0) {
+		} else if (token.compareToIgnoreCase("like") == 0
+				|| token.compareToIgnoreCase("null") == 0
+				|| token.compareToIgnoreCase("sort") == 0) {
 			if (index > 0 && !Character.isWhitespace(buffer[index - 1]))
 				return false;
 			if (!Character.isWhitespace(buffer[index + token.length()]))
@@ -79,10 +80,19 @@ public class Tokenizer {
 		token = token.toLowerCase();
 		char[] part = token.toCharArray();
 		for (int ii = 0; ii < part.length; ii++) {
-			if (part[ii] != buffer[index + ii])
+			if (Character.toLowerCase(part[ii]) != buffer[index + ii]
+					&& Character.toUpperCase(part[ii]) != buffer[index + ii])
 				return false;
 		}
 		return true;
+	}
+
+	private String matchTokens(final int offset) {
+		for (String token : _TOKENS_) {
+			if (match(token, offset))
+				return token;
+		}
+		return null;
 	}
 
 	private void skipWhitespace() {
@@ -99,37 +109,42 @@ public class Tokenizer {
 	 * Tokenize the query string based on the available tokens.
 	 * 
 	 */
-	public void tokenize() {
+	public void tokenize() throws Exception {
 		skipWhitespace();
 		Token tk = null;
 		int lastoffset = 0;
 
 		while (offset < buffer.length) {
 			boolean incr = true;
-			for (String token : _TOKENS_) {
-				if (match(token, offset)) {
-					if (checkToken(token, offset)) {
-						if (tk == null && offset > 0) {
-							tk = new Token();
-							tk.setStartIndex(lastoffset);
+			String token = matchTokens(offset);
+			if (token != null) {
+				if (checkToken(token, offset)) {
+					if (tk == null && offset > 0) {
+						tk = new Token();
+						tk.setStartIndex(lastoffset);
+					}
+					if (tk != null) {
+						tk.setEndIndex(offset);
+						tk.setValue(buffer);
+						if (!tk.isEmptyToken()) {
 							tokens.add(tk);
 						}
-						if (tk != null) {
-							tk.setEndIndex(offset);
-						}
-						tk = new Token();
-						tk.setStartIndex(offset);
-						tk.setToken(token);
-						tk.setEndIndex(offset + token.length());
-						tokens.add(tk);
-						tk = null;
-						offset += token.length();
-						lastoffset = offset;
-						incr = false;
-						break;
 					}
+					tk = new Token();
+					tk.setStartIndex(offset);
+					tk.setToken(token);
+					tk.setEndIndex(offset + token.length());
+					tk.setValue(buffer);
+					if (!tk.isEmptyToken()) {
+						tokens.add(tk);
+					}
+					tk = null;
+					offset += token.length();
+					lastoffset = offset;
+					incr = false;
 				}
 			}
+
 			if (incr) {
 				offset++;
 			}

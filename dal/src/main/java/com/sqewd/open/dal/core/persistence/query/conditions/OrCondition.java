@@ -29,6 +29,7 @@ package com.sqewd.open.dal.core.persistence.query.conditions;
 public class OrCondition implements QueryCondition {
 	protected QueryCondition left;
 	protected QueryCondition right;
+	protected Condition parent;
 
 	public OrCondition() {
 	}
@@ -63,6 +64,17 @@ public class OrCondition implements QueryCondition {
 		return left;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#getParent
+	 * ()
+	 */
+	public Condition getParent() {
+		return parent;
+	}
+
 	/**
 	 * @return the right
 	 */
@@ -87,7 +99,19 @@ public class OrCondition implements QueryCondition {
 	 *            the left to set
 	 */
 	public void setLeft(final QueryCondition left) {
+		left.setParent(this);
 		this.left = left;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#setParent
+	 * (com.sqewd.open.dal.core.persistence.query.conditions.Condition)
+	 */
+	public void setParent(final Condition parent) {
+		this.parent = parent;
 	}
 
 	/**
@@ -95,7 +119,30 @@ public class OrCondition implements QueryCondition {
 	 *            the right to set
 	 */
 	public void setRight(final QueryCondition right) {
+		right.setParent(this);
 		this.right = right;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuffer buff = new StringBuffer();
+		if (left != null) {
+			buff.append(left.toString());
+		} else {
+			buff.append("<NULL>");
+		}
+		buff.append(" OR ");
+		if (right != null) {
+			buff.append(right.toString());
+		} else {
+			buff.append("<NULL>");
+		}
+		return buff.toString();
 	}
 
 }

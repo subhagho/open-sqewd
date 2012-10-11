@@ -26,7 +26,7 @@ package com.sqewd.open.dal.core.persistence.query.conditions;
  * @author subhagho
  * 
  */
-public class OperatorCondition implements QueryCondition {
+public class ArithmeticOperatorCondition implements QueryCondition {
 	protected EnumConditionOperator operator;
 
 	protected Condition left;
@@ -107,16 +107,11 @@ public class OperatorCondition implements QueryCondition {
 	 */
 	public void setOperator(final EnumConditionOperator operator)
 			throws Exception {
-		if (operator != EnumConditionOperator.Between
-				&& operator != EnumConditionOperator.Equals
-				&& operator != EnumConditionOperator.In
-				&& operator != EnumConditionOperator.LessThan
-				&& operator != EnumConditionOperator.LessThanEquals
-				&& operator != EnumConditionOperator.Like
-				&& operator != EnumConditionOperator.MoreThan
-				&& operator != EnumConditionOperator.MoreThanEquals
-				&& operator != EnumConditionOperator.NotEqualTo)
-			throw new Exception("Should be a condition operator.");
+		if (operator != EnumConditionOperator.Add
+				&& operator != EnumConditionOperator.Subtract
+				&& operator != EnumConditionOperator.Multiply
+				&& operator != EnumConditionOperator.Divide)
+			throw new Exception("Should be an arithmetic operator.");
 		this.operator = operator;
 	}
 

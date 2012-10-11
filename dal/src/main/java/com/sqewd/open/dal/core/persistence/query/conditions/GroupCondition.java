@@ -31,6 +31,8 @@ public class GroupCondition implements QueryCondition {
 
 	private boolean complete = false;
 
+	private Condition parent;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -48,6 +50,17 @@ public class GroupCondition implements QueryCondition {
 	 */
 	public QueryCondition getCondition() {
 		return condition;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#getParent
+	 * ()
+	 */
+	public Condition getParent() {
+		return parent;
 	}
 
 	/*
@@ -74,7 +87,30 @@ public class GroupCondition implements QueryCondition {
 	 *            the condition to set
 	 */
 	public void setCondition(final QueryCondition condition) {
+		condition.setParent(this);
 		this.condition = condition;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#setParent
+	 * (com.sqewd.open.dal.core.persistence.query.conditions.Condition)
+	 */
+	public void setParent(final Condition parent) {
+		this.parent = parent;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "(" + (condition != null ? condition.toString() : "<NULL>")
+				+ ")";
 	}
 
 }

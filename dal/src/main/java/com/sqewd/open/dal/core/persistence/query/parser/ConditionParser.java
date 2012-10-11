@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Stack;
 
 import com.sqewd.open.dal.core.persistence.query.conditions.AndCondition;
+import com.sqewd.open.dal.core.persistence.query.conditions.ArithmeticOperatorCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.Condition;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionAttribute;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionValue;
@@ -49,7 +50,6 @@ public class ConditionParser {
 
 	private Stack<QueryCondition> tstack = new Stack<QueryCondition>();
 	private List<Token> tokens = null;
-	private char[] stream;
 
 	/**
 	 * Create a new instance of the Condition parser.
@@ -84,15 +84,8 @@ public class ConditionParser {
 
 	private void addGroupCondition(final GroupCondition gc,
 			final GroupCondition parent) throws Exception {
-		QueryCondition leaf = null;
-		GroupCondition cgc = parent;
-		while (true) {
-			leaf = cgc.getCondition();
-			if (!(leaf instanceof GroupCondition)) {
-				break;
-			}
-			cgc = (GroupCondition) leaf;
-		}
+		QueryCondition leaf = getCurrentGroupCondition(parent);
+		leaf = ((GroupCondition) leaf).getCondition();
 		if (leaf == null)
 			throw new Exception(
 					"Invalid Stack state. No open conditions available.");
@@ -121,10 +114,10 @@ public class ConditionParser {
 		return null;
 	}
 
-	private int checkValueExpansion(final StringBuffer value, final int index,
-			final boolean incr) throws Exception {
+	private int checkValueExpansion(final StringBuffer value, final int index)
+			throws Exception {
 		int offset = 0;
-		if (!incr && index > 0) {
+		if (index > 0) {
 			Token nleft = tokens.get(index - 1);
 			if (nleft.isSpecialToken()) {
 				EnumConditionOperator oper = EnumConditionOperator.parse(nleft
@@ -135,51 +128,37 @@ public class ConditionParser {
 						if (index > 1) {
 							Token opleft = tokens.get(index - 2);
 							if (opleft.isSpecialToken()) {
-								value.insert(0, nleft.getValue(stream));
+								value.insert(0, nleft.getValue());
 								offset = 1;
 							} else if (!isQuotedString(opleft)) {
-								String iv = opleft.getValue(stream);
+								String iv = opleft.getValue();
 								if (isExponentialString(iv)) {
-									value.insert(0, iv + nleft.getValue(stream));
+									value.insert(0, iv + nleft.getValue());
 									offset = 2;
 								}
 							}
 						} else {
-							value.insert(0, nleft.getValue(stream));
+							value.insert(0, nleft.getValue());
 							offset = 1;
 						}
 					}
 				}
 			}
-		} else if (index < tokens.size() - 1) {
-			Token nright = tokens.get(index + 1);
-			if (nright.isSpecialToken()) {
-				EnumConditionOperator oper = EnumConditionOperator.parse(nright
-						.getToken());
-				if (oper != null) {
-					if (oper == EnumConditionOperator.Add
-							|| oper == EnumConditionOperator.Subtract) {
-						if (index < tokens.size() - 2) {
-							Token opright = tokens.get(index + 2);
-							if (opright.isSpecialToken()) {
-								value.insert(0, nright.getValue(stream));
-								offset = 1;
-							} else if (!isQuotedString(opright)) {
-								String iv = opright.getValue(stream);
-								if (isExponentialString(iv)) {
-									value.append(nright.getValue(stream))
-											.append(iv);
-									offset = 2;
-								}
-							}
-						} else
-							throw new Exception(
-									"Invalid Expression : Trailing ["
-											+ nright.getToken() + "]");
-					}
-				}
-			}
 		}
+		/*
+		 * else if (index < tokens.size() - 1) { Token nright = tokens.get(index
+		 * + 1); if (nright.isSpecialToken()) { EnumConditionOperator oper =
+		 * EnumConditionOperator.parse(nright .getToken()); if (oper != null) {
+		 * if (oper == EnumConditionOperator.Add || oper ==
+		 * EnumConditionOperator.Subtract) { if (index < tokens.size() - 2) {
+		 * Token opright = tokens.get(index + 2); if (opright.isSpecialToken())
+		 * { value.insert(0, nright.getValue()); offset = 1; } else if
+		 * (!isQuotedString(opright)) { String iv = opright.getValue(); if
+		 * (isExponentialString(iv)) {
+		 * value.append(nright.getValue()).append(iv); offset = 2; } } } else
+		 * throw new Exception( "Invalid Expression : Trailing [" +
+		 * nright.getToken() + "]"); } } } }
+		 */
 		return offset;
 	}
 
@@ -238,6 +217,22 @@ public class ConditionParser {
 		return query;
 	}
 
+	private GroupCondition getCurrentGroupCondition(final GroupCondition parent) {
+		QueryCondition qc = parent;
+		while (true) {
+			if (qc instanceof GroupCondition) {
+				if (((GroupCondition) qc).getCondition() != null) {
+					if (((GroupCondition) qc).getCondition() instanceof GroupCondition) {
+						qc = ((GroupCondition) qc).getCondition();
+						continue;
+					}
+				}
+			}
+			break;
+		}
+		return (GroupCondition) qc;
+	}
+
 	/**
 	 * Get the query string associated with this parser.
 	 * 
@@ -249,23 +244,48 @@ public class ConditionParser {
 
 	private boolean isExponentialString(final String value) {
 		char[] buff = value.toCharArray();
+		boolean digitfound = false;
 		for (int ii = 0; ii < buff.length; ii++) {
-			if (!Character.isDigit(buff[ii])) {
+			if (!Character.isDigit(buff[ii]) && digitfound) {
 				if (buff[ii] == 'e' || buff[ii] == 'E') {
 					if (ii == buff.length - 1)
 						return true;
 				}
 				return false;
+			} else {
+				digitfound = true;
 			}
 		}
-		return true;
+		if (digitfound)
+			return true;
+
+		return false;
 	}
 
 	private boolean isQuotedString(final Token tk) throws Exception {
-		String value = tk.getValue(stream);
+		String value = tk.getValue();
 		if (value != null && !value.isEmpty())
 			return quoted.containsKey(value);
 		return false;
+	}
+
+	private boolean isValidArithmeticGroup(final GroupCondition gc) {
+		GroupCondition curr = gc;
+		while (true) {
+			QueryCondition qc = curr.getCondition();
+			if (qc == null) {
+				break;
+			}
+			if (qc instanceof GroupCondition) {
+				curr = (GroupCondition) qc;
+				continue;
+			} else if (!(qc instanceof OperatorCondition))
+				return false;
+			else {
+				break;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -279,7 +299,7 @@ public class ConditionParser {
 
 		// Remove all the quoted strings from the stream
 		StringBuffer qbuff = extractQuotedTokens(carr);
-		stream = qbuff.toString().toCharArray();
+		carr = qbuff.toString().toCharArray();
 
 		Tokenizer tokenizer = new Tokenizer(carr);
 		tokenizer.tokenize();
@@ -313,6 +333,10 @@ public class ConditionParser {
 			addAndOrCondition(ac);
 		} else if (qc instanceof AndCondition || qc instanceof OrCondition) {
 			if (qc.isComplete()) {
+				if (qc.getParent() != null
+						&& qc.getParent() instanceof GroupCondition) {
+					((GroupCondition) qc.getParent()).setCondition(ac);
+				}
 				ac.setLeft(qc);
 				tstack.pop();
 				tstack.push(ac);
@@ -367,6 +391,10 @@ public class ConditionParser {
 				index++;
 				continue;
 			}
+			if (isQuotedString(tk)) {
+				QuotedStringToken qst = quoted.get(tk.getValue());
+				tk = qst;
+			}
 			parts.add(tk);
 			index++;
 		}
@@ -380,18 +408,25 @@ public class ConditionParser {
 		if (qc instanceof OperatorCondition) {
 			oc = (OperatorCondition) qc;
 
-		} else if (qc instanceof AndCondition) {
-			AndCondition ac = (AndCondition) qc;
-			if (ac.getRight() != null) {
-				if (ac.getRight() instanceof OperatorCondition) {
-					oc = (OperatorCondition) ac.getRight();
-				}
+		} else {
+			if (qc instanceof GroupCondition) {
+				GroupCondition gc = getCurrentGroupCondition((GroupCondition) qc);
+				qc = gc.getCondition();
 			}
-		} else if (qc instanceof OrCondition) {
-			OrCondition orc = (OrCondition) qc;
-			if (orc.getRight() != null) {
-				if (orc.getRight() instanceof OperatorCondition) {
-					oc = (OperatorCondition) orc.getRight();
+			if (qc instanceof AndCondition) {
+
+				AndCondition ac = (AndCondition) qc;
+				if (ac.getRight() != null) {
+					if (ac.getRight() instanceof OperatorCondition) {
+						oc = (OperatorCondition) ac.getRight();
+					}
+				}
+			} else if (qc instanceof OrCondition) {
+				OrCondition orc = (OrCondition) qc;
+				if (orc.getRight() != null) {
+					if (orc.getRight() instanceof OperatorCondition) {
+						oc = (OperatorCondition) orc.getRight();
+					}
 				}
 			}
 		}
@@ -411,17 +446,14 @@ public class ConditionParser {
 		Token tk = tokens.get(index);
 
 		EnumConditionOperator oper = EnumConditionOperator.parse(tk.getToken());
-		if (oper == EnumConditionOperator.Add
-				|| oper == EnumConditionOperator.Subtract) {
-			if (!shouldProcessSignOperator(index))
-				return;
-		}
+
 		OperatorCondition oc = new OperatorCondition();
 		QueryCondition qc = tstack.peek();
 		if (qc instanceof GroupCondition) {
-			GroupCondition gc = (GroupCondition) qc;
+			GroupCondition gc = getCurrentGroupCondition((GroupCondition) qc);
 			qc = gc.getCondition();
 		}
+
 		if (qc instanceof OrCondition) {
 			OrCondition orc = (OrCondition) qc;
 			if (orc.getRight() == null) {
@@ -440,17 +472,28 @@ public class ConditionParser {
 						"Invalid Operator Condition : Cannot be joined to condition on stack.");
 			oc.setOperator(oper);
 			setOperatorValue(oc, index, true);
-		} else if (qc instanceof OperatorCondition) {
-			OperatorCondition loc = (OperatorCondition) qc;
-			oc.setLeft(loc);
-			oc.setOperator(oper);
-			tstack.pop();
-			tstack.push(oc);
 		} else {
 			oc.setOperator(oper);
 			setOperatorValue(oc, index, true);
 			tstack.push(oc);
 		}
+
+	}
+
+	private void processOperatorArithmetic(final int index) throws Exception {
+		Token tk = tokens.get(index);
+
+		EnumConditionOperator oper = EnumConditionOperator.parse(tk.getToken());
+		if (oper == EnumConditionOperator.Add
+				|| oper == EnumConditionOperator.Subtract) {
+			if (!shouldProcessSignOperator(index))
+				return;
+		}
+
+		ArithmeticOperatorCondition oc = new ArithmeticOperatorCondition();
+		oc.setOperator(oper);
+
+		QueryCondition qc = tstack.peek();
 
 	}
 
@@ -473,6 +516,10 @@ public class ConditionParser {
 			addAndOrCondition(oc);
 		} else if (qc instanceof AndCondition || qc instanceof OrCondition) {
 			if (qc.isComplete()) {
+				if (qc.getParent() != null
+						&& qc.getParent() instanceof GroupCondition) {
+					((GroupCondition) qc.getParent()).setCondition(oc);
+				}
 				oc.setLeft(qc);
 				tstack.pop();
 				tstack.push(oc);
@@ -490,6 +537,9 @@ public class ConditionParser {
 				// Open braces
 				if (tk.isOpenBrace()) {
 					processGroupCondition(index);
+					if (query == null) {
+						query = tstack.peek();
+					}
 				} else if (tk.isCloseBrace()) {
 					QueryCondition qc = tstack.peek();
 					if (qc instanceof GroupCondition) {
@@ -528,9 +578,11 @@ public class ConditionParser {
 					index = processList(index);
 				} else if (tk.isOperator()) {
 					processOperator(index);
+				} else if (tk.isArithmeticOperator()) {
+					processOperatorArithmetic(index);
 				}
 			} else {
-				String value = tk.getValue(stream);
+				String value = tk.getValue();
 				if (value == null || value.isEmpty()) {
 					continue;
 				}
@@ -541,35 +593,46 @@ public class ConditionParser {
 
 	private int processValue(final int index) throws Exception {
 		QueryCondition qc = tstack.peek();
+
 		if (qc instanceof OperatorCondition) {
 			OperatorCondition oc = (OperatorCondition) qc;
 			return setOperatorValue(oc, index, false);
-		} else if (qc instanceof AndCondition) {
-			AndCondition anc = (AndCondition) qc;
-			if (anc.getRight() != null) {
-				if (anc.getRight() instanceof OperatorCondition) {
-					OperatorCondition oc = (OperatorCondition) anc.getRight();
-					return setOperatorValue(oc, index, false);
-				} else
-					throw new Exception(
-							"Invalid Operator Condition : Condition on stack cannot absorb value.");
+		} else {
+			if (qc instanceof GroupCondition) {
+				GroupCondition gc = getCurrentGroupCondition((GroupCondition) qc);
+				qc = gc.getCondition();
 			}
-		} else if (qc instanceof OrCondition) {
-			OrCondition orc = (OrCondition) qc;
-			if (orc.getRight() != null) {
-				if (orc.getRight() instanceof OperatorCondition) {
-					OperatorCondition oc = (OperatorCondition) orc.getRight();
-					return setOperatorValue(oc, index, false);
-				} else
-					throw new Exception(
-							"Invalid Operator Condition : Condition on stack cannot absorb value.");
+			if (qc != null) {
+				if (qc instanceof AndCondition) {
+					AndCondition anc = (AndCondition) qc;
+					if (anc.getRight() != null) {
+						if (anc.getRight() instanceof OperatorCondition) {
+							OperatorCondition oc = (OperatorCondition) anc
+									.getRight();
+							return setOperatorValue(oc, index, false);
+						} else
+							throw new Exception(
+									"Invalid Operator Condition : Condition on stack cannot absorb value.");
+					}
+				} else if (qc instanceof OrCondition) {
+					OrCondition orc = (OrCondition) qc;
+					if (orc.getRight() != null) {
+						if (orc.getRight() instanceof OperatorCondition) {
+							OperatorCondition oc = (OperatorCondition) orc
+									.getRight();
+							return setOperatorValue(oc, index, false);
+						} else
+							throw new Exception(
+									"Invalid Operator Condition : Condition on stack cannot absorb value.");
+					}
+				}
 			}
 		}
 		return 0;
 	}
 
-	private int setOperatorValue(final OperatorCondition oc, int index,
-			final boolean left) throws Exception {
+	private int setArithmeticValue(final ArithmeticOperatorCondition oc,
+			int index, final boolean left) throws Exception {
 		if (left) {
 			index--;
 		}
@@ -579,15 +642,15 @@ public class ConditionParser {
 			throw new Exception(
 					"Condition Parse Error : Expected value/column token. Found operator token.");
 
-		StringBuffer value = new StringBuffer(tk.getValue(stream));
+		StringBuffer value = new StringBuffer(tk.getValue());
 		Condition vcond = null;
 		if (isQuotedString(tk)) {
 			QuotedStringToken qst = quoted.get(value.toString());
 			// Passing NULL works here as the quoted string is supposed to
 			// contain the replaced value.
-			vcond = new ConditionValue(qst.getValue(null));
+			vcond = new ConditionValue(qst.getValue());
 		} else {
-			incr = checkValueExpansion(value, index, !left);
+			incr = checkValueExpansion(value, index);
 			Double dval = checkNumeric(value.toString());
 			if (dval != null) {
 				vcond = new ConditionValue(dval);
@@ -602,10 +665,54 @@ public class ConditionParser {
 						"Condition Parse Error : Expression already has a left value.");
 			oc.setLeft(vcond);
 		} else {
-			if (oc.getRight() != null)
+			if (oc.getRight() != null) {
+
+			} else {
+				oc.setRight(vcond);
+			}
+		}
+		return incr;
+	}
+
+	private int setOperatorValue(final OperatorCondition oc, int index,
+			final boolean left) throws Exception {
+		if (left) {
+			index--;
+		}
+		int incr = 0;
+		Token tk = tokens.get(index);
+		if (tk.isSpecialToken())
+			throw new Exception(
+					"Condition Parse Error : Expected value/column token. Found operator token.");
+
+		StringBuffer value = new StringBuffer(tk.getValue());
+		Condition vcond = null;
+		if (isQuotedString(tk)) {
+			QuotedStringToken qst = quoted.get(value.toString());
+			// Passing NULL works here as the quoted string is supposed to
+			// contain the replaced value.
+			vcond = new ConditionValue(qst.getValue());
+		} else {
+			incr = checkValueExpansion(value, index);
+			Double dval = checkNumeric(value.toString());
+			if (dval != null) {
+				vcond = new ConditionValue(dval);
+			} else {
+				vcond = new ConditionAttribute();
+				((ConditionAttribute) vcond).setRawvalue(value.toString());
+			}
+		}
+		if (left) {
+			if (oc.getLeft() != null)
 				throw new Exception(
 						"Condition Parse Error : Expression already has a left value.");
-			oc.setRight(vcond);
+			oc.setLeft(vcond);
+		} else {
+			if (oc.getRight() != null) {
+
+			} else {
+				oc.setRight(vcond);
+			}
 		}
 		return incr;
 	}
@@ -616,7 +723,7 @@ public class ConditionParser {
 			return false;
 		if (!isQuotedString(tk)) {
 			Token nleft = tokens.get(index - 2);
-			String value = nleft.getValue(stream);
+			String value = nleft.getValue();
 			if (isExponentialString(value))
 				return false;
 		}

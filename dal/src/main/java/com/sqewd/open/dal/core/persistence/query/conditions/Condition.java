@@ -27,5 +27,17 @@ package com.sqewd.open.dal.core.persistence.query.conditions;
  * 
  */
 public interface Condition {
+	/**
+	 * Get the parent condition this is embedded in.
+	 * 
+	 * @return
+	 */
+	public Condition getParent();
 
+	/**
+	 * Set the parent condition this is embedded in.
+	 * 
+	 * @param parent
+	 */
+	public void setParent(Condition parent);
 }

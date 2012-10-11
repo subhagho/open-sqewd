@@ -33,11 +33,24 @@ public class ConditionValue implements Condition {
 
 	protected SchemaObjectDatatype<?> type = null;
 
+	protected Condition parent;
+
 	public ConditionValue() {
 	}
 
 	public ConditionValue(final Object value) {
 		this.value = value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#getParent
+	 * ()
+	 */
+	public Condition getParent() {
+		return parent;
 	}
 
 	/**
@@ -54,6 +67,17 @@ public class ConditionValue implements Condition {
 		return value;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#setParent
+	 * (com.sqewd.open.dal.core.persistence.query.conditions.Condition)
+	 */
+	public void setParent(final Condition parent) {
+		this.parent = parent;
+	}
+
 	/**
 	 * @param type
 	 *            the type to set
@@ -68,6 +92,19 @@ public class ConditionValue implements Condition {
 	 */
 	public void setValue(final Object value) {
 		this.value = value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		if (value != null)
+			return value.toString();
+		else
+			return "<NULL>";
 	}
 
 }

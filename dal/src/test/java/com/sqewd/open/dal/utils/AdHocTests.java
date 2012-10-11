@@ -31,14 +31,15 @@ public class AdHocTests {
 	public static void main(final String[] args) {
 
 		try {
-			String query = "   (A.B ==    123123e-123 ; X >= +123),(THIS LIKE 'who' , THIS between[\"P\":\"X\"]);   NAME IN ['A':'B':'C']; NAME != 'whocares'";
+			String query = " NAME in ['as', 'ab', 'sc'] ,  (A.B ==  A.C + (1823 / 737646 - (ABC.X + 4555f)) *  123123e-64, (X.A == 'YYYY' ; (X.B == 12837 , (X.C == '123' ; x.P > 999))) ; X >= +123),(THIS LIKE 'who' , THIS between[\"P\",\"X\"]);  NAME IN ['A','B','C'], (NAME != 'whocares'), X.V.B == 9887f";
 			// String query = "sort ASASDSD asc";
 
 			ConditionParser parser = new ConditionParser(query);
 			parser.parse();
 
 			QueryCondition qc = parser.get();
-
+			System.out.println("ORIGINAL[" + query + "]");
+			System.out.println("PARSED  [" + qc.toString() + "]");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

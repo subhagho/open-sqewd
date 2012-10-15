@@ -35,6 +35,8 @@ public class OperatorCondition implements QueryCondition {
 
 	protected Condition parent;
 
+	protected boolean consumed = false;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -90,6 +92,21 @@ public class OperatorCondition implements QueryCondition {
 		if (left != null && right != null && operator != null)
 			return true;
 		return false;
+	}
+
+	/**
+	 * @return the consumed
+	 */
+	public boolean isConsumed() {
+		return consumed;
+	}
+
+	/**
+	 * @param consumed
+	 *            the consumed to set
+	 */
+	public void setConsumed(final boolean consumed) {
+		this.consumed = consumed;
 	}
 
 	/**

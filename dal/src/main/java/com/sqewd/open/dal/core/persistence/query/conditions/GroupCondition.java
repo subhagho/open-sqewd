@@ -74,6 +74,17 @@ public class GroupCondition implements QueryCondition {
 	}
 
 	/**
+	 * Indicates the current GroupCondition is the root condition.
+	 * 
+	 * @return
+	 */
+	public boolean isRootCondition() {
+		if (parent == null)
+			return true;
+		return false;
+	}
+
+	/**
 	 * Set the Group condition as parse complete. Essentially brace has been
 	 * closed. Only relevant to the parser.
 	 * 

@@ -35,6 +35,8 @@ public class ArithmeticOperatorCondition implements QueryCondition {
 
 	protected Condition parent;
 
+	protected boolean consumed = false;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -93,6 +95,21 @@ public class ArithmeticOperatorCondition implements QueryCondition {
 	}
 
 	/**
+	 * @return the consumed
+	 */
+	public boolean isConsumed() {
+		return consumed;
+	}
+
+	/**
+	 * @param consumed
+	 *            the consumed to set
+	 */
+	public void setConsumed(final boolean consumed) {
+		this.consumed = consumed;
+	}
+
+	/**
 	 * @param left
 	 *            the left to set
 	 */
@@ -102,8 +119,10 @@ public class ArithmeticOperatorCondition implements QueryCondition {
 	}
 
 	/**
+	 * Set the Arithmetic operator.
+	 * 
 	 * @param operator
-	 *            the operator to set
+	 * @throws Exception
 	 */
 	public void setOperator(final EnumConditionOperator operator)
 			throws Exception {

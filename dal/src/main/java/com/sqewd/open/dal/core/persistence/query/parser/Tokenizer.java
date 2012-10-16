@@ -153,6 +153,7 @@ public class Tokenizer {
 			tk = new Token();
 			tk.setStartIndex(lastoffset);
 			tk.setEndIndex(buffer.length);
+			tk.setValue(buffer);
 			tokens.add(tk);
 		}
 	}

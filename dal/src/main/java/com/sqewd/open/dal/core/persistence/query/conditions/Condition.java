@@ -27,12 +27,22 @@ package com.sqewd.open.dal.core.persistence.query.conditions;
  * 
  */
 public interface Condition {
+	public static final String _OFFSET_CHAR_ = " ";
+
 	/**
 	 * Get the parent condition this is embedded in.
 	 * 
 	 * @return
 	 */
 	public Condition getParent();
+
+	/**
+	 * Pretty print the query in a tree format.
+	 * 
+	 * @param offset
+	 * @return
+	 */
+	public String prettyPrint(int offset);
 
 	/**
 	 * Set the parent condition this is embedded in.

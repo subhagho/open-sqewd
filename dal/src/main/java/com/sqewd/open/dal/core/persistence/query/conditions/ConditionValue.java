@@ -71,6 +71,17 @@ public class ConditionValue implements Condition {
 	 * (non-Javadoc)
 	 * 
 	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#prettyPrint
+	 * (int)
+	 */
+	public String prettyPrint(final int offset) {
+		return toString();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
 	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#setParent
 	 * (com.sqewd.open.dal.core.persistence.query.conditions.Condition)
 	 */

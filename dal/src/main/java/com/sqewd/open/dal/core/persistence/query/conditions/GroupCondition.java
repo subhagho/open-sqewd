@@ -84,6 +84,27 @@ public class GroupCondition implements QueryCondition {
 		return false;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#prettyPrint
+	 * (int)
+	 */
+	public String prettyPrint(final int offset) {
+		StringBuffer buff = new StringBuffer();
+		for (int ii = 0; ii < offset; ii++) {
+			buff.append(_OFFSET_CHAR_);
+		}
+		buff.append("(\n");
+		buff.append(condition.prettyPrint(offset + 1));
+		for (int ii = 0; ii < offset; ii++) {
+			buff.append(_OFFSET_CHAR_);
+		}
+		buff.append(")\n");
+		return buff.toString();
+	}
+
 	/**
 	 * Set the Group condition as parse complete. Essentially brace has been
 	 * closed. Only relevant to the parser.

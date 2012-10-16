@@ -67,6 +67,17 @@ public class ConditionAttribute implements Condition {
 		return rawvalue;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#prettyPrint
+	 * (int)
+	 */
+	public String prettyPrint(final int offset) {
+		return toString();
+	}
+
 	/**
 	 * @param attribute
 	 *            the attribute to set

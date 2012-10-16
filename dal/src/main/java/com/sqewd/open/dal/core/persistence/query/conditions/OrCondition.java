@@ -94,6 +94,24 @@ public class OrCondition implements QueryCondition {
 		return false;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#prettyPrint
+	 * (int)
+	 */
+	public String prettyPrint(final int offset) {
+		StringBuffer buff = new StringBuffer();
+		buff.append(left.prettyPrint(offset + 6));
+		for (int ii = 0; ii < offset; ii++) {
+			buff.append(_OFFSET_CHAR_);
+		}
+		buff.append("--OR--|\n");
+		buff.append(right.prettyPrint(offset + 6));
+		return buff.toString();
+	}
+
 	/**
 	 * @param left
 	 *            the left to set

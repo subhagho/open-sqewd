@@ -101,6 +101,17 @@ public class ArithmeticOperatorCondition implements QueryCondition {
 		return consumed;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#prettyPrint
+	 * (int)
+	 */
+	public String prettyPrint(final int offset) {
+		return toString();
+	}
+
 	/**
 	 * @param consumed
 	 *            the consumed to set

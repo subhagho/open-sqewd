@@ -101,6 +101,22 @@ public class OperatorCondition implements QueryCondition {
 		return consumed;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.conditions.Condition#prettyPrint
+	 * (int)
+	 */
+	public String prettyPrint(final int offset) {
+		StringBuffer buff = new StringBuffer();
+		for (int ii = 0; ii < offset; ii++) {
+			buff.append(_OFFSET_CHAR_);
+		}
+		buff.append("|--").append(toString()).append("\n");
+		return buff.toString();
+	}
+
 	/**
 	 * @param consumed
 	 *            the consumed to set

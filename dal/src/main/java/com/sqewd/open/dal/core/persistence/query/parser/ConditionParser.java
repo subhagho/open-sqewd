@@ -78,8 +78,6 @@ public class ConditionParser {
 			throws Exception {
 		int offset = 0;
 
-		boolean processed = false;
-
 		if (index > 0) {
 			// Check if number of type +/-<number>
 			Token ltk = tokens.get(index - 1);
@@ -92,41 +90,38 @@ public class ConditionParser {
 						// Starts with +<number>
 						if (index == 1) {
 							output.insert(0, ltk.getToken());
-							processed = true;
 						} else if (index > 1) {
 							// Check exponential value.
 							if (isExponentialString(index - 1)) {
 								Token lltk = tokens.get(index - 2);
 								output.insert(0, ltk.getToken());
 								output.insert(0, lltk.getValue());
-								processed = true;
 							}
 						}
 					}
 				}
 			}
 		}
-		if (!processed) {
-			// Check if right is an exponent.
-			if (index < tokens.size() - 2) {
-				Token rtk = tokens.get(index + 1);
-				if (rtk.isArithmeticOperator()) {
-					EnumConditionOperator oper = EnumConditionOperator
-							.parse(rtk.getToken());
-					if (oper != null) {
-						if (oper == EnumConditionOperator.Add
-								|| oper == EnumConditionOperator.Subtract) {
-							if (isExponentialString(index + 1)) {
-								Token rrtk = tokens.get(index + 2);
-								output.append(rtk.getToken()).append(
-										rrtk.getValue());
-								offset += 2;
-							}
+		// Check if right is an exponent.
+		if (index < tokens.size() - 2) {
+			Token rtk = tokens.get(index + 1);
+			if (rtk.isArithmeticOperator()) {
+				EnumConditionOperator oper = EnumConditionOperator.parse(rtk
+						.getToken());
+				if (oper != null) {
+					if (oper == EnumConditionOperator.Add
+							|| oper == EnumConditionOperator.Subtract) {
+						if (isExponentialString(index + 1)) {
+							Token rrtk = tokens.get(index + 2);
+							output.append(rtk.getToken()).append(
+									rrtk.getValue());
+							offset += 2;
 						}
 					}
 				}
 			}
 		}
+
 		return offset;
 	}
 
@@ -153,17 +148,18 @@ public class ConditionParser {
 		for (int index = 0; index < stream.length; index++) {
 			char cc = stream[index];
 			if (qt == null) {
-				if (cc == '"' || cc == '\'')
-					if (stream[index - 1] != '\\') {
+				if (cc == '"' || cc == '\'') {
+					if (index == 0 || stream[index - 1] != '\\') {
 						qt = new QuotedStringToken(cc);
 						qt.setStartIndex(index);
 						quoted.put(qt.getKey(), qt);
 						qs = new StringBuffer();
 						continue;
 					}
+				}
 			} else if (qt != null) {
 				if (cc == qt.getQuote()) {
-					if (stream[index - 1] != '\\') {
+					if (index == 0 || stream[index - 1] != '\\') {
 						qt.setEndIndex(index);
 						qt.setValue(qs.toString());
 						buff.append(qt.getKey());
@@ -224,6 +220,30 @@ public class ConditionParser {
 		return querystr;
 	}
 
+	private QueryCondition getStackCondition() throws Exception {
+		QueryCondition qc = null;
+		while (true) {
+			qc = tstack.peek();
+			if (qc instanceof ArithmeticOperatorCondition) {
+				if (qc.getParent() != null) {
+					tstack.pop();
+				} else
+					throw new Exception(
+							"Orphan Arithmetic condition found on stack.");
+				continue;
+			} else if (qc instanceof GroupCondition) {
+				if (qc.isComplete()) {
+					if (((GroupCondition) qc).getCondition() instanceof ArithmeticOperatorCondition) {
+						tstack.pop();
+						continue;
+					}
+				}
+			}
+			break;
+		}
+		return qc;
+	}
+
 	private boolean isExponentialString(final int index) throws Exception {
 		// Check String is <number>e/E+/-<number>
 		Token ltk = tokens.get(index - 1);
@@ -232,9 +252,9 @@ public class ConditionParser {
 			if (buff[buff.length - 1] == 'e' || buff[buff.length - 1] == 'E') {
 				boolean digitfound = false;
 				for (int ii = buff.length - 2; ii >= 0; ii--) {
-					if (!Character.isDigit(buff[ii]))
+					if (!Character.isDigit(buff[ii]) && buff[ii] != '.')
 						return false;
-					else {
+					else if (Character.isDigit(buff[ii])) {
 						digitfound = true;
 					}
 				}
@@ -285,18 +305,11 @@ public class ConditionParser {
 
 	private void processAndOperator(final int index) throws Exception {
 
-		QueryCondition qc = tstack.peek();
+		QueryCondition qc = getStackCondition();
 		// Check if Condition is already consumed.
 		while (true) {
 			if (qc instanceof OperatorCondition) {
 				if (((OperatorCondition) qc).isConsumed()) {
-					tstack.pop();
-					qc = tstack.peek();
-				} else {
-					break;
-				}
-			} else if (qc instanceof ArithmeticOperatorCondition) {
-				if (((ArithmeticOperatorCondition) qc).isConsumed()) {
 					tstack.pop();
 					qc = tstack.peek();
 				} else {
@@ -312,7 +325,9 @@ public class ConditionParser {
 			if (((GroupCondition) qc).getCondition() == null) {
 				((GroupCondition) qc).setCondition(ac);
 			} else if (qc.isComplete()) {
-				switchParent(ac, qc);
+				if (qc.getParent() != null) {
+					switchParent(ac, qc);
+				}
 				ac.setLeft(qc);
 				tstack.pop();
 			} else {
@@ -348,14 +363,9 @@ public class ConditionParser {
 			} else
 				throw new ParseStackException(
 						"Incomplete Operator Condition found on stack.");
-		} else if (qc instanceof ArithmeticOperatorCondition) {
-			if (qc.isComplete()) {
-				ac.setLeft(qc);
-				tstack.pop();
-			} else
-				throw new ParseStackException(
-						"Incomplete Operator Condition found on stack.");
-		}
+		} else if (qc instanceof ArithmeticOperatorCondition)
+			throw new ParseStackException(
+					"Arithmetic Operator Condition found on stack.");
 		tstack.push(ac);
 	}
 
@@ -488,7 +498,7 @@ public class ConditionParser {
 		EnumConditionOperator oper = EnumConditionOperator.parse(tk.getToken());
 
 		OperatorCondition oc = new OperatorCondition();
-		QueryCondition qc = tstack.peek();
+		QueryCondition qc = getStackCondition();
 		oc.setOperator(oper);
 
 		if (qc instanceof AndCondition) {
@@ -509,11 +519,16 @@ public class ConditionParser {
 			} else if (((GroupCondition) qc).getCondition() instanceof ArithmeticOperatorCondition) {
 				oc.setLeft(((GroupCondition) qc).getCondition());
 				((GroupCondition) qc).setCondition(oc);
+				tstack.pop();
 			} else
 				throw new ParseStackException(
 						"Group condition already occupied");
 		} else if (qc instanceof ArithmeticOperatorCondition) {
+			if (qc.getParent() != null) {
+				switchParent(oc, qc);
+			}
 			oc.setLeft(qc);
+			tstack.pop();
 		} else
 			throw new Exception("Operator Condition not compatible with stack.");
 		if (valueToken != null) {
@@ -574,18 +589,11 @@ public class ConditionParser {
 
 	private void processOrOperator(final int index) throws Exception {
 
-		QueryCondition qc = tstack.peek();
+		QueryCondition qc = getStackCondition();
 		// Check if Condition is already consumed.
 		while (true) {
 			if (qc instanceof OperatorCondition) {
 				if (((OperatorCondition) qc).isConsumed()) {
-					tstack.pop();
-					qc = tstack.peek();
-				} else {
-					break;
-				}
-			} else if (qc instanceof ArithmeticOperatorCondition) {
-				if (((ArithmeticOperatorCondition) qc).isConsumed()) {
 					tstack.pop();
 					qc = tstack.peek();
 				} else {
@@ -601,7 +609,9 @@ public class ConditionParser {
 			if (((GroupCondition) qc).getCondition() == null) {
 				((GroupCondition) qc).setCondition(oc);
 			} else if (qc.isComplete()) {
-				switchParent(oc, qc);
+				if (qc.getParent() != null) {
+					switchParent(oc, qc);
+				}
 				oc.setLeft(qc);
 				tstack.pop();
 			} else {
@@ -634,14 +644,9 @@ public class ConditionParser {
 			} else
 				throw new ParseStackException(
 						"Incomplete Operator Condition found on stack.");
-		} else if (qc instanceof ArithmeticOperatorCondition) {
-			if (qc.isComplete()) {
-				oc.setLeft(qc);
-				tstack.pop();
-			} else
-				throw new ParseStackException(
-						"Incomplete Operator Condition found on stack.");
-		}
+		} else if (qc instanceof ArithmeticOperatorCondition)
+			throw new ParseStackException(
+					"Arithmetic Operator Condition found on stack.");
 		tstack.push(oc);
 	}
 
@@ -748,6 +753,16 @@ public class ConditionParser {
 						throw new Exception(
 								"Invalid Parent set : Nither Left nor Right condition matches the FROM node.");
 				} else if (parent instanceof ArithmeticOperatorCondition) {
+					Condition pparent = parent.getParent();
+					if (pparent instanceof ArithmeticException) {
+						switchParent(to, (QueryCondition) pparent);
+						return;
+					} else if (pparent instanceof GroupCondition) {
+						if (((GroupCondition) pparent).isComplete()) {
+							switchParent(to, (QueryCondition) pparent);
+							return;
+						}
+					}
 					if (((ArithmeticOperatorCondition) parent).getLeft()
 							.equals(from)) {
 						((ArithmeticOperatorCondition) parent).setLeft(to);

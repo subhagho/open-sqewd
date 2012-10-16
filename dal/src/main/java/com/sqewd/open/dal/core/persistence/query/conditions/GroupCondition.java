@@ -63,6 +63,22 @@ public class GroupCondition implements QueryCondition {
 		return parent;
 	}
 
+	/**
+	 * Check if this group condition is a group of Arithmetic operations.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean isArithmeticGroup() throws Exception {
+		if (condition != null) {
+			if (getCondition() instanceof ArithmeticOperatorCondition)
+				return true;
+			else if (getCondition() instanceof GroupCondition)
+				return isArithmeticGroup();
+		}
+		return true;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -144,5 +160,4 @@ public class GroupCondition implements QueryCondition {
 		return "(" + (condition != null ? condition.toString() : "<NULL>")
 				+ ")";
 	}
-
 }

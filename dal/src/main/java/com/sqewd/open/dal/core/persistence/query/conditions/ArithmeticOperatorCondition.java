@@ -124,9 +124,19 @@ public class ArithmeticOperatorCondition implements QueryCondition {
 	 * @param left
 	 *            the left to set
 	 */
-	public void setLeft(final Condition left) {
-		left.setParent(this);
-		this.left = left;
+	public void setLeft(final Condition left) throws Exception {
+		if (left instanceof ArithmeticOperatorCondition
+				|| left instanceof ConditionAttribute
+				|| left instanceof ConditionValue) {
+			left.setParent(this);
+			this.left = left;
+		} else if (left instanceof GroupCondition
+				&& ((GroupCondition) left).isArithmeticGroup()) {
+			left.setParent(this);
+			this.left = left;
+		} else
+			throw new Exception("Condition of type ["
+					+ right.getClass().getCanonicalName() + "] not supported.");
 	}
 
 	/**
@@ -160,9 +170,19 @@ public class ArithmeticOperatorCondition implements QueryCondition {
 	 * @param right
 	 *            the right to set
 	 */
-	public void setRight(final Condition right) {
-		right.setParent(this);
-		this.right = right;
+	public void setRight(final Condition right) throws Exception {
+		if (right instanceof ArithmeticOperatorCondition
+				|| right instanceof ConditionAttribute
+				|| right instanceof ConditionValue) {
+			right.setParent(this);
+			this.right = right;
+		} else if (right instanceof GroupCondition
+				&& ((GroupCondition) right).isArithmeticGroup()) {
+			right.setParent(this);
+			this.right = right;
+		} else
+			throw new Exception("Condition of type ["
+					+ right.getClass().getCanonicalName() + "] not supported.");
 	}
 
 	/*

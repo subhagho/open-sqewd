@@ -516,7 +516,7 @@ public class ConditionParser {
 		} else if (qc instanceof GroupCondition) {
 			if (((GroupCondition) qc).getCondition() == null) {
 				((GroupCondition) qc).setCondition(oc);
-			} else if (((GroupCondition) qc).getCondition() instanceof ArithmeticOperatorCondition) {
+			} else if (((GroupCondition) qc).isArithmeticGroup()) {
 				oc.setLeft(((GroupCondition) qc).getCondition());
 				((GroupCondition) qc).setCondition(oc);
 				tstack.pop();

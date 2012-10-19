@@ -34,12 +34,14 @@ public class SchemaReferenceType extends SchemaObjectDatatype<SchemaObject> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
-	 * java.lang.String)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
+	 * (java.lang.Object, java.util.List)
 	 */
 	@Override
-	public SchemaObject parse(final String value) throws Exception {
-		throw new Exception("Parse not implemented for SchemaObject type.");
+	public boolean between(final SchemaObject source,
+			final List<SchemaObject> target) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	/*
@@ -72,6 +74,45 @@ public class SchemaReferenceType extends SchemaObjectDatatype<SchemaObject> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
+	 * .lang.Object, java.util.List)
+	 */
+	@Override
+	public boolean in(final SchemaObject source, final List<SchemaObject> target) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNotNull(final SchemaObject source) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNull(final SchemaObject source) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
 	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#lessThan
 	 * (java.lang.Object, java.lang.Object)
 	 */
@@ -92,6 +133,18 @@ public class SchemaReferenceType extends SchemaObjectDatatype<SchemaObject> {
 	public boolean lessThanEqual(final SchemaObject source,
 			final SchemaObject target) {
 		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final SchemaObject source, final SchemaObject target) {
 		return false;
 	}
 
@@ -139,117 +192,12 @@ public class SchemaReferenceType extends SchemaObjectDatatype<SchemaObject> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
-	 * .lang.Object, java.util.List)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
+	 * java.lang.String)
 	 */
 	@Override
-	public boolean in(final SchemaObject source, final List<SchemaObject> target) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
-	 * (java.lang.Object, java.util.List)
-	 */
-	@Override
-	public boolean between(final SchemaObject source,
-			final List<SchemaObject> target) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
-	 * (java.lang.Object)
-	 */
-	@Override
-	public boolean isNull(final SchemaObject source) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
-	 * (java.lang.Object)
-	 */
-	@Override
-	public boolean isNotNull(final SchemaObject source) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public SchemaObject add(final SchemaObject source, final SchemaObject value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#subtract
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public SchemaObject subtract(final SchemaObject source,
-			final SchemaObject value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public SchemaObject multiply(final SchemaObject source,
-			final SchemaObject value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public SchemaObject divide(final SchemaObject source,
-			final SchemaObject value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean like(final SchemaObject source, final SchemaObject target) {
-		return false;
+	public SchemaObject parse(final String value) throws Exception {
+		throw new Exception("Parse not implemented for SchemaObject type.");
 	}
 
 	/*

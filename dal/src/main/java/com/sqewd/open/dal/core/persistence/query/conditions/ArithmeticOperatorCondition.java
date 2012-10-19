@@ -150,7 +150,9 @@ public class ArithmeticOperatorCondition implements QueryCondition {
 		if (operator != EnumConditionOperator.Add
 				&& operator != EnumConditionOperator.Subtract
 				&& operator != EnumConditionOperator.Multiply
-				&& operator != EnumConditionOperator.Divide)
+				&& operator != EnumConditionOperator.Divide
+				&& operator != EnumConditionOperator.Pow
+				&& operator != EnumConditionOperator.Mod)
 			throw new Exception("Should be an arithmetic operator.");
 		this.operator = operator;
 	}

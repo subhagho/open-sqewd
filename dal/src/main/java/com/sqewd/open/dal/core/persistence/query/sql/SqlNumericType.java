@@ -25,24 +25,43 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
 
+import com.sqewd.open.dal.api.reflect.SchemaNumericDatatype;
+
 /**
  * Represents a SQL NUMERIC type.
  * 
  * @author subhagho
  * 
  */
-public class SqlNumericType extends SqlDataType<BigDecimal> {
+public class SqlNumericType extends SqlDataType<BigDecimal> implements
+		SchemaNumericDatatype<BigDecimal> {
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
-	 * java.lang.String)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	public BigDecimal add(final BigDecimal source, final BigDecimal value) {
+		return source.add(value);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
+	 * (java.lang.Object, java.util.List)
 	 */
 	@Override
-	public BigDecimal parse(final String value) throws Exception {
-		return new BigDecimal(value);
+	public boolean between(final BigDecimal source,
+			final List<BigDecimal> target) {
+		int rl = compare(source, target.get(0));
+		int rr = compare(source, target.get(1));
+		if (rl > 0 && rr < 0)
+			return true;
+		return false;
 	}
 
 	/*
@@ -60,24 +79,27 @@ public class SqlNumericType extends SqlDataType<BigDecimal> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see java.lang.Object#toString()
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
+	 * (java.lang.Object, java.lang.Object)
 	 */
-	@Override
-	public String toString() {
-		return "NUMERIC";
+	public BigDecimal divide(final BigDecimal source, final BigDecimal value) {
+		return source.divide(value);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
-	 * .sql.PreparedStatement, int, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
+	 * (java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void setValue(final PreparedStatement pstmnt, final int index,
-			final BigDecimal value) throws Exception {
-		pstmnt.setBigDecimal(index, value);
+	public boolean equals(final BigDecimal source, final BigDecimal target) {
+		int ret = compare(source, target);
+		if (ret == 0)
+			return true;
+		return false;
 	}
 
 	/*
@@ -110,15 +132,41 @@ public class SqlNumericType extends SqlDataType<BigDecimal> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
-	 * (java.lang.Object, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
+	 * .lang.Object, java.util.List)
 	 */
 	@Override
-	public boolean equals(final BigDecimal source, final BigDecimal target) {
-		int ret = compare(source, target);
-		if (ret == 0)
-			return true;
+	public boolean in(final BigDecimal source, final List<BigDecimal> target) {
+		for (BigDecimal bd : target) {
+			int ret = compare(source, bd);
+			if (ret == 0)
+				return true;
+		}
 		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNotNull(final BigDecimal source) {
+		return source != null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNull(final BigDecimal source) {
+		return source == null;
 	}
 
 	/*
@@ -156,6 +204,29 @@ public class SqlNumericType extends SqlDataType<BigDecimal> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final BigDecimal source, final BigDecimal target) {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.reflect.SchemaNumericDatatype#mod(java.lang.Object
+	 * , java.lang.Object)
+	 */
+	public BigDecimal mod(final BigDecimal source, final BigDecimal value) {
+		return source.divide(value).abs();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
 	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#moreThan
 	 * (java.lang.Object, java.lang.Object)
 	 */
@@ -187,6 +258,17 @@ public class SqlNumericType extends SqlDataType<BigDecimal> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	public BigDecimal multiply(final BigDecimal source, final BigDecimal value) {
+		return source.multiply(value);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
 	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#notEqual
 	 * (java.lang.Object, java.lang.Object)
 	 */
@@ -202,70 +284,36 @@ public class SqlNumericType extends SqlDataType<BigDecimal> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
-	 * .lang.Object, java.util.List)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
+	 * java.lang.String)
 	 */
 	@Override
-	public boolean in(final BigDecimal source, final List<BigDecimal> target) {
-		for (BigDecimal bd : target) {
-			int ret = compare(source, bd);
-			if (ret == 0)
-				return true;
-		}
-		return false;
+	public BigDecimal parse(final String value) throws Exception {
+		return new BigDecimal(value);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
-	 * (java.lang.Object, java.util.List)
+	 * com.sqewd.open.dal.api.reflect.SchemaNumericDatatype#pow(java.lang.Object
+	 * , java.lang.Object)
 	 */
-	@Override
-	public boolean between(final BigDecimal source,
-			final List<BigDecimal> target) {
-		int rl = compare(source, target.get(0));
-		int rr = compare(source, target.get(1));
-		if (rl > 0 && rr < 0)
-			return true;
-		return false;
+	public BigDecimal pow(final BigDecimal source, final BigDecimal value) {
+		return source.pow(value.intValue());
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
-	 * (java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
+	 * .sql.PreparedStatement, int, java.lang.Object)
 	 */
 	@Override
-	public boolean isNull(final BigDecimal source) {
-		return (source == null);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
-	 * (java.lang.Object)
-	 */
-	@Override
-	public boolean isNotNull(final BigDecimal source) {
-		return (source != null);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public BigDecimal add(final BigDecimal source, final BigDecimal value) {
-		return source.add(value);
+	public void setValue(final PreparedStatement pstmnt, final int index,
+			final BigDecimal value) throws Exception {
+		pstmnt.setBigDecimal(index, value);
 	}
 
 	/*
@@ -275,7 +323,6 @@ public class SqlNumericType extends SqlDataType<BigDecimal> {
 	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#subtract
 	 * (java.lang.Object, java.lang.Object)
 	 */
-	@Override
 	public BigDecimal subtract(final BigDecimal source, final BigDecimal value) {
 		return source.subtract(value);
 	}
@@ -283,37 +330,11 @@ public class SqlNumericType extends SqlDataType<BigDecimal> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
-	 * (java.lang.Object, java.lang.Object)
+	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public BigDecimal multiply(final BigDecimal source, final BigDecimal value) {
-		return source.multiply(value);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public BigDecimal divide(final BigDecimal source, final BigDecimal value) {
-		return source.divide(value);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean like(final BigDecimal source, final BigDecimal target) {
-		return false;
+	public String toString() {
+		return "NUMERIC";
 	}
 
 	/*

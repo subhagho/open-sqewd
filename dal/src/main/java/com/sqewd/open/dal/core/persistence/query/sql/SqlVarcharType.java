@@ -36,12 +36,16 @@ public class SqlVarcharType extends SqlDataType<String> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
-	 * java.lang.String)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
+	 * (java.lang.Object, java.util.List)
 	 */
 	@Override
-	public String parse(final String value) throws Exception {
-		return value;
+	public boolean between(final String source, final List<String> target) {
+		int rl = compare(source, target.get(0));
+		int rr = compare(source, target.get(1));
+		if (rl > 0 && rr < 0)
+			return true;
+		return false;
 	}
 
 	/*
@@ -59,24 +63,16 @@ public class SqlVarcharType extends SqlDataType<String> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "VARCHAR";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
-	 * .sql.PreparedStatement, int, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
+	 * (java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void setValue(final PreparedStatement pstmnt, final int index,
-			final String value) throws Exception {
-		pstmnt.setString(index, value);
+	public boolean equals(final String source, final String target) {
+		int ret = compare(source, target);
+		if (ret == 0)
+			return true;
+		return false;
 	}
 
 	/*
@@ -109,15 +105,41 @@ public class SqlVarcharType extends SqlDataType<String> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
-	 * (java.lang.Object, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
+	 * .lang.Object, java.util.List)
 	 */
 	@Override
-	public boolean equals(final String source, final String target) {
-		int ret = compare(source, target);
-		if (ret == 0)
-			return true;
+	public boolean in(final String source, final List<String> target) {
+		for (String ss : target) {
+			int ret = compare(source, ss);
+			if (ret == 0)
+				return true;
+		}
 		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNotNull(final String source) {
+		return source != null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNull(final String source) {
+		return source == null;
 	}
 
 	/*
@@ -148,6 +170,18 @@ public class SqlVarcharType extends SqlDataType<String> {
 		if (ret <= 0)
 			return true;
 		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final String source, final String target) {
+		return SQLUtils.match(source, target);
 	}
 
 	/*
@@ -199,117 +233,35 @@ public class SqlVarcharType extends SqlDataType<String> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
-	 * .lang.Object, java.util.List)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
+	 * java.lang.String)
 	 */
 	@Override
-	public boolean in(final String source, final List<String> target) {
-		for (String ss : target) {
-			int ret = compare(source, ss);
-			if (ret == 0)
-				return true;
-		}
-		return false;
+	public String parse(final String value) throws Exception {
+		return value;
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
-	 * (java.lang.Object, java.util.List)
+	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
+	 * .sql.PreparedStatement, int, java.lang.Object)
 	 */
 	@Override
-	public boolean between(final String source, final List<String> target) {
-		int rl = compare(source, target.get(0));
-		int rr = compare(source, target.get(1));
-		if (rl > 0 && rr < 0)
-			return true;
-		return false;
+	public void setValue(final PreparedStatement pstmnt, final int index,
+			final String value) throws Exception {
+		pstmnt.setString(index, value);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
-	 * (java.lang.Object)
+	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public boolean isNull(final String source) {
-		return (source == null);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
-	 * (java.lang.Object)
-	 */
-	@Override
-	public boolean isNotNull(final String source) {
-		return (source != null);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public String add(final String source, final String value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#subtract
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public String subtract(final String source, final String value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public String multiply(final String source, final String value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public String divide(final String source, final String value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean like(final String source, final String target) {
-		return SQLUtils.match(source, target);
+	public String toString() {
+		return "VARCHAR";
 	}
 
 	/*

@@ -241,6 +241,14 @@ public class ConditionParser {
 			}
 			break;
 		}
+		// Check if condition is the Root condition.
+		if (qc instanceof GroupCondition) {
+			if (qc.getParent() == null) {
+				if (((GroupCondition) qc).getCondition() != null) {
+					qc = ((GroupCondition) qc).getCondition();
+				}
+			}
+		}
 		return qc;
 	}
 

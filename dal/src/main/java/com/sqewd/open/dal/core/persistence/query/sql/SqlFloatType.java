@@ -24,24 +24,42 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
 
+import com.sqewd.open.dal.api.reflect.SchemaNumericDatatype;
+
 /**
  * Represents a SQL FLOAT type.
  * 
  * @author subhagho
  * 
  */
-public class SqlFloatType extends SqlDataType<Double> {
+public class SqlFloatType extends SqlDataType<Double> implements
+		SchemaNumericDatatype<Double> {
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
-	 * java.lang.String)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	public Double add(final Double source, final Double value) {
+		return source + value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
+	 * (java.lang.Object, java.util.List)
 	 */
 	@Override
-	public Double parse(final String value) throws Exception {
-		return Double.parseDouble(value);
+	public boolean between(final Double source, final List<Double> target) {
+		int rl = compare(source, target.get(0));
+		int rr = compare(source, target.get(1));
+		if (rl > 0 && rr < 0)
+			return true;
+		return false;
 	}
 
 	/*
@@ -59,24 +77,27 @@ public class SqlFloatType extends SqlDataType<Double> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see java.lang.Object#toString()
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
+	 * (java.lang.Object, java.lang.Object)
 	 */
-	@Override
-	public String toString() {
-		return "FLOAT";
+	public Double divide(final Double source, final Double value) {
+		return source / value;
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
-	 * .sql.PreparedStatement, int, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
+	 * (java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void setValue(final PreparedStatement pstmnt, final int index,
-			final Double value) throws Exception {
-		pstmnt.setDouble(index, value);
+	public boolean equals(final Double source, final Double target) {
+		int ret = compare(source, target);
+		if (ret == 0)
+			return true;
+		return false;
 	}
 
 	/*
@@ -109,15 +130,41 @@ public class SqlFloatType extends SqlDataType<Double> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
-	 * (java.lang.Object, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
+	 * .lang.Object, java.util.List)
 	 */
 	@Override
-	public boolean equals(final Double source, final Double target) {
-		int ret = compare(source, target);
-		if (ret == 0)
-			return true;
+	public boolean in(final Double source, final List<Double> target) {
+		for (double dd : target) {
+			int ret = compare(source, dd);
+			if (ret == 0)
+				return false;
+		}
 		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNotNull(final Double source) {
+		return source != null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNull(final Double source) {
+		return source == null;
 	}
 
 	/*
@@ -154,6 +201,29 @@ public class SqlFloatType extends SqlDataType<Double> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final Double source, final Double target) {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.reflect.SchemaNumericDatatype#mod(java.lang.Object
+	 * , java.lang.Object)
+	 */
+	public Double mod(final Double source, final Double value) {
+		return Math.abs(source / value);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
 	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#moreThan
 	 * (java.lang.Object, java.lang.Object)
 	 */
@@ -184,6 +254,17 @@ public class SqlFloatType extends SqlDataType<Double> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	public Double multiply(final Double source, final Double value) {
+		return source * value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
 	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#notEqual
 	 * (java.lang.Object, java.lang.Object)
 	 */
@@ -199,69 +280,36 @@ public class SqlFloatType extends SqlDataType<Double> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
-	 * .lang.Object, java.util.List)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
+	 * java.lang.String)
 	 */
 	@Override
-	public boolean in(final Double source, final List<Double> target) {
-		for (double dd : target) {
-			int ret = compare(source, dd);
-			if (ret == 0)
-				return false;
-		}
-		return false;
+	public Double parse(final String value) throws Exception {
+		return Double.parseDouble(value);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
-	 * (java.lang.Object, java.util.List)
+	 * com.sqewd.open.dal.api.reflect.SchemaNumericDatatype#pow(java.lang.Object
+	 * , java.lang.Object)
 	 */
-	@Override
-	public boolean between(final Double source, final List<Double> target) {
-		int rl = compare(source, target.get(0));
-		int rr = compare(source, target.get(1));
-		if (rl > 0 && rr < 0)
-			return true;
-		return false;
+	public Double pow(final Double source, final Double value) {
+		return Math.pow(source, value);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
-	 * (java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
+	 * .sql.PreparedStatement, int, java.lang.Object)
 	 */
 	@Override
-	public boolean isNull(final Double source) {
-		return (source == null);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
-	 * (java.lang.Object)
-	 */
-	@Override
-	public boolean isNotNull(final Double source) {
-		return (source != null);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Double add(final Double source, final Double value) {
-		return source + value;
+	public void setValue(final PreparedStatement pstmnt, final int index,
+			final Double value) throws Exception {
+		pstmnt.setDouble(index, value);
 	}
 
 	/*
@@ -271,7 +319,6 @@ public class SqlFloatType extends SqlDataType<Double> {
 	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#subtract
 	 * (java.lang.Object, java.lang.Object)
 	 */
-	@Override
 	public Double subtract(final Double source, final Double value) {
 		return source - value;
 	}
@@ -279,37 +326,11 @@ public class SqlFloatType extends SqlDataType<Double> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
-	 * (java.lang.Object, java.lang.Object)
+	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public Double multiply(final Double source, final Double value) {
-		return source * value;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Double divide(final Double source, final Double value) {
-		return source / value;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean like(final Double source, final Double target) {
-		return false;
+	public String toString() {
+		return "FLOAT";
 	}
 
 	/*

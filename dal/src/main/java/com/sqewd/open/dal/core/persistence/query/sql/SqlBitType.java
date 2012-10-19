@@ -36,12 +36,12 @@ public class SqlBitType extends SqlDataType<Boolean> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
-	 * java.lang.String)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
+	 * (java.lang.Object, java.util.List)
 	 */
 	@Override
-	public Boolean parse(final String value) throws Exception {
-		return Boolean.parseBoolean(value);
+	public boolean between(final Boolean source, final List<Boolean> target) {
+		return false;
 	}
 
 	/*
@@ -64,24 +64,15 @@ public class SqlBitType extends SqlDataType<Boolean> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "BIT";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
-	 * .sql.PreparedStatement, int, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
+	 * (java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void setValue(final PreparedStatement pstmnt, final int index,
-			final Boolean value) throws Exception {
-		pstmnt.setBoolean(index, value);
+	public boolean equals(final Boolean source, final Boolean target) {
+		if (source == target)
+			return true;
+		return false;
 	}
 
 	/*
@@ -114,12 +105,42 @@ public class SqlBitType extends SqlDataType<Boolean> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
-	 * (java.lang.Object, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
+	 * .lang.Object, java.util.List)
 	 */
 	@Override
-	public boolean equals(final Boolean source, final Boolean target) {
-		if (source == target)
+	public boolean in(final Boolean source, final List<Boolean> target) {
+		for (boolean bb : target) {
+			if (bb == source)
+				return true;
+		}
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNotNull(final Boolean source) {
+		if (source != null)
+			return true;
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNull(final Boolean source) {
+		if (source == null)
 			return true;
 		return false;
 	}
@@ -145,6 +166,18 @@ public class SqlBitType extends SqlDataType<Boolean> {
 	 */
 	@Override
 	public boolean lessThanEqual(final Boolean source, final Boolean target) {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final Boolean source, final Boolean target) {
 		return false;
 	}
 
@@ -190,116 +223,35 @@ public class SqlBitType extends SqlDataType<Boolean> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
-	 * .lang.Object, java.util.List)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
+	 * java.lang.String)
 	 */
 	@Override
-	public boolean in(final Boolean source, final List<Boolean> target) {
-		for (boolean bb : target) {
-			if (bb == source)
-				return true;
-		}
-		return false;
+	public Boolean parse(final String value) throws Exception {
+		return Boolean.parseBoolean(value);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
-	 * (java.lang.Object, java.util.List)
+	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
+	 * .sql.PreparedStatement, int, java.lang.Object)
 	 */
 	@Override
-	public boolean between(final Boolean source, final List<Boolean> target) {
-		return false;
+	public void setValue(final PreparedStatement pstmnt, final int index,
+			final Boolean value) throws Exception {
+		pstmnt.setBoolean(index, value);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
-	 * (java.lang.Object)
+	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public boolean isNull(final Boolean source) {
-		if (source == null)
-			return true;
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
-	 * (java.lang.Object)
-	 */
-	@Override
-	public boolean isNotNull(final Boolean source) {
-		if (source != null)
-			return true;
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Boolean add(final Boolean source, final Boolean value) {
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#subtract
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Boolean subtract(final Boolean source, final Boolean value) {
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Boolean multiply(final Boolean source, final Boolean value) {
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Boolean divide(final Boolean source, final Boolean value) {
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean like(final Boolean source, final Boolean target) {
-		return false;
+	public String toString() {
+		return "BIT";
 	}
 
 	/*
@@ -312,7 +264,7 @@ public class SqlBitType extends SqlDataType<Boolean> {
 	@Override
 	public String toString(final Object value) {
 		if (value instanceof Boolean)
-			return ((Boolean) value ? "1" : "0");
+			return (Boolean) value ? "1" : "0";
 		else
 			return null;
 	}

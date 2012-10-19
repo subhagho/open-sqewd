@@ -31,7 +31,7 @@ public class AdHocTests {
 	public static void main(final String[] args) {
 
 		try {
-			String query = " NAME in ['as', 'ab', 'sc'] ;  ( A.C + ((1823 / 737646 + (ABC.X + 4555f)) *  123123e-64) != A.B.C, (X.A == 'YYYY' ; (X.B == 12837 , (X.C == '123' ; x.P > 999))) ; X >= +123),(THIS LIKE 'who' , THIS between[\"P\",\"X\"]);  NAME IN ['A','B','C'], (NAME != 'whocares'), X.V.B == 9887f";
+			String query = " NAME in ['as', 'ab', 'sc'] ;  ( A.C + ((1823 / 737646 + (ABC.X + 4555f)) *  123123e-64) != A.B.C; (X.A == 'YYYY' ; (X.B == 12837 , (X.C == '123' ; x.P > 999))) ; X >= +123),(THIS LIKE 'who' , THIS between[\"P\",\"X\"]);  NAME IN ['A','B','C'], (NAME != 'whocares'), X.V.B == 9887f";
 			// String query = "sort ASASDSD asc";
 
 			ConditionParser parser = new ConditionParser(query);

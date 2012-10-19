@@ -78,7 +78,15 @@ public enum EnumConditionOperator {
 	/**
 	 * Divide (/)
 	 */
-	Divide;
+	Divide,
+	/**
+	 * Power (^)
+	 */
+	Pow,
+	/**
+	 * Modulus (%)
+	 */
+	Mod;
 
 	/**
 	 * Parse the passed value as a Condition operator enum.
@@ -109,6 +117,10 @@ public enum EnumConditionOperator {
 			return Multiply;
 		else if (value.compareTo("/") == 0)
 			return Divide;
+		else if (value.compareTo("^") == 0)
+			return Pow;
+		else if (value.compareTo("%") == 0)
+			return Mod;
 		else if (value.compareToIgnoreCase("in") == 0)
 			return In;
 		else if (value.compareToIgnoreCase("between") == 0)

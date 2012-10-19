@@ -29,23 +29,17 @@ import java.util.List;
  * 
  */
 public abstract class SchemaObjectDatatype<T> {
-	/**
-	 * Get the String value of an object of type T.
-	 * 
-	 * @param value
-	 * @return
-	 */
-	public abstract String toString(Object value);
 
 	/**
-	 * Parse the input string value as the current type.
+	 * Check if the source value is between the target value list.
 	 * 
-	 * @param value
-	 *            - String value
+	 * @param source
+	 *            - Source Value
+	 * @param target
+	 *            - Target Value List
 	 * @return
-	 * @throws Exception
 	 */
-	public abstract T parse(String value) throws Exception;
+	public abstract boolean between(T source, List<T> target);
 
 	/**
 	 * A comparator function for comparing type values.
@@ -71,6 +65,35 @@ public abstract class SchemaObjectDatatype<T> {
 	public abstract boolean equals(T source, T target);
 
 	/**
+	 * Check if the source value is contained in the target value list.
+	 * 
+	 * @param source
+	 *            - Source Value
+	 * @param target
+	 *            - Target Value List
+	 * @return
+	 */
+	public abstract boolean in(T source, List<T> target);
+
+	/**
+	 * Check if the source value is not NULL.
+	 * 
+	 * @param source
+	 *            - Source Value
+	 * @return
+	 */
+	public abstract boolean isNotNull(T source);
+
+	/**
+	 * Check if the source value is NULL.
+	 * 
+	 * @param source
+	 *            - Source Value
+	 * @return
+	 */
+	public abstract boolean isNull(T source);
+
+	/**
 	 * Check if the source value is less than target value.
 	 * 
 	 * @param source
@@ -91,6 +114,17 @@ public abstract class SchemaObjectDatatype<T> {
 	 * @return
 	 */
 	public abstract boolean lessThanEqual(T source, T target);
+
+	/**
+	 * Regex match function. Might be different for implementing platform.
+	 * 
+	 * @param source
+	 *            - Source Value
+	 * @param target
+	 *            - Target Value
+	 * @return
+	 */
+	public abstract boolean like(T source, T target);
 
 	/**
 	 * Check if the source value is more than to target value.
@@ -126,93 +160,20 @@ public abstract class SchemaObjectDatatype<T> {
 	public abstract boolean notEqual(T source, T target);
 
 	/**
-	 * Regex match function. Might be different for implementing platform.
+	 * Parse the input string value as the current type.
 	 * 
-	 * @param source
-	 *            - Source Value
-	 * @param target
-	 *            - Target Value
+	 * @param value
+	 *            - String value
 	 * @return
+	 * @throws Exception
 	 */
-	public abstract boolean like(T source, T target);
+	public abstract T parse(String value) throws Exception;
 
 	/**
-	 * Check if the source value is contained in the target value list.
+	 * Get the String value of an object of type T.
 	 * 
-	 * @param source
-	 *            - Source Value
-	 * @param target
-	 *            - Target Value List
-	 * @return
-	 */
-	public abstract boolean in(T source, List<T> target);
-
-	/**
-	 * Check if the source value is between the target value list.
-	 * 
-	 * @param source
-	 *            - Source Value
-	 * @param target
-	 *            - Target Value List
-	 * @return
-	 */
-	public abstract boolean between(T source, List<T> target);
-
-	/**
-	 * Check if the source value is NULL.
-	 * 
-	 * @param source
-	 *            - Source Value
-	 * @return
-	 */
-	public abstract boolean isNull(T source);
-
-	/**
-	 * Check if the source value is not NULL.
-	 * 
-	 * @param source
-	 *            - Source Value
-	 * @return
-	 */
-	public abstract boolean isNotNull(T source);
-
-	/**
-	 * Add the specified value to the source.
-	 * 
-	 * @param source
-	 *            - Source Value
 	 * @param value
 	 * @return
 	 */
-	public abstract T add(T source, T value);
-
-	/**
-	 * Subtract the specified value from the source.
-	 * 
-	 * @param source
-	 *            - Source Value
-	 * @param value
-	 * @return
-	 */
-	public abstract T subtract(T source, T value);
-
-	/**
-	 * Multiply the specified value to the source.
-	 * 
-	 * @param source
-	 *            - Source Value
-	 * @param value
-	 * @return
-	 */
-	public abstract T multiply(T source, T value);
-
-	/**
-	 * Divide the specified value to the source.
-	 * 
-	 * @param source
-	 *            - Source Value
-	 * @param value
-	 * @return
-	 */
-	public abstract T divide(T source, T value);
+	public abstract String toString(Object value);
 }

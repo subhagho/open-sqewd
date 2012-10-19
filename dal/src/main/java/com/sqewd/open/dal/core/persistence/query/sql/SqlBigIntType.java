@@ -24,24 +24,40 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
 
+import com.sqewd.open.dal.api.reflect.SchemaNumericDatatype;
+
 /**
  * Represents a SQL BIGINT type.
  * 
  * @author subhagho
  * 
  */
-public class SqlBigIntType extends SqlDataType<Long> {
+public class SqlBigIntType extends SqlDataType<Long> implements
+		SchemaNumericDatatype<Long> {
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
-	 * java.lang.String)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	public Long add(final Long source, final Long value) {
+		return source + value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
+	 * (java.lang.Object, java.util.List)
 	 */
 	@Override
-	public Long parse(final String value) throws Exception {
-		return Long.parseLong(value);
+	public boolean between(final Long source, final List<Long> target) {
+		if (source > target.get(0) && source < target.get(1))
+			return true;
+		return false;
 	}
 
 	/*
@@ -59,24 +75,26 @@ public class SqlBigIntType extends SqlDataType<Long> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see java.lang.Object#toString()
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
+	 * (java.lang.Object, java.lang.Object)
 	 */
-	@Override
-	public String toString() {
-		return "BIGINT";
+	public Long divide(final Long source, final Long value) {
+		return source / value;
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
-	 * .sql.PreparedStatement, int, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
+	 * (java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void setValue(final PreparedStatement pstmnt, final int index,
-			final Long value) throws Exception {
-		pstmnt.setLong(index, value);
+	public boolean equals(final Long source, final Long target) {
+		if (source == target)
+			return true;
+		return false;
 	}
 
 	/*
@@ -108,12 +126,42 @@ public class SqlBigIntType extends SqlDataType<Long> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
-	 * (java.lang.Object, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
+	 * .lang.Object, java.util.List)
 	 */
 	@Override
-	public boolean equals(final Long source, final Long target) {
-		if (source == target)
+	public boolean in(final Long source, final List<Long> target) {
+		for (long ll : target) {
+			if (ll == source)
+				return true;
+		}
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNotNull(final Long source) {
+		if (source != null)
+			return true;
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNull(final Long source) {
+		if (source == null)
 			return true;
 		return false;
 	}
@@ -150,6 +198,29 @@ public class SqlBigIntType extends SqlDataType<Long> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final Long source, final Long target) {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.reflect.SchemaObjectDatatype#mod(java.lang.Object,
+	 * java.lang.Object)
+	 */
+	public Long mod(final Long source, final Long value) {
+		return source % value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
 	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#moreThan
 	 * (java.lang.Object, java.lang.Object)
 	 */
@@ -178,6 +249,17 @@ public class SqlBigIntType extends SqlDataType<Long> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
+	 * (java.lang.Object, java.lang.Object)
+	 */
+	public Long multiply(final Long source, final Long value) {
+		return source * value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
 	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#notEqual
 	 * (java.lang.Object, java.lang.Object)
 	 */
@@ -192,70 +274,36 @@ public class SqlBigIntType extends SqlDataType<Long> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
-	 * .lang.Object, java.util.List)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
+	 * java.lang.String)
 	 */
 	@Override
-	public boolean in(final Long source, final List<Long> target) {
-		for (long ll : target) {
-			if (ll == source)
-				return true;
-		}
-		return false;
+	public Long parse(final String value) throws Exception {
+		return Long.parseLong(value);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
-	 * (java.lang.Object, java.util.List)
+	 * com.sqewd.open.dal.api.reflect.SchemaObjectDatatype#pow(java.lang.Object,
+	 * java.lang.Object)
 	 */
-	@Override
-	public boolean between(final Long source, final List<Long> target) {
-		if (source > target.get(0) && source < target.get(1))
-			return true;
-		return false;
+	public Long pow(final Long source, final Long value) {
+		return (long) Math.pow(source, value);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
-	 * (java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
+	 * .sql.PreparedStatement, int, java.lang.Object)
 	 */
 	@Override
-	public boolean isNull(final Long source) {
-		if (source == null)
-			return true;
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
-	 * (java.lang.Object)
-	 */
-	@Override
-	public boolean isNotNull(final Long source) {
-		if (source != null)
-			return true;
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Long add(final Long source, final Long value) {
-		return source + value;
+	public void setValue(final PreparedStatement pstmnt, final int index,
+			final Long value) throws Exception {
+		pstmnt.setLong(index, value);
 	}
 
 	/*
@@ -265,7 +313,6 @@ public class SqlBigIntType extends SqlDataType<Long> {
 	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#subtract
 	 * (java.lang.Object, java.lang.Object)
 	 */
-	@Override
 	public Long subtract(final Long source, final Long value) {
 		return source - value;
 	}
@@ -273,37 +320,11 @@ public class SqlBigIntType extends SqlDataType<Long> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
-	 * (java.lang.Object, java.lang.Object)
+	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public Long multiply(final Long source, final Long value) {
-		return source * value;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Long divide(final Long source, final Long value) {
-		return source / value;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean like(final Long source, final Long target) {
-		return false;
+	public String toString() {
+		return "BIGINT";
 	}
 
 	/*
@@ -319,5 +340,4 @@ public class SqlBigIntType extends SqlDataType<Long> {
 			return value.toString();
 		return null;
 	}
-
 }

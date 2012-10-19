@@ -36,12 +36,16 @@ public class SqlTinyIntType extends SqlDataType<Byte> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
-	 * java.lang.String)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
+	 * (java.lang.Object, java.util.List)
 	 */
 	@Override
-	public Byte parse(final String value) throws Exception {
-		return value.getBytes()[0];
+	public boolean between(final Byte source, final List<Byte> target) {
+		int rl = compare(source, target.get(0));
+		int rr = compare(source, target.get(1));
+		if (rl > 0 && rr < 0)
+			return true;
+		return false;
 	}
 
 	/*
@@ -59,24 +63,16 @@ public class SqlTinyIntType extends SqlDataType<Byte> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "TINYINT";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
-	 * .sql.PreparedStatement, int, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
+	 * (java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void setValue(final PreparedStatement pstmnt, final int index,
-			final Byte value) throws Exception {
-		pstmnt.setByte(index, value);
+	public boolean equals(final Byte source, final Byte target) {
+		int ret = compare(source, target);
+		if (ret == 0)
+			return true;
+		return false;
 	}
 
 	/*
@@ -108,15 +104,41 @@ public class SqlTinyIntType extends SqlDataType<Byte> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#equals
-	 * (java.lang.Object, java.lang.Object)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
+	 * .lang.Object, java.util.List)
 	 */
 	@Override
-	public boolean equals(final Byte source, final Byte target) {
-		int ret = compare(source, target);
-		if (ret == 0)
-			return true;
+	public boolean in(final Byte source, final List<Byte> target) {
+		for (byte bb : target) {
+			int ret = compare(source, bb);
+			if (ret == 0)
+				return true;
+		}
 		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNotNull(final Byte source) {
+		return source != null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
+	 * (java.lang.Object)
+	 */
+	@Override
+	public boolean isNull(final Byte source) {
+		return source == null;
 	}
 
 	/*
@@ -146,6 +168,18 @@ public class SqlTinyIntType extends SqlDataType<Byte> {
 		int ret = compare(source, target);
 		if (ret <= 0)
 			return true;
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
+	 * .lang.Object, java.lang.Object)
+	 */
+	@Override
+	public boolean like(final Byte source, final Byte target) {
 		return false;
 	}
 
@@ -198,117 +232,35 @@ public class SqlTinyIntType extends SqlDataType<Byte> {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#in(java
-	 * .lang.Object, java.util.List)
+	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#parse(
+	 * java.lang.String)
 	 */
 	@Override
-	public boolean in(final Byte source, final List<Byte> target) {
-		for (byte bb : target) {
-			int ret = compare(source, bb);
-			if (ret == 0)
-				return true;
-		}
-		return false;
+	public Byte parse(final String value) throws Exception {
+		return value.getBytes()[0];
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#between
-	 * (java.lang.Object, java.util.List)
+	 * com.sqewd.open.dal.core.persistence.query.sql.SqlDataType#setValue(java
+	 * .sql.PreparedStatement, int, java.lang.Object)
 	 */
 	@Override
-	public boolean between(final Byte source, final List<Byte> target) {
-		int rl = compare(source, target.get(0));
-		int rr = compare(source, target.get(1));
-		if (rl > 0 && rr < 0)
-			return true;
-		return false;
+	public void setValue(final PreparedStatement pstmnt, final int index,
+			final Byte value) throws Exception {
+		pstmnt.setByte(index, value);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNull
-	 * (java.lang.Object)
+	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public boolean isNull(final Byte source) {
-		return (source == null);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#isNotNull
-	 * (java.lang.Object)
-	 */
-	@Override
-	public boolean isNotNull(final Byte source) {
-		return (source != null);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#add(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Byte add(final Byte source, final Byte value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#subtract
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Byte subtract(final Byte source, final Byte value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#multiply
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Byte multiply(final Byte source, final Byte value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#divide
-	 * (java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public Byte divide(final Byte source, final Byte value) {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.SchemaObjectDatatype#like(java
-	 * .lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean like(final Byte source, final Byte target) {
-		return false;
+	public String toString() {
+		return "TINYINT";
 	}
 
 	/*

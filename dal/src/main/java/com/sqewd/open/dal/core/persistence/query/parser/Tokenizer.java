@@ -32,7 +32,7 @@ import java.util.List;
 public class Tokenizer {
 	public static final String[] _TOKENS_ = { "(", ";", ",", ")", "==", "!=",
 			">=", ">", "<=", "<", "in", "between", "like", "null", "+", "-",
-			"*", "/", "sort", "[", "]", ":" };
+			"*", "/", "^", "%", "sort", "[", "]", ":" };
 
 	private char[] buffer;
 	private int offset;

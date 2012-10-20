@@ -25,12 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
+import com.sqewd.open.dal.core.persistence.query.QueryColumn;
 import com.sqewd.open.dal.core.persistence.query.conditions.AndCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.ArithmeticOperatorCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.Condition;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionAttribute;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionValue;
 import com.sqewd.open.dal.core.persistence.query.conditions.EnumConditionOperator;
+import com.sqewd.open.dal.core.persistence.query.conditions.EnumSortDirection;
 import com.sqewd.open.dal.core.persistence.query.conditions.GroupCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.OperatorCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.OrCondition;
@@ -46,9 +48,13 @@ import com.sqewd.open.dal.core.persistence.query.conditions.QueryCondition;
 public class ConditionParser {
 	private String querystr;
 	private QueryCondition query = null;
+	private List<QueryColumn> sortColumns = null;
+
+	// Local Variables
 	private HashMap<String, QuotedStringToken> quoted = new HashMap<String, QuotedStringToken>();
 
 	private Stack<QueryCondition> tstack = new Stack<QueryCondition>();
+
 	private List<Token> tokens = null;
 	private Condition valueToken = null;
 
@@ -218,6 +224,13 @@ public class ConditionParser {
 	 */
 	public String getQueryString() {
 		return querystr;
+	}
+
+	/**
+	 * @return the sortColumns
+	 */
+	public List<QueryColumn> getSortColumns() {
+		return sortColumns;
 	}
 
 	private QueryCondition getStackCondition() throws Exception {
@@ -658,6 +671,41 @@ public class ConditionParser {
 		tstack.push(oc);
 	}
 
+	private void processSort(final int index) throws Exception {
+		Token tk = tokens.get(index);
+		if (!tk.isSort())
+			throw new Exception("Invalid Token, expected a SORT token.");
+		sortColumns = new ArrayList<QueryColumn>();
+
+		QueryColumn column = null;
+		for (int ii = index; ii < tokens.size(); ii++) {
+			tk = tokens.get(ii);
+			if (tk.isSort() || tk.isOr()) {
+				column = new QueryColumn();
+				sortColumns.add(column);
+				continue;
+			}
+			if (column == null)
+				throw new Exception(
+						"Invalid State: Column object not initialized.");
+			if (tk.getToken() != null) {
+				if (tk.getToken().compareToIgnoreCase("asc") == 0) {
+					column.setDirection(EnumSortDirection.Asc);
+				} else if (tk.getToken().compareToIgnoreCase("desc") == 0) {
+					column.setDirection(EnumSortDirection.Desc);
+				} else
+					throw new Exception("Invalid Token : Did not expect ["
+							+ tk.getToken() + "]");
+			} else {
+				if (column.getName() == null) {
+					column.setName(tk.getValue());
+				} else
+					throw new Exception(
+							"Invalid Token, column name already set.");
+			}
+		}
+	}
+
 	private void processTokens() throws Exception {
 		if (tokens.size() > 0) {
 			tstack.clear();
@@ -684,6 +732,10 @@ public class ConditionParser {
 						processOperator(index);
 					} else if (tk.isArithmeticOperator()) {
 						processOperatorArithmetic(index);
+					} else if (tk.isSort()) {
+						// Sort is expected to be the last token set.
+						processSort(index);
+						break;
 					}
 				} else {
 					String value = tk.getValue();

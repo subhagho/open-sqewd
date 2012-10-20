@@ -186,6 +186,19 @@ public class Token {
 	}
 
 	/**
+	 * Check if the current token represents an Sort keyword.
+	 * 
+	 * @return
+	 */
+	public boolean isSort() {
+		if (token != null) {
+			if (token.compareToIgnoreCase("sort") == 0)
+				return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Check if this is a special token or a value token.
 	 * 
 	 * @return

@@ -30,7 +30,7 @@ package com.sqewd.open.dal.services;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.sqewd.open.dal.api.reflect.AttributeDef;
-import com.sqewd.open.dal.core.persistence.model.EntityModelLoader;
+import com.sqewd.open.dal.core.persistence.model.EntityModelHelper;
 
 /**
  * @author subhagho
@@ -128,7 +128,7 @@ public class PropertySchema {
 
 	public static PropertySchema load(final Class<?> type, final String field)
 			throws Exception {
-		AttributeDef attr = EntityModelLoader.get().getEntityDef(type)
+		AttributeDef attr = EntityModelHelper.get().getEntityDef(type)
 				.getAttribute(field);
 		if (attr == null)
 			return null;

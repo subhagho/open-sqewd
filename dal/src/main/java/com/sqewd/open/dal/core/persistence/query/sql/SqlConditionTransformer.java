@@ -20,15 +20,15 @@
  */
 package com.sqewd.open.dal.core.persistence.query.sql;
 
+import com.sqewd.open.dal.api.persistence.query.Condition;
+import com.sqewd.open.dal.api.persistence.query.QueryCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.AndCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionAttribute;
-import com.sqewd.open.dal.core.persistence.query.conditions.Condition;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionTransformer;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionValue;
 import com.sqewd.open.dal.core.persistence.query.conditions.EnumConditionOperator;
 import com.sqewd.open.dal.core.persistence.query.conditions.OperatorCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.OrCondition;
-import com.sqewd.open.dal.core.persistence.query.conditions.QueryCondition;
 
 /**
  * Transforms the condition tree into a SQL where clause.

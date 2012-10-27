@@ -13,37 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @filename QueryCondition.java
- * @created Sep 27, 2012
+ * @filename ConditionElement.java
+ * @created Sep 30, 2012
  * @author subhagho
  *
  */
-package com.sqewd.open.dal.core.persistence.query.conditions;
+package com.sqewd.open.dal.api.persistence.query;
 
 /**
- * Interface represents a condition that can be evaluated.
+ * Base interface for representing condition elements.
  * 
  * @author subhagho
  * 
  */
-public interface QueryCondition extends Condition {
-	/**
-	 * Evaluate this Condition for the specified Source and Value.
-	 * 
-	 * @param src
-	 *            - Source to evaluate against
-	 * @param value
-	 *            - Element value.
-	 * @return
-	 * @throws Exception
-	 */
-	public boolean evaluate(Object src, Object value) throws Exception;
+public interface Condition {
+	public static final String _OFFSET_CHAR_ = " ";
 
 	/**
-	 * Check if the condition has been completed defined. This method is only
-	 * relevant to the parser.
+	 * Get the parent condition this is embedded in.
 	 * 
 	 * @return
 	 */
-	public boolean isComplete();
+	public Condition getParent();
+
+	/**
+	 * Pretty print the query in a tree format.
+	 * 
+	 * @param offset
+	 * @return
+	 */
+	public String prettyPrint(int offset);
+
+	/**
+	 * Set the parent condition this is embedded in.
+	 * 
+	 * @param parent
+	 */
+	public void setParent(Condition parent);
 }

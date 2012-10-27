@@ -50,11 +50,78 @@ import com.sqewd.open.dal.core.reflect.EntityScanner;
  * @author subhagho
  * 
  */
-public class EntityModelLoader {
+public class EntityModelHelper {
 	private static final Logger log = LoggerFactory
-			.getLogger(EntityModelLoader.class);
+			.getLogger(EntityModelHelper.class);
 
 	private EnumInstanceState state = EnumInstanceState.Unknown;
+
+	// Singleton
+	private static final EntityModelHelper _instance = new EntityModelHelper();
+
+	/**
+	 * Create an instance of the Entity Model. Singleton class, should be called
+	 * only once.
+	 * 
+	 * @param packages
+	 * @throws Exception
+	 */
+	public static final void create(final HashMultimap<String, String> packages)
+			throws Exception {
+		_instance.init(packages);
+	}
+
+	/**
+	 * Get a handle to the Entity Model Loader.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public static final EntityModelHelper get() throws Exception {
+		if (_instance.state != EnumInstanceState.Running)
+			throw new Exception("Entity Model Loader is in an invalid state ["
+					+ _instance.state.name() + "]");
+		return _instance;
+	}
+
+	/**
+	 * Find the entity definition for the specified type. If type is not already
+	 * loaded a load will be triggered.
+	 * 
+	 * @param type
+	 * @return
+	 * @throws Exception
+	 */
+	public EntityDef getEntityDef(final Class<?> type) throws Exception {
+		EntityDef ed = ReferenceCache.get().getEntityDef(type);
+		if (ed == null) {
+			ed = load(type);
+		}
+		return ed;
+	}
+
+	/**
+	 * Find the entity definition for the specified name. If type is not already
+	 * loaded a load will be triggered.
+	 * 
+	 * @param name
+	 * @return
+	 * @throws Exception
+	 */
+	public EntityDef getEntityDef(final String name) throws Exception {
+		Class<?> type = Class.forName(name);
+		return getEntityDef(type);
+	}
+
+	/**
+	 * Get the list of all loaded entities.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public List<EntityDef> getEntityDefs() throws Exception {
+		return ReferenceCache.get().getEntityDefs();
+	}
 
 	private void init(final HashMultimap<String, String> packages)
 			throws Exception {
@@ -77,17 +144,6 @@ public class EntityModelLoader {
 		} catch (Exception ex) {
 			state = EnumInstanceState.Exception;
 			throw ex;
-		}
-	}
-
-	private void scanEntities(final List<Class<?>> classes) throws Exception {
-		for (Class<?> type : classes) {
-			if (ReflectionHelper.isEntityType(type)) {
-				log.debug("Found entity : [" + type.getCanonicalName() + "]["
-						+ type.getClassLoader().getClass().getCanonicalName()
-						+ "]");
-				load(type);
-			}
 		}
 	}
 
@@ -185,39 +241,14 @@ public class EntityModelLoader {
 		}
 	}
 
-	public EntityDef getEntityDef(final Class<?> type) throws Exception {
-		EntityDef ed = ReferenceCache.get().getEntityDef(type);
-		if (ed == null) {
-			ed = load(type);
+	private void scanEntities(final List<Class<?>> classes) throws Exception {
+		for (Class<?> type : classes) {
+			if (ReflectionHelper.isEntityType(type)) {
+				log.debug("Found entity : [" + type.getCanonicalName() + "]["
+						+ type.getClassLoader().getClass().getCanonicalName()
+						+ "]");
+				load(type);
+			}
 		}
-		return ed;
-	}
-
-	// Singleton
-	private static final EntityModelLoader _instance = new EntityModelLoader();
-
-	/**
-	 * Create an instance of the Entity Model. Singleton class, should be called
-	 * only once.
-	 * 
-	 * @param packages
-	 * @throws Exception
-	 */
-	public static final void create(final HashMultimap<String, String> packages)
-			throws Exception {
-		_instance.init(packages);
-	}
-
-	/**
-	 * Get a handle to the Entity Model Loader.
-	 * 
-	 * @return
-	 * @throws Exception
-	 */
-	public static final EntityModelLoader get() throws Exception {
-		if (_instance.state != EnumInstanceState.Running)
-			throw new Exception("Entity Model Loader is in an invalid state ["
-					+ _instance.state.name() + "]");
-		return _instance;
 	}
 }

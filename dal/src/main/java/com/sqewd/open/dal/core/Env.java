@@ -20,6 +20,7 @@ import java.util.HashMap;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.w3c.dom.Document;
 
+import com.sqewd.open.dal.api.DataCache;
 import com.sqewd.open.dal.api.utils.XMLUtils;
 import com.sqewd.open.dal.core.persistence.DataManager;
 
@@ -31,20 +32,78 @@ import com.sqewd.open.dal.core.persistence.DataManager;
  * 
  */
 public class Env {
+	public static final String _DEFAULT_DATE_FORMAT_ = "MM-dd-yyyy HH:mm:ss.SSS";
+
 	public static final String _CONFIG_XPATH_ROOT_ = "/configuration";
 
 	public static final String _CONFIG_DIR_WORK_ = "env.work[@directory]";
 	public static final String _CONFIG_DIR_TEMP_ = "env.temp[@directory]";
+	public static final String _CONFIG_FORMAT_DATE_ = "env.date[@format]";
+	public static final String _CONFIG_CACHE_LOCAL_ = "env.cache[@config]";
 
 	private XMLConfiguration config = null;
 	private String configf = null;
 	private String workdir = null;
 	private String tempdir = null;
 	private final HashMap<String, Object> shared = new HashMap<String, Object>();
+	private String dateformat = _DEFAULT_DATE_FORMAT_;
 
 	private ClassLoader entityLoader = null;
 
-	private Env(String filename) throws Exception {
+	// Instance
+	private static Env _instance = null;
+
+	private static Object _lock = new Object();
+
+	/**
+	 * Initialize the environment handle. Should only be called once, at the
+	 * start of the application.
+	 * 
+	 * @param filename
+	 *            - Configuration filename.
+	 */
+	public static void create(final String filename) throws Exception {
+		synchronized (_lock) {
+			try {
+				_instance = new Env(filename);
+			} catch (Exception e) {
+				e.printStackTrace();
+				_instance = null;
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * Dispose the operating environment.
+	 */
+	public static void dispose() {
+		if (_instance != null) {
+			DataManager.release();
+			if (_instance.shared != null) {
+				_instance.shared.clear();
+			}
+			_instance.config = null;
+		}
+		_instance = null;
+	}
+
+	/**
+	 * Get a handle to the environment.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public static Env get() throws Exception {
+		synchronized (_lock) {
+			if (_instance == null)
+				throw new Exception(
+						"Environment hasn't been initialized or initialization failed.");
+			return _instance;
+		}
+	}
+
+	private Env(final String filename) throws Exception {
 		XMLUtils.validate(filename, "/schema/moong-dal.xsd");
 
 		configf = filename;
@@ -55,8 +114,19 @@ public class Env {
 			throw new Exception("Invalid Configuration : Missing parameter ["
 					+ _CONFIG_DIR_WORK_ + "]");
 		tempdir = config.getString(_CONFIG_DIR_TEMP_);
-		if (tempdir == null || tempdir.isEmpty())
+		if (tempdir == null || tempdir.isEmpty()) {
 			tempdir = System.getProperty("java.io.tmpdir");
+		}
+
+		String value = config.getString(_CONFIG_FORMAT_DATE_);
+		if (value != null && !value.isEmpty()) {
+			dateformat = value;
+		}
+
+		value = config.getString(_CONFIG_CACHE_LOCAL_);
+		if (value != null && !value.isEmpty()) {
+			DataCache.create(value);
+		}
 
 	}
 
@@ -84,10 +154,19 @@ public class Env {
 	}
 
 	/**
-	 * @return the workdir
+	 * Get the system default date format.
+	 * 
+	 * @return
 	 */
-	public String getWorkdir() {
-		return workdir;
+	public String getDateFormat() {
+		return dateformat;
+	}
+
+	/**
+	 * @return the entityLoader
+	 */
+	public ClassLoader getEntityLoader() {
+		return entityLoader;
 	}
 
 	/**
@@ -106,13 +185,20 @@ public class Env {
 	 * @return
 	 * @throws Exception
 	 */
-	public String getTempPath(String folder) throws Exception {
+	public String getTempPath(final String folder) throws Exception {
 		String path = tempdir + "/" + folder;
 		File di = new File(path);
 		if (!di.exists()) {
 			di.mkdirs();
 		}
 		return di.getAbsolutePath();
+	}
+
+	/**
+	 * @return the workdir
+	 */
+	public String getWorkdir() {
+		return workdir;
 	}
 
 	/**
@@ -124,13 +210,26 @@ public class Env {
 	 * @return
 	 * @throws Exception
 	 */
-	public String getWorkPath(String folder) throws Exception {
+	public String getWorkPath(final String folder) throws Exception {
 		String path = workdir + "/" + folder;
 		File di = new File(path);
 		if (!di.exists()) {
 			di.mkdirs();
 		}
 		return di.getAbsolutePath();
+	}
+
+	/**
+	 * Get an object handle from the shared cache.
+	 * 
+	 * @param key
+	 *            - Search Key
+	 * @return
+	 */
+	public Object lookup(final String key) {
+		if (shared.containsKey(key))
+			return shared.get(key);
+		return null;
 	}
 
 	/**
@@ -144,97 +243,24 @@ public class Env {
 	 *            - Overwrite if exists?
 	 * @throws Exception
 	 */
-	public void register(String key, Object obj, boolean overwrite)
-			throws Exception {
+	public void register(final String key, final Object obj,
+			final boolean overwrite) throws Exception {
 		if (shared.containsKey(key)) {
 			if (overwrite) {
 				shared.remove(key);
-			} else {
+			} else
 				throw new Exception("Shared Cache : Key [" + key
 						+ "] already exists, and overwrite set to false.");
-			}
 		}
 		shared.put(key, obj);
-	}
-
-	/**
-	 * Get an object handle from the shared cache.
-	 * 
-	 * @param key
-	 *            - Search Key
-	 * @return
-	 */
-	public Object lookup(String key) {
-		if (shared.containsKey(key))
-			return shared.get(key);
-		return null;
-	}
-
-	/**
-	 * @return the entityLoader
-	 */
-	public ClassLoader getEntityLoader() {
-		return entityLoader;
 	}
 
 	/**
 	 * @param entityLoader
 	 *            the entityLoader to set
 	 */
-	public void setEntityLoader(ClassLoader entityLoader) {
+	public void setEntityLoader(final ClassLoader entityLoader) {
 		this.entityLoader = entityLoader;
-	}
-
-	// Instance
-	private static Env _instance = null;
-	private static Object _lock = new Object();
-
-	/**
-	 * Initialize the environment handle. Should only be called once, at the
-	 * start of the application.
-	 * 
-	 * @param filename
-	 *            - Configuration filename.
-	 */
-	public static void create(String filename) throws Exception {
-		synchronized (_lock) {
-			try {
-				_instance = new Env(filename);
-			} catch (Exception e) {
-				e.printStackTrace();
-				_instance = null;
-				throw e;
-			}
-		}
-	}
-
-	/**
-	 * Get a handle to the environment.
-	 * 
-	 * @return
-	 * @throws Exception
-	 */
-	public static Env get() throws Exception {
-		synchronized (_lock) {
-			if (_instance == null)
-				throw new Exception(
-						"Environment hasn't been initialized or initialization failed.");
-			return _instance;
-		}
-	}
-
-	/**
-	 * Dispose the operating environment.
-	 */
-	public static void dispose() {
-		if (_instance != null) {
-			DataManager.release();
-			if (_instance.shared != null) {
-				_instance.shared.clear();
-			}
-			_instance.config = null;
-		}
-		_instance = null;
 	}
 
 }

@@ -18,14 +18,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration;
+
 import org.apache.commons.configuration.XMLConfiguration;
-import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.google.common.collect.HashMultimap;
+import com.sqewd.open.dal.api.DataCache;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.InitializedHandle;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
@@ -38,8 +41,7 @@ import com.sqewd.open.dal.api.utils.ListParam;
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.api.utils.XMLUtils;
 import com.sqewd.open.dal.core.Env;
-import com.sqewd.open.dal.core.persistence.model.EntityModelLoader;
-import com.sqewd.open.dal.core.persistence.query.EnumJoinType;
+import com.sqewd.open.dal.core.persistence.model.EntityModelHelper;
 import com.sqewd.open.dal.core.reflect.EntityClassLoader;
 
 /**
@@ -49,6 +51,10 @@ import com.sqewd.open.dal.core.reflect.EntityClassLoader;
  * 
  */
 public class DataManager implements InitializedHandle {
+	public static final String _CACHE_KEY_PLAN_ = "cache.local.plan";
+	private static final long _CACHE_ALL_MAX_DISK_ = 1024 * 1024 * 1024 * 5; // 5GB
+	private static final long _CACHE_PLAN_MAX_HEAP_ = 1024 * 1024 * 128; // 128MB
+
 	public static final String _CONFIG_XPATH_ = "/core/datamanager";
 	public static final String _CONFIG_PERSIST_XPATH_ = "./persistence";
 	public static final String _CONFIG_PERSISTER_XPATH_ = "./persister";
@@ -63,6 +69,165 @@ public class DataManager implements InitializedHandle {
 
 	private final HashMap<String, AbstractPersister> persistmap = new HashMap<String, AbstractPersister>();
 	private final HashMultimap<String, String> scanjars = HashMultimap.create();
+
+	// Instance
+	private static DataManager _instance = new DataManager();
+
+	/**
+	 * Initialize and create the DataManager instance.
+	 * 
+	 * @param config
+	 *            - Configuration
+	 * @throws Exception
+	 */
+	public static void create(final XMLConfiguration config) throws Exception {
+		synchronized (_instance) {
+			if (_instance.state == EnumInstanceState.Running)
+				return;
+			log.debug("Initialzing the DataManager...");
+			_instance.init(config);
+		}
+	}
+
+	/**
+	 * Get the DataManager instance handle.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public static DataManager get() throws Exception {
+		synchronized (_instance) {
+			if (_instance.state != EnumInstanceState.Running)
+				throw new Exception(
+						"Invalid Instance State : Instance not available [state="
+								+ _instance.state.name() + "]");
+			return _instance;
+		}
+	}
+
+	/**
+	 * Create a new instance of an AbstractEntity type. This method should be
+	 * used when creating new AbstarctEntity types.
+	 * 
+	 * @param type
+	 *            - Class (type) to create instance of.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T extends AbstractEntity> T newInstance(final Class<?> type)
+			throws Exception {
+		Object obj = type.newInstance();
+		if (!(obj instanceof AbstractEntity))
+			throw new Exception("Invalid Class : [" + type.getCanonicalName()
+					+ "] does not extend ["
+					+ AbstractEntity.class.getCanonicalName() + "]");
+
+		((AbstractEntity) obj).setState(EnumEntityState.New);
+
+		return (T) obj;
+	}
+
+	/**
+	 * Dispose the DataManager instance.
+	 */
+	public static void release() {
+		synchronized (_instance) {
+			if (_instance.state == EnumInstanceState.Running) {
+				_instance.dispose();
+				_instance.state = EnumInstanceState.Closed;
+				log.info("Dispoing the DataManager instance...");
+			}
+		}
+	}
+
+	private void createCaches() throws Exception {
+		// Create Plan table cache.
+		CacheConfiguration cc = new CacheConfiguration();
+		cc.setName(_CACHE_KEY_PLAN_);
+		cc.setMaxBytesLocalHeap(_CACHE_PLAN_MAX_HEAP_);
+		PersistenceConfiguration pc = new PersistenceConfiguration();
+		pc.strategy(PersistenceConfiguration.Strategy.LOCALTEMPSWAP);
+		cc.addPersistence(pc);
+		cc.setMaxBytesLocalDisk(_CACHE_ALL_MAX_DISK_);
+		DataCache.instance().createCache(_CACHE_KEY_PLAN_, cc);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.wookler.core.InitializedHandle#dispose()
+	 */
+	public void dispose() {
+		if (persistmap != null && persistmap.size() > 0) {
+			for (String key : persistmap.keySet()) {
+				AbstractPersister pers = persistmap.get(key);
+				if (pers != null) {
+					pers.dispose();
+				}
+			}
+		}
+		return;
+	}
+
+	/**
+	 * Get the persistence handler defined for the specified entity type. If no
+	 * persistence handler found for the current class, search thru the super
+	 * classes to see if a handler is defined for any?
+	 * 
+	 * @param type
+	 *            - Class of the Entity.
+	 * @return
+	 * @throws Exception
+	 */
+	public AbstractPersister getPersister(final Class<?> type) throws Exception {
+		String key = type.getCanonicalName();
+		if (persistmap.containsKey(key))
+			return persistmap.get(key);
+		Class<?> ttype = type;
+		key = type.getPackage().getName();
+		if (persistmap.containsKey(key))
+			return persistmap.get(key);
+		while (true) {
+			ttype = ttype.getSuperclass();
+			if (ttype.getCanonicalName().compareTo(
+					Object.class.getCanonicalName()) == 0) {
+				break;
+			}
+			key = ttype.getCanonicalName();
+			if (persistmap.containsKey(key))
+				return persistmap.get(key);
+		}
+		throw new Exception("No persistence handler found for class ["
+				+ type.getCanonicalName() + "]");
+	}
+
+	/**
+	 * Get a handle to the Persistence Handler based on the name specified.
+	 * 
+	 * @param name
+	 *            - Persister Class name.
+	 * @return
+	 * @throws Exception
+	 */
+	public AbstractPersister getPersisterByName(final String name)
+			throws Exception {
+		if (persistmap.containsKey(name))
+			return persistmap.get(name);
+
+		throw new Exception("No persistence handler found for class [" + name
+				+ "]");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.wookler.core.InitializedHandle#init(com.wookler.utils.ListParam)
+	 */
+	public void init(final ListParam param) throws Exception {
+		throw new Exception("Should not be called.");
+	}
 
 	private void init(final XMLConfiguration config) throws Exception {
 		try {
@@ -97,13 +262,15 @@ public class DataManager implements InitializedHandle {
 						}
 					}
 				}
-				EntityModelLoader.create(scanjars);
+				EntityModelHelper.create(scanjars);
 			}
 
 			NodeList pernl = XMLUtils.search(_CONFIG_PERSIST_XPATH_, dmroot);
 			if (pernl != null && pernl.getLength() > 0) {
 				initPersisters((Element) pernl.item(0));
 			}
+
+			createCaches();
 
 			log.debug("DataManager initialzied...");
 		} catch (Exception e) {
@@ -169,107 +336,13 @@ public class DataManager implements InitializedHandle {
 		}
 	}
 
-	/**
-	 * Get a handle to the Persistence Handler based on the name specified.
+	/*
+	 * (non-Javadoc)
 	 * 
-	 * @param name
-	 *            - Persister Class name.
-	 * @return
-	 * @throws Exception
+	 * @see com.wookler.core.InitializedHandle#key()
 	 */
-	public AbstractPersister getPersisterByName(final String name)
-			throws Exception {
-		if (persistmap.containsKey(name))
-			return persistmap.get(name);
-
-		throw new Exception("No persistence handler found for class [" + name
-				+ "]");
-	}
-
-	/**
-	 * Get the persistence handler defined for the specified entity type. If no
-	 * persistence handler found for the current class, search thru the super
-	 * classes to see if a handler is defined for any?
-	 * 
-	 * @param type
-	 *            - Class of the Entity.
-	 * @return
-	 * @throws Exception
-	 */
-	public AbstractPersister getPersister(final Class<?> type) throws Exception {
-		String key = type.getCanonicalName();
-		if (persistmap.containsKey(key))
-			return persistmap.get(key);
-		Class<?> ttype = type;
-		key = type.getPackage().getName();
-		if (persistmap.containsKey(key))
-			return persistmap.get(key);
-		while (true) {
-			ttype = ttype.getSuperclass();
-			if (ttype.getCanonicalName().compareTo(
-					Object.class.getCanonicalName()) == 0) {
-				break;
-			}
-			key = ttype.getCanonicalName();
-			if (persistmap.containsKey(key))
-				return persistmap.get(key);
-		}
-		throw new Exception("No persistence handler found for class ["
-				+ type.getCanonicalName() + "]");
-	}
-
-	/**
-	 * Fetch the entity records for the Class filtered by Query.
-	 * 
-	 * @param query
-	 *            - Query Condition string.
-	 * @param type
-	 *            - Entity Type.
-	 * @return
-	 * @throws Exception
-	 */
-	public List<AbstractEntity> read(final String query, final Class<?> type,
-			final int limit) throws Exception {
-		StructEntityReflect enref = ReflectionUtils.get().getEntityMetadata(
-				type);
-		if (enref.IsJoin) {
-			if (enref.Join.Type == null
-					|| enref.Join.Type == EnumJoinType.Unknown) {
-				isNativeJoin(enref);
-			}
-		}
-		if (!enref.IsJoin || enref.Join.Type == EnumJoinType.Native) {
-			AbstractPersister persister = getPersister(type);
-			return persister.read(query, type, limit);
-		} else {
-			DistributedJoinHandler jh = new DistributedJoinHandler(type, query,
-					limit);
-			return jh.read();
-		}
-	}
-
-	private void isNativeJoin(final StructEntityReflect enref) throws Exception {
-		AbstractPersister pers = null;
-
-		for (StructAttributeReflect attr : enref.Attributes) {
-			if (attr.Reference == null) {
-				continue;
-			}
-			Class<?> type = Class.forName(attr.Reference.Class);
-			StructEntityReflect subref = ReflectionUtils.get()
-					.getEntityMetadata(type);
-			if (subref == null)
-				throw new Exception("No entity defined for name ["
-						+ attr.Column + "]");
-			AbstractPersister p = getPersister(type);
-			if (pers == null) {
-				pers = p;
-			} else if (!p.equals(pers)) {
-				enref.Join.Type = EnumJoinType.Virtual;
-				return;
-			}
-		}
-		enref.Join.Type = EnumJoinType.Native;
+	public String key() {
+		return DataManager.class.getCanonicalName();
 	}
 
 	/**
@@ -287,8 +360,23 @@ public class DataManager implements InitializedHandle {
 	 */
 	public List<AbstractEntity> read(final String query,
 			final AbstractPersister persister, final Class<?> type,
-			final int limit) throws Exception {
-		return persister.read(query, type, limit);
+			final int limit, final boolean debug) throws Exception {
+		return persister.read(query, type, limit, debug);
+	}
+
+	/**
+	 * Fetch the entity records for the Class filtered by Query.
+	 * 
+	 * @param query
+	 *            - Query Condition string.
+	 * @param type
+	 *            - Entity Type.
+	 * @return
+	 * @throws Exception
+	 */
+	public List<AbstractEntity> read(final String query, final Class<?> type,
+			final int limit, final boolean debug) throws Exception {
+		return null;
 	}
 
 	/**
@@ -298,32 +386,15 @@ public class DataManager implements InitializedHandle {
 	 * @return
 	 * @throws Exception
 	 */
-	public OperationResponse save(final AbstractEntity entity) throws Exception {
+	public OperationResponse save(final AbstractEntity entity,
+			final boolean debug) throws Exception {
 		if (!(entity instanceof AbstractPersistedEntity))
 			throw new Exception("Entity ["
 					+ entity.getClass().getCanonicalName()
 					+ "] does not extend from ["
 					+ AbstractPersistedEntity.class.getCanonicalName() + "]");
 		AbstractPersister persister = getPersister(entity.getClass());
-		return persister.save(entity, false);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.wookler.core.InitializedHandle#key()
-	 */
-	public String key() {
-		return DataManager.class.getCanonicalName();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.wookler.core.InitializedHandle#init(com.wookler.utils.ListParam)
-	 */
-	public void init(final ListParam param) throws Exception {
-		throw new Exception("Should not be called.");
+		return persister.save(entity, false, debug);
 	}
 
 	/*
@@ -333,94 +404,5 @@ public class DataManager implements InitializedHandle {
 	 */
 	public EnumInstanceState state() {
 		return state;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.wookler.core.InitializedHandle#dispose()
-	 */
-	public void dispose() {
-		if (persistmap != null && persistmap.size() > 0) {
-			for (String key : persistmap.keySet()) {
-				AbstractPersister pers = persistmap.get(key);
-				if (pers != null) {
-					pers.dispose();
-				}
-			}
-		}
-		return;
-	}
-
-	// Instance
-	private static DataManager _instance = new DataManager();
-
-	/**
-	 * Initialize and create the DataManager instance.
-	 * 
-	 * @param config
-	 *            - Configuration
-	 * @throws Exception
-	 */
-	public static void create(final XMLConfiguration config) throws Exception {
-		synchronized (_instance) {
-			if (_instance.state == EnumInstanceState.Running)
-				return;
-			log.debug("Initialzing the DataManager...");
-			_instance.init(config);
-		}
-	}
-
-	/**
-	 * Get the DataManager instance handle.
-	 * 
-	 * @return
-	 * @throws Exception
-	 */
-	public static DataManager get() throws Exception {
-		synchronized (_instance) {
-			if (_instance.state != EnumInstanceState.Running)
-				throw new Exception(
-						"Invalid Instance State : Instance not available [state="
-								+ _instance.state.name() + "]");
-			return _instance;
-		}
-	}
-
-	/**
-	 * Dispose the DataManager instance.
-	 */
-	public static void release() {
-		synchronized (_instance) {
-			if (_instance.state == EnumInstanceState.Running) {
-				_instance.dispose();
-				_instance.state = EnumInstanceState.Closed;
-				log.info("Dispoing the DataManager instance...");
-			}
-		}
-	}
-
-	/**
-	 * Create a new instance of an AbstractEntity type. This method should be
-	 * used when creating new AbstarctEntity types.
-	 * 
-	 * @param type
-	 *            - Class (type) to create instance of.
-	 * 
-	 * @return
-	 * @throws Exception
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T extends AbstractEntity> T newInstance(final Class<?> type)
-			throws Exception {
-		Object obj = type.newInstance();
-		if (!(obj instanceof AbstractEntity))
-			throw new Exception("Invalid Class : [" + type.getCanonicalName()
-					+ "] does not extend ["
-					+ AbstractEntity.class.getCanonicalName() + "]");
-
-		((AbstractEntity) obj).setState(EnumEntityState.New);
-
-		return (T) obj;
 	}
 }

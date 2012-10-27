@@ -25,10 +25,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
+import com.sqewd.open.dal.api.persistence.query.Condition;
+import com.sqewd.open.dal.api.persistence.query.QueryCondition;
 import com.sqewd.open.dal.core.persistence.query.QueryColumn;
 import com.sqewd.open.dal.core.persistence.query.conditions.AndCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.ArithmeticOperatorCondition;
-import com.sqewd.open.dal.core.persistence.query.conditions.Condition;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionAttribute;
 import com.sqewd.open.dal.core.persistence.query.conditions.ConditionValue;
 import com.sqewd.open.dal.core.persistence.query.conditions.EnumConditionOperator;
@@ -36,7 +37,6 @@ import com.sqewd.open.dal.core.persistence.query.conditions.EnumSortDirection;
 import com.sqewd.open.dal.core.persistence.query.conditions.GroupCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.OperatorCondition;
 import com.sqewd.open.dal.core.persistence.query.conditions.OrCondition;
-import com.sqewd.open.dal.core.persistence.query.conditions.QueryCondition;
 
 /**
  * Parse Query Conditions. This class implements a parser for processing query
@@ -681,7 +681,7 @@ public class ConditionParser {
 		for (int ii = index; ii < tokens.size(); ii++) {
 			tk = tokens.get(ii);
 			if (tk.isSort() || tk.isOr()) {
-				column = new QueryColumn();
+				column = new QueryColumn(EnumSortDirection.Desc);
 				sortColumns.add(column);
 				continue;
 			}

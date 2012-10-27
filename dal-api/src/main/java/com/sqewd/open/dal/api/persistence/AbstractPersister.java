@@ -19,8 +19,8 @@ import java.util.List;
 
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.InitializedHandle;
+import com.sqewd.open.dal.api.persistence.query.PlanGenerator;
 import com.sqewd.open.dal.api.reflect.SchemaObject;
-import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.api.utils.ListParam;
 
 /**
@@ -40,14 +40,22 @@ public abstract class AbstractPersister implements InitializedHandle {
 	protected String key;
 
 	/**
-	 * Get the key to be used to lookup this Persister in the cache. Usually the
-	 * key should be the absolute classname of the type T.
+	 * Get the Plan Context generator for this driver.
 	 * 
 	 * @return
+	 * @throws Exception
 	 */
-	public String key() {
-		return key;
-	}
+	public abstract PlanGenerator getPlanGenerator() throws Exception;
+
+	/**
+	 * Load the persistence definition for the specified Schema Object.
+	 * 
+	 * @param name
+	 *            - Object name.
+	 * @return
+	 * @throws Exception
+	 */
+	public abstract SchemaObject getSchemaObject(String name) throws Exception;
 
 	/**
 	 * Initialize the persistence handler.
@@ -57,6 +65,16 @@ public abstract class AbstractPersister implements InitializedHandle {
 	 * @throws Exception
 	 */
 	public abstract void init(ListParam params) throws Exception;
+
+	/**
+	 * Get the key to be used to lookup this Persister in the cache. Usually the
+	 * key should be the absolute classname of the type T.
+	 * 
+	 * @return
+	 */
+	public String key() {
+		return key;
+	}
 
 	/**
 	 * Method do be called post initialization.
@@ -74,11 +92,41 @@ public abstract class AbstractPersister implements InitializedHandle {
 	 *            - Entity type to fetch.
 	 * @param limit
 	 *            - Limit the size of the Results to.
+	 * @param debug
+	 *            - Turn debug trace on for this request.
 	 * @return
 	 * @throws Exception
 	 */
 	public abstract List<AbstractEntity> read(String query, Class<?> type,
-			int limit) throws Exception;
+			int limit, boolean debug) throws Exception;
+
+	/**
+	 * Persist the specified entity record.
+	 * 
+	 * @param record
+	 *            - Entity record instance.
+	 * @param overwrite
+	 *            - Force overwrite if entity already exists else insert.
+	 * @param debug
+	 *            - Turn debug trace on for this request.
+	 * @throws Exception
+	 */
+	public abstract OperationResponse save(AbstractEntity record,
+			boolean overwrite, boolean debug) throws Exception;
+
+	/**
+	 * Bulk save a list of entity records.
+	 * 
+	 * @param records
+	 *            - List of entity records.
+	 * @param overwrite
+	 *            - Force overwrite if entity already exists else insert.
+	 * @param debug
+	 *            - Turn debug trace on for this request.
+	 * @throws Exception
+	 */
+	public abstract PersistenceResponse save(List<AbstractEntity> records,
+			boolean overwrite, boolean debug) throws Exception;
 
 	/**
 	 * Load the entity records for the specified entity and return as a SQL
@@ -88,41 +136,12 @@ public abstract class AbstractPersister implements InitializedHandle {
 	 *            - Query Condition to filter the result set by.
 	 * @param types
 	 *            - Entity types to fetch.
-	 * @param limit
-	 *            - Limit the size of the Results to.
+	 * @param ctx
+	 *            - Specify the Cursor Context for this request.
 	 * @return - Will return ResultSet of type LocalResultSet.
 	 * @throws Exception
 	 */
-	public abstract ResultSet select(String query,
-			List<KeyValuePair<Class<?>>> types, int limit) throws Exception;
+	public abstract ResultSet select(String query, Class<?> types,
+			CursorContext ctx) throws Exception;
 
-	/**
-	 * Persist the specified entity record.
-	 * 
-	 * @param record
-	 *            - Entity record instance.
-	 * @throws Exception
-	 */
-	public abstract OperationResponse save(AbstractEntity record,
-			boolean overwrite) throws Exception;
-
-	/**
-	 * Bulk save a list of entity records.
-	 * 
-	 * @param records
-	 *            - List of entity records.
-	 * @throws Exception
-	 */
-	public abstract PersistenceResponse save(List<AbstractEntity> records,
-			boolean overwrite) throws Exception;
-
-	/**
-	 * Load the persistence definition for the specified Schema Object.
-	 * 
-	 * @param name
-	 *            - Object name.
-	 * @return
-	 * @throws Exception
-	 */
-	public abstract SchemaObject getSchemaObject(String name) throws Exception;
 }

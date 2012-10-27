@@ -20,10 +20,10 @@
  */
 package com.sqewd.open.dal.core.persistence.query.sql;
 
+import com.sqewd.open.dal.api.persistence.query.EnumJoinType;
+import com.sqewd.open.dal.api.persistence.query.PlanContext;
+import com.sqewd.open.dal.api.persistence.query.PlanNode;
 import com.sqewd.open.dal.api.reflect.SchemaObject;
-import com.sqewd.open.dal.core.persistence.query.EnumJoinType;
-import com.sqewd.open.dal.core.persistence.query.PlanContext;
-import com.sqewd.open.dal.core.persistence.query.PlanNode;
 
 /**
  * Class represents a SQL Plan Node for the Execution plan.
@@ -41,21 +41,19 @@ public class SqlPlanNode extends PlanNode {
 	 */
 	public SqlPlanNode(final SchemaObject object, final PlanNode parent,
 			final PlanContext ctx) throws Exception {
-		super(object, parent, ctx);
-	}
+		super(parent, ctx);
+		if (!(object instanceof SqlTable))
+			throw new Exception(
+					"Invalid Schema Object : Expected Schema Object of type ["
+							+ SqlTable.class.getCanonicalName() + "]");
+		SqlTable table = (SqlTable) object;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.core.persistence.query.PlanNode#getChild(java.lang
-	 * .String)
-	 */
-	@Override
-	public PlanNode getReference(final String key) throws Exception {
-		if (nameindx.containsKey(key))
-			return references.get(nameindx.get(key));
-		throw new Exception("No reference node found for key [" + key + "]");
+		String key = table.getKey();
+		if (ctx.isNodeKeyUsed(key)) {
+			key = ctx.createNewAlias(key);
+			table.setAlias(key);
+		}
+		setObject(table);
 	}
 
 	/*
@@ -93,6 +91,20 @@ public class SqlPlanNode extends PlanNode {
 		// addExternalReference.
 		throw new Exception("Cannot create PlanNode with type ["
 				+ object.getClass().getCanonicalName() + "]");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.core.persistence.query.PlanNode#getChild(java.lang
+	 * .String)
+	 */
+	@Override
+	public PlanNode getReference(final String key) throws Exception {
+		if (nameindx.containsKey(key))
+			return references.get(nameindx.get(key));
+		throw new Exception("No reference node found for key [" + key + "]");
 	}
 
 	/*

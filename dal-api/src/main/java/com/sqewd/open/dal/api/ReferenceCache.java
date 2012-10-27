@@ -20,12 +20,13 @@
  */
 package com.sqewd.open.dal.api;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 
 import com.sqewd.open.dal.api.reflect.EntityDef;
-import com.sqewd.open.dal.api.utils.ListParam;
 
 /**
  * Singleton Object for accessing the reference cache. Reference cache is used
@@ -34,73 +35,18 @@ import com.sqewd.open.dal.api.utils.ListParam;
  * @author subhagho
  * 
  */
-public class ReferenceCache implements InitializedHandle {
+public class ReferenceCache {
 	public static final String _CACHE_ENTITYREFERENCE_ = "reference.entity";
 
-	private EnumInstanceState state = EnumInstanceState.Unknown;
-
-	private CacheManager referenceCacheManager = null;
-
-	private Cache entityReferenceCache = null;
-
-	private void init(final String config) throws Exception {
-		try {
-			referenceCacheManager = CacheManager.newInstance(config);
-			entityReferenceCache = referenceCacheManager
-					.getCache(_CACHE_ENTITYREFERENCE_);
-			state = EnumInstanceState.Running;
-		} catch (Exception ex) {
-			state = EnumInstanceState.Exception;
-			throw ex;
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.sqewd.open.dal.api.InitializedHandle#key()
-	 */
-	public String key() {
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.api.InitializedHandle#init(com.sqewd.open.dal.api.
-	 * utils.ListParam)
-	 */
-	public void init(final ListParam param) throws Exception {
-		throw new Exception(
-				"Method not implemented. Initialization should be done via the Singleton.");
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.sqewd.open.dal.api.InitializedHandle#state()
-	 */
-	public EnumInstanceState state() {
-		return state;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.sqewd.open.dal.api.InitializedHandle#dispose()
-	 */
-	public void dispose() {
-		if (referenceCacheManager != null && state == EnumInstanceState.Running) {
-			referenceCacheManager.shutdown();
-		}
-	}
+	private static final ReferenceCache _instance = new ReferenceCache();
 
 	/**
-	 * @return the entityReferenceCache
+	 * Get the handle to the Reference Cache singleton.
+	 * 
+	 * @return
 	 */
-	public Cache getEntityReferenceCache() {
-		return entityReferenceCache;
+	public static final ReferenceCache get() throws Exception {
+		return _instance;
 	}
 
 	/**
@@ -112,15 +58,17 @@ public class ReferenceCache implements InitializedHandle {
 	public void addEntityDef(final EntityDef entitydef) throws Exception {
 		String ckey = entitydef.getClasstype().getCanonicalName();
 
-		if (entityReferenceCache.get(ckey) != null)
+		Cache cache = DataCache.instance().get(_CACHE_ENTITYREFERENCE_);
+
+		if (cache.get(ckey) != null)
 			throw new Exception("Entity definition with entity class [" + ckey
 					+ "] already added to cache.");
 		Element elm = new Element(ckey, entitydef);
-		entityReferenceCache.put(elm);
+		cache.put(elm);
 	}
 
 	/**
-	 * Get the Entity Definition based on the entity name.
+	 * Get the Entity Definition based on the entity class.
 	 * 
 	 * @param ec
 	 *            - Entity class
@@ -128,37 +76,48 @@ public class ReferenceCache implements InitializedHandle {
 	 * @throws Exception
 	 */
 	public EntityDef getEntityDef(final Class<?> ec) throws Exception {
-		Element elm = entityReferenceCache.get(ec.getCanonicalName());
+		Cache cache = DataCache.instance().get(_CACHE_ENTITYREFERENCE_);
+
+		Element elm = cache.get(ec.getCanonicalName());
 		if (elm != null)
 			return (EntityDef) elm.getObjectValue();
 		return null;
 	}
 
-	// Singleton
 	/**
-	 * @param entityReferenceCache
-	 *            the entityReferenceCache to set
-	 */
-	public void setEntityReferenceCache(final Cache entityReferenceCache) {
-		this.entityReferenceCache = entityReferenceCache;
-	}
-
-	private static final ReferenceCache _instance = new ReferenceCache();
-
-	public static final void create(final String config) throws Exception {
-		_instance.init(config);
-	}
-
-	/**
-	 * Get the handle to the Reference Cache singleton.
+	 * Get all the loaded entity definitions from the cache.
 	 * 
 	 * @return
+	 * @throws Exception
 	 */
-	public static final ReferenceCache get() throws Exception {
-		if (_instance.state != EnumInstanceState.Running)
-			throw new Exception("Invalid Cache state ["
-					+ _instance.state.name() + "]. Cache is not available.");
-		return _instance;
+	public List<EntityDef> getEntityDefs() throws Exception {
+		Cache cache = DataCache.instance().get(_CACHE_ENTITYREFERENCE_);
+
+		if (cache != null) {
+			List<?> keys = cache.getKeys();
+			if (keys != null && !keys.isEmpty()) {
+				List<EntityDef> defs = new ArrayList<EntityDef>();
+				for (Object obj : keys) {
+					Element elm = cache.get(obj);
+					if (elm.getObjectValue() != null
+							&& elm.getObjectValue() instanceof EntityDef) {
+						defs.add((EntityDef) elm.getObjectValue());
+					} else
+						throw new Exception(
+								"Invalid Cache Data : NULL value or incorrect Object type for EntityDef");
+				}
+				return defs;
+			}
+		} else
+			throw new Exception(
+					"Entity Reference Cache not initialized or has been shutdown.");
+		return null;
 	}
 
+	/**
+	 * @return the entityReferenceCache
+	 */
+	public Cache getEntityReferenceCache() throws Exception {
+		return DataCache.instance().get(_CACHE_ENTITYREFERENCE_);
+	}
 }

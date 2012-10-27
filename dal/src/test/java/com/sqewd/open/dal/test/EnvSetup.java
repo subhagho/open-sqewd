@@ -16,6 +16,7 @@ package com.sqewd.open.dal.test;
 
 import java.io.File;
 
+import com.sqewd.open.dal.api.ReferenceCache;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.utils.FileUtils;
 import com.sqewd.open.dal.core.Env;
@@ -30,6 +31,31 @@ public class EnvSetup {
 	public static final String _CONFIG_FILE_ = "src/test/java/com/sqewd/open/dal/demo/config/server-demo.xml";
 	private static final String _SETUP_ROOTDIR_ = "src/test/java/com/sqewd/open/dal/demo/data";
 	private static final String _SETUP_TEMP_ = "/tmp/sqewd/";
+	private static final String _CACHE_SETUP_ = "/work/projects/open-sqewd/dal/src/test/java/com/sqewd/open/dal/demo/config/reference-cache.xml";
+
+	private static void cleanup() throws Exception {
+		File wdi = new File(_SETUP_ROOTDIR_ + "/run/");
+		if (wdi.exists()) {
+			FileUtils.delete(wdi);
+		}
+	}
+
+	public static void dispose() {
+		Env.dispose();
+		try {
+			cleanup();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void doimport() throws Exception {
+		AbstractPersister persister = DataManager.get().getPersisterByName(
+				"CSVPERSISTER");
+		DataImport importer = new DataImport(persister);
+		importer.load(new String[] { "ROLE", "EMPLOYEE", "TEAM", "MEMBERSHIP",
+				"DEPARTMENT", "ORGANIZATION", "SALARY" });
+	}
 
 	public static void setup() throws Exception {
 		Env.create(_CONFIG_FILE_);
@@ -49,27 +75,7 @@ public class EnvSetup {
 		DataManager.create(Env.get().getConfig());
 	}
 
-	public static void doimport() throws Exception {
-		AbstractPersister persister = DataManager.get().getPersisterByName(
-				"CSVPERSISTER");
-		DataImport importer = new DataImport(persister);
-		importer.load(new String[] { "ROLE", "EMPLOYEE", "TEAM", "MEMBERSHIP",
-				"DEPARTMENT", "ORGANIZATION", "SALARY" });
-	}
-
-	private static void cleanup() throws Exception {
-		File wdi = new File(_SETUP_ROOTDIR_ + "/run/");
-		if (wdi.exists()) {
-			FileUtils.delete(wdi);
-		}
-	}
-
-	public static void dispose() {
-		Env.dispose();
-		try {
-			cleanup();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public static void setupCacheOnly() throws Exception {
+		ReferenceCache.get(_CACHE_SETUP_);
 	}
 }

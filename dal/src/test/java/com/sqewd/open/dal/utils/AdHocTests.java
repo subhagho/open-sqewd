@@ -17,7 +17,7 @@ package com.sqewd.open.dal.utils;
 import java.util.ArrayList;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
-import com.sqewd.open.dal.core.persistence.query.conditions.QueryCondition;
+import com.sqewd.open.dal.api.persistence.query.QueryCondition;
 import com.sqewd.open.dal.core.persistence.query.parser.ConditionParser;
 
 /**

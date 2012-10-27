@@ -28,8 +28,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sqewd.open.dal.api.persistence.query.QueryCondition;
 import com.sqewd.open.dal.api.utils.LogUtils;
-import com.sqewd.open.dal.core.persistence.query.conditions.QueryCondition;
 import com.sqewd.open.dal.core.persistence.query.parser.ConditionParser;
 
 /**

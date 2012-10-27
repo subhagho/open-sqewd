@@ -20,34 +20,39 @@ import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
+import net.sf.ehcache.Cache;
+
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.lang.NotImplementedException;
+import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.com.bytecode.opencsv.CSVReader;
 
+import com.sqewd.open.dal.api.DataCache;
 import com.sqewd.open.dal.api.EnumInstanceState;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
+import com.sqewd.open.dal.api.persistence.CursorContext;
 import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.persistence.EnumPrimitives;
 import com.sqewd.open.dal.api.persistence.EnumRefereceType;
 import com.sqewd.open.dal.api.persistence.OperationResponse;
 import com.sqewd.open.dal.api.persistence.PersistenceResponse;
-import com.sqewd.open.dal.api.persistence.ReflectionUtils;
-import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
-import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.persistence.query.PlanGenerator;
+import com.sqewd.open.dal.api.reflect.AttributeDef;
+import com.sqewd.open.dal.api.reflect.AttributeReferenceDef;
+import com.sqewd.open.dal.api.reflect.EntityDef;
+import com.sqewd.open.dal.api.reflect.SchemaObject;
 import com.sqewd.open.dal.api.utils.AbstractParam;
 import com.sqewd.open.dal.api.utils.DateUtils;
-import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.api.utils.ListParam;
+import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.api.utils.ValueParam;
 import com.sqewd.open.dal.core.persistence.DataManager;
-import com.sqewd.open.dal.core.persistence.query.SimpleFilterQuery;
+import com.sqewd.open.dal.core.persistence.model.EntityModelHelper;
 import com.sqewd.open.dal.core.persistence.query.sql.SQLUtils;
 
 /**
@@ -60,7 +65,8 @@ public class CSVPersister extends AbstractPersister {
 	public static final String _PARAM_DATADIR_ = "datadir";
 
 	private String datadir;
-	private HashMap<String, List<AbstractEntity>> cache = new HashMap<String, List<AbstractEntity>>();
+	private Cache cache = null;
+
 	private EnumImportFormat format = EnumImportFormat.CSV;
 
 	public CSVPersister() {
@@ -69,6 +75,47 @@ public class CSVPersister extends AbstractPersister {
 
 	public CSVPersister(final EnumImportFormat format) {
 		this.format = format;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.wookler.core.InitializedHandle#dispose()
+	 */
+	public void dispose() {
+		if (cache != null) {
+			try {
+				DataCache.instance().remove(cache.getName());
+			} catch (Exception e) {
+				LogUtils.stacktrace(log, e);
+				log.error(e.getLocalizedMessage());
+			}
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.persistence.AbstractPersister#getPlanGenerator()
+	 */
+	@Override
+	public PlanGenerator getPlanGenerator() throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.persistence.AbstractPersister#getSchemaObject(
+	 * java.lang.String)
+	 */
+	@Override
+	public SchemaObject getSchemaObject(final String name) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	/*
@@ -114,45 +161,8 @@ public class CSVPersister extends AbstractPersister {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.wookler.core.InitializedHandle#state()
-	 */
-	public EnumInstanceState state() {
-		return state;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.wookler.core.persistence.AbstractPersister#read(java.util.List)
-	 */
-	@Override
-	public List<AbstractEntity> read(final String query, final Class<?> type,
-			final int limit) throws Exception {
-		List<AbstractEntity> result = null;
-		String cname = type.getCanonicalName();
-		if (!cache.containsKey(cname)) {
-			load(type);
-		}
-
-		// Make sure the type for the class is available.
-		ReflectionUtils.get().getEntityMetadata(type);
-
-		List<AbstractEntity> records = cache.get(cname);
-		if (query != null && !query.isEmpty()) {
-			SimpleFilterQuery filter = new SimpleFilterQuery();
-
-			filter.parse(new Class<?>[] { type }, query);
-			result = filter.select(records);
-		} else {
-			result = records;
-		}
-		return result;
-	}
-
-	protected void load(final Class<?> type) throws Exception {
+	protected void load(final Class<?> type, final boolean debug)
+			throws Exception {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
@@ -188,7 +198,7 @@ public class CSVPersister extends AbstractPersister {
 				if (data.length < header.length) {
 					continue;
 				}
-				AbstractEntity record = parseRecord(type, header, data);
+				AbstractEntity record = parseRecord(type, header, data, debug);
 				if (record == null) {
 					log.warn("Parse returned NULL");
 					continue;
@@ -201,34 +211,37 @@ public class CSVPersister extends AbstractPersister {
 	}
 
 	protected AbstractEntity parseRecord(final Class<?> type,
-			final String[] header, final String[] data) throws Exception {
+			final String[] header, final String[] data, final boolean debug)
+			throws Exception {
 		AbstractEntity entity = (AbstractEntity) type.newInstance();
+		EntityDef edef = EntityModelHelper.get().getEntityDef(type);
 
 		for (int ii = 0; ii < header.length; ii++) {
-			StructAttributeReflect attr = ReflectionUtils.get().getAttribute(
-					type, header[ii]);
+			AttributeDef attr = edef.getAttribute(header[ii]);
 			if (attr != null) {
-				if (attr.Convertor != null) {
-					attr.Convertor.load(entity, attr.Column, data[ii]);
-				} else if (attr.Reference == null) {
-					setFieldValue(entity, attr.Field, data[ii]);
+				if (attr.getHandler() != null) {
+					Object value = attr.getHandler().get(data[ii]);
+					setFieldValue(entity, attr.getField(), value);
+				} else if (!attr.isRefrenceAttr()) {
+					setFieldValue(entity, attr.getField(), data[ii]);
 				} else {
-					Class<?> reft = Class.forName(attr.Reference.Class);
-					StructEntityReflect enref = ReflectionUtils.get()
-							.getEntityMetadata(reft);
-					String query = enref.Entity
+					AttributeReferenceDef refd = (AttributeReferenceDef) attr
+							.getType();
+
+					EntityDef enref = refd.getReference();
+					String query = enref.getName()
 							+ "."
-							+ attr.Reference.Field
+							+ refd.getReferenceAttribute().getName()
 							+ "="
-							+ SQLUtils.quoteValue(data[ii], reft,
-									attr.Reference.Field);
+							+ SQLUtils.getQuotedString(data[ii], refd
+									.getReferenceAttribute().getField());
 					List<AbstractEntity> refs = DataManager.get().read(query,
-							reft, -1);
+							refd.getType(), -1, debug);
 					if (refs != null && refs.size() > 0) {
-						if (attr.Reference.Type == EnumRefereceType.One2One) {
-							setFieldValue(entity, attr.Field, refs.get(0));
+						if (refd.getCardinality() == EnumRefereceType.One2One) {
+							setFieldValue(entity, attr.getField(), refs.get(0));
 						} else {
-							setFieldValue(entity, attr.Field, refs);
+							setFieldValue(entity, attr.getField(), refs);
 						}
 					} else
 						throw new Exception(
@@ -243,27 +256,97 @@ public class CSVPersister extends AbstractPersister {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * com.wookler.core.persistence.AbstractPersister#save(com.wookler.core.
-	 * persistence.AbstractEntity)
+	 * @see com.wookler.core.persistence.AbstractPersister#postinit()
 	 */
 	@Override
-	public OperationResponse save(final AbstractEntity record,
-			final boolean overwrite) throws Exception {
-		throw new NotImplementedException(
-				"This is a dummy persister. Write operations are not supported.");
+	public void postinit() throws Exception {
+		// Do nothing...
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.wookler.core.persistence.AbstractPersister#save(java.util.List)
+	 * @see com.wookler.core.persistence.AbstractPersister#read(java.util.List)
+	 */
+	@Override
+	public List<AbstractEntity> read(final String query, final Class<?> type,
+			final int limit) throws Exception {
+		List<AbstractEntity> result = null;
+		String cname = type.getCanonicalName();
+		if (!cache.containsKey(cname)) {
+			load(type);
+		}
+
+		// Make sure the type for the class is available.
+		ReflectionUtils.get().getEntityMetadata(type);
+
+		List<AbstractEntity> records = cache.get(cname);
+		if (query != null && !query.isEmpty()) {
+			SimpleFilterQuery filter = new SimpleFilterQuery();
+
+			filter.parse(new Class<?>[] { type }, query);
+			result = filter.select(records);
+		} else {
+			result = records;
+		}
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.persistence.AbstractPersister#read(java.lang.String
+	 * , java.lang.Class, int, boolean)
+	 */
+	@Override
+	public List<AbstractEntity> read(final String query, final Class<?> type,
+			final int limit, final boolean debug) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.persistence.AbstractPersister#save(com.sqewd.open
+	 * .dal.api.persistence.AbstractEntity, boolean, boolean)
+	 */
+	@Override
+	public OperationResponse save(final AbstractEntity record,
+			final boolean overwrite, final boolean debug) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.persistence.AbstractPersister#save(java.util.List,
+	 * boolean, boolean)
 	 */
 	@Override
 	public PersistenceResponse save(final List<AbstractEntity> records,
-			final boolean overwrite) throws Exception {
-		throw new NotImplementedException(
-				"This is a dummy persister. Write operations are not supported.");
+			final boolean overwrite, final boolean debug) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.persistence.AbstractPersister#select(java.lang
+	 * .String, java.lang.Class,
+	 * com.sqewd.open.dal.api.persistence.CursorContext)
+	 */
+	@Override
+	public ResultSet select(final String query, final Class<?> types,
+			final CursorContext ctx) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	/*
@@ -321,34 +404,9 @@ public class CSVPersister extends AbstractPersister {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.wookler.core.InitializedHandle#dispose()
+	 * @see com.wookler.core.InitializedHandle#state()
 	 */
-	public void dispose() {
-		cache.clear();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.wookler.core.persistence.AbstractPersister#postinit()
-	 */
-	@Override
-	public void postinit() throws Exception {
-		// Do nothing...
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.sqewd.open.dal.api.persistence.AbstractPersister#select(java.lang
-	 * .String, java.lang.Class, int)
-	 */
-	@Override
-	public ResultSet select(final String query,
-			final List<KeyValuePair<Class<?>>> types, final int limit)
-			throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public EnumInstanceState state() {
+		return state;
 	}
 }

@@ -25,11 +25,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.EnumRefereceType;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.persistence.query.EnumJoinType;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 
 /**

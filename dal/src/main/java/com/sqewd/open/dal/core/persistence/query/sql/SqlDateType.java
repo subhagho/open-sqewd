@@ -26,6 +26,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import com.sqewd.open.dal.core.Env;
+
 /**
  * Represents a SQL DATE/TIMESTAMP type.
  * 
@@ -33,8 +35,6 @@ import java.util.List;
  * 
  */
 public class SqlDateType extends SqlDataType<Date> {
-	public static final String _DEFAULT_DATE_FORMAT_ = "MM-dd-yyyy HH:mm:ss.SSS";
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -246,7 +246,8 @@ public class SqlDateType extends SqlDataType<Date> {
 	 */
 	@Override
 	public Date parse(final String value) throws Exception {
-		SimpleDateFormat format = new SimpleDateFormat(_DEFAULT_DATE_FORMAT_);
+		SimpleDateFormat format = new SimpleDateFormat(Env.get()
+				.getDateFormat());
 		return format.parse(value);
 	}
 
@@ -298,10 +299,33 @@ public class SqlDateType extends SqlDataType<Date> {
 	@Override
 	public String toString(final Object value) {
 		if (value instanceof Date) {
-			SimpleDateFormat sdf = new SimpleDateFormat(_DEFAULT_DATE_FORMAT_);
-			return sdf.format((Date) value);
+			try {
+				SimpleDateFormat sdf = new SimpleDateFormat(Env.get()
+						.getDateFormat());
+				return sdf.format((Date) value);
+			} catch (Exception ex) {
+				return null;
+			}
 		} else
 			return null;
 	}
 
+	/**
+	 * 
+	 * Get the string representation of the date value based on the specified
+	 * format.
+	 * 
+	 * @param value
+	 *            - Date Value
+	 * @param format
+	 *            - Date Format
+	 * @return
+	 */
+	public String toString(final Object value, final String format) {
+		if (value instanceof Date) {
+			SimpleDateFormat sdf = new SimpleDateFormat(format);
+			return sdf.format((Date) value);
+		} else
+			return null;
+	}
 }

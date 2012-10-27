@@ -27,10 +27,10 @@ import java.util.Set;
 import java.util.Stack;
 
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
-import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.persistence.query.EnumJoinType;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.persistence.DataManager;
 

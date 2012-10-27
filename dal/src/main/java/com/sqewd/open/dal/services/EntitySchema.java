@@ -30,7 +30,7 @@ import com.sqewd.open.dal.api.persistence.Entity;
 import com.sqewd.open.dal.api.reflect.AttributeDef;
 import com.sqewd.open.dal.api.reflect.EntityDef;
 import com.sqewd.open.dal.core.persistence.DataManager;
-import com.sqewd.open.dal.core.persistence.model.EntityModelLoader;
+import com.sqewd.open.dal.core.persistence.model.EntityModelHelper;
 
 /**
  * @author subhagho
@@ -133,7 +133,7 @@ public class EntitySchema {
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
 
-		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		EntityDef enref = EntityModelHelper.get().getEntityDef(type);
 
 		return loadSchema(enref);
 	}

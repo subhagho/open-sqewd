@@ -35,7 +35,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +45,7 @@ import com.sqewd.open.dal.api.reflect.EntityDef;
 import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.api.utils.Timer;
 import com.sqewd.open.dal.core.persistence.DataManager;
+import com.sqewd.open.dal.core.persistence.model.EntityModelHelper;
 import com.sqewd.open.dal.server.ServerConfig;
 import com.sun.jersey.api.JResponse;
 
@@ -59,76 +59,6 @@ import com.sun.jersey.api.JResponse;
 public class DataServices {
 	private static final Logger log = LoggerFactory
 			.getLogger(DataServices.class);
-
-	@Path("/schema/{type}")
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public JResponse<DALResponse> schema(
-			@Context final HttpServletRequest req,
-			@DefaultValue(ServerConfig._EMPTY_PATH_ELEMENT_) @PathParam("type") final String type)
-			throws Exception {
-		try {
-			Timer timer = new Timer();
-
-			log.debug("[SESSIONID:" + req.getSession().getId() + "]");
-
-			List<EntityDef> types = null;
-			if (type.compareTo(ServerConfig._EMPTY_PATH_ELEMENT_) == 0) {
-				types = ReflectionUtils.get().getAllMetadata();
-			} else {
-				String[] names = type.split(",");
-				if (names != null && names.length > 0) {
-					types = new ArrayList<StructEntityReflect>();
-					for (String name : names) {
-						StructEntityReflect enref = ReflectionUtils.get()
-								.getEntityMetadata(name);
-						if (enref != null && !types.contains(enref)) {
-							types.add(enref);
-						}
-
-					}
-				}
-			}
-			DALResponse response = new DALResponse();
-			response.setMessage("[TYPES:" + type + "]");
-			if (types != null && types.size() > 0) {
-				List<EntitySchema> schema = new ArrayList<EntitySchema>();
-				List<String> packages = DataManager.get().getEntityPackages();
-
-				for (StructEntityReflect enref : types) {
-					if (!showSchema(enref, packages)) {
-						continue;
-					}
-
-					EntitySchema es = EntitySchema.loadSchema(enref);
-					schema.add(es);
-				}
-				response.setState(EnumResponseState.Success);
-				response.setData(schema);
-			} else {
-				response.setState(EnumResponseState.NoData);
-			}
-			response.setTimetaken(timer.stop());
-			return JResponse.ok(response).build();
-		} catch (Exception e) {
-			LogUtils.stacktrace(log, e);
-			log.error(e.getLocalizedMessage());
-
-			DALResponse response = new DALResponse();
-			response.setState(EnumResponseState.Exception);
-			response.setMessage(e.getLocalizedMessage());
-			return JResponse.ok(response).build();
-		}
-	}
-
-	private boolean showSchema(final StructEntityReflect enref,
-			final List<String> packages) throws Exception {
-		Class<?> type = Class.forName(enref.Class);
-		String pname = type.getPackage().getName();
-		if (packages.contains(pname))
-			return true;
-		return false;
-	}
 
 	@Path("/read/{type}")
 	@GET
@@ -155,13 +85,12 @@ public class DataServices {
 
 			DataManager dm = DataManager.get();
 
-			StructEntityReflect enref = ReflectionUtils.get()
-					.getEntityMetadata(type);
+			EntityDef enref = EntityModelHelper.get().getEntityDef(type);
 			if (enref == null)
 				throw new Exception("No entity found for type [" + type + "]");
-			Class<?> typec = Class.forName(enref.Class);
+			Class<?> typec = enref.getClasstype();
 
-			List<AbstractEntity> data = dm.read(query, typec, count);
+			List<AbstractEntity> data = dm.read(query, typec, count, debug);
 			DALResponse response = new DALResponse();
 			String path = "/read/" + typec.getCanonicalName() + "?q=" + query;
 			response.setRequest(path);
@@ -229,11 +158,10 @@ public class DataServices {
 
 			DataManager dm = DataManager.get();
 
-			StructEntityReflect enref = ReflectionUtils.get()
-					.getEntityMetadata(type);
+			EntityDef enref = EntityModelHelper.get().getEntityDef(type);
 			if (enref == null)
 				throw new Exception("No entity found for type [" + type + "]");
-			Class<?> typec = Class.forName(enref.Class);
+			Class<?> typec = enref.getClasstype();
 
 			ObjectMapper mapper = new ObjectMapper();
 			AbstractEntity entity = (AbstractEntity) mapper.readValue(data,
@@ -244,12 +172,67 @@ public class DataServices {
 
 			DALResponse response = new DALResponse();
 
-			OperationResponse or = dm.save(entity);
+			OperationResponse or = dm.save(entity, debug);
 			response.setMessage("SAVE");
 			response.setData(or);
 
 			response.setTimetaken(timer.stop());
 
+			return JResponse.ok(response).build();
+		} catch (Exception e) {
+			LogUtils.stacktrace(log, e);
+			log.error(e.getLocalizedMessage());
+
+			DALResponse response = new DALResponse();
+			response.setState(EnumResponseState.Exception);
+			response.setMessage(e.getLocalizedMessage());
+			return JResponse.ok(response).build();
+		}
+	}
+
+	@Path("/schema/{type}")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public JResponse<DALResponse> schema(
+			@Context final HttpServletRequest req,
+			@DefaultValue(ServerConfig._EMPTY_PATH_ELEMENT_) @PathParam("type") final String type)
+			throws Exception {
+		try {
+			Timer timer = new Timer();
+
+			log.debug("[SESSIONID:" + req.getSession().getId() + "]");
+
+			List<EntityDef> types = null;
+			if (type.compareTo(ServerConfig._EMPTY_PATH_ELEMENT_) == 0) {
+				types = EntityModelHelper.get().getEntityDefs();
+			} else {
+				String[] names = type.split(",");
+				if (names != null && names.length > 0) {
+					types = new ArrayList<EntityDef>();
+					for (String name : names) {
+						EntityDef enref = EntityModelHelper.get().getEntityDef(
+								name);
+						if (enref != null && !types.contains(enref)) {
+							types.add(enref);
+						}
+
+					}
+				}
+			}
+			DALResponse response = new DALResponse();
+			response.setMessage("[TYPES:" + type + "]");
+			if (types != null && types.size() > 0) {
+				List<EntitySchema> schema = new ArrayList<EntitySchema>();
+				for (EntityDef enref : types) {
+					EntitySchema es = EntitySchema.loadSchema(enref);
+					schema.add(es);
+				}
+				response.setState(EnumResponseState.Success);
+				response.setData(schema);
+			} else {
+				response.setState(EnumResponseState.NoData);
+			}
+			response.setTimetaken(timer.stop());
 			return JResponse.ok(response).build();
 		} catch (Exception e) {
 			LogUtils.stacktrace(log, e);

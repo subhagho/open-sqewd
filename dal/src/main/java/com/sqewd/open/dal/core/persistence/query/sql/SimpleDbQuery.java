@@ -29,7 +29,7 @@ import com.sqewd.open.dal.api.reflect.AttributeDef;
 import com.sqewd.open.dal.api.reflect.AttributeReferenceDef;
 import com.sqewd.open.dal.api.reflect.EntityDef;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
-import com.sqewd.open.dal.core.persistence.model.EntityModelLoader;
+import com.sqewd.open.dal.core.persistence.model.EntityModelHelper;
 
 /**
  * Class encapsulates the Query definition for a JDBC compliant Database.
@@ -89,7 +89,7 @@ public class SimpleDbQuery {
 			return isql;
 
 		// Get table name
-		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		EntityDef enref = EntityModelHelper.get().getEntityDef(type);
 		String table = enref.getName();
 
 		StringBuffer query = new StringBuffer();
@@ -143,7 +143,7 @@ public class SimpleDbQuery {
 			return isql;
 
 		// Get table name
-		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		EntityDef enref = EntityModelHelper.get().getEntityDef(type);
 		String table = enref.getName();
 
 		StringBuffer query = new StringBuffer();
@@ -201,7 +201,7 @@ public class SimpleDbQuery {
 			return isql;
 
 		// Get table name
-		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		EntityDef enref = EntityModelHelper.get().getEntityDef(type);
 		String table = enref.getName();
 
 		StringBuffer query = new StringBuffer();
@@ -259,7 +259,7 @@ public class SimpleDbQuery {
 		String table = null;
 
 		// Get table name
-		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		EntityDef enref = EntityModelHelper.get().getEntityDef(type);
 		table = enref.getName();
 
 		// Drop table statement
@@ -367,7 +367,7 @@ public class SimpleDbQuery {
 		String table = null;
 
 		// Get table name
-		EntityDef enref = EntityModelLoader.get().getEntityDef(type);
+		EntityDef enref = EntityModelHelper.get().getEntityDef(type);
 		table = enref.getName();
 
 		for (KeyValuePair<String> keys : keycolumns) {

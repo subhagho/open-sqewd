@@ -29,8 +29,28 @@ import com.sqewd.open.dal.core.persistence.query.conditions.EnumSortDirection;
  * 
  */
 public class QueryColumn {
-	private String name;
-	private EnumSortDirection direction = EnumSortDirection.Desc;
+	protected String name;
+
+	protected EnumSortDirection direction = null;
+
+	/**
+	 * When creating a sort column this constructor should be called to ensure
+	 * that the sort direction is never null.
+	 * 
+	 * @param direction
+	 */
+	public QueryColumn(final EnumSortDirection direction) {
+		this.direction = direction;
+	}
+
+	/**
+	 * Create a new Query column with the specified name.
+	 * 
+	 * @param name
+	 */
+	public QueryColumn(final String name) {
+		this.name = name;
+	}
 
 	/**
 	 * @return the direction
@@ -61,4 +81,17 @@ public class QueryColumn {
 	public void setName(final String name) {
 		this.name = name;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "( " + name
+				+ (direction != null ? " [" + direction.name() + "]" : "")
+				+ " )";
+	}
+
 }

@@ -37,9 +37,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.persistence.Entity;
-import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.persistence.query.EnumJoinType;
 import com.sqewd.open.dal.core.persistence.db.AbstractJoinGraph;
 import com.sqewd.open.dal.core.persistence.query.parser.DalSqlParser;
 

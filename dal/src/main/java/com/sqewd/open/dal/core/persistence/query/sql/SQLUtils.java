@@ -20,6 +20,7 @@
  */
 package com.sqewd.open.dal.core.persistence.query.sql;
 
+import java.lang.reflect.Field;
 import java.util.regex.Pattern;
 
 import com.sqewd.open.dal.api.reflect.SchemaObjectAttribute;
@@ -71,6 +72,23 @@ public class SQLUtils {
 			break;
 		}
 		return null;
+	}
+
+	/**
+	 * Check if Field is of type String and quote the value.
+	 * 
+	 * @param value
+	 *            - Value Object
+	 * @param fd
+	 *            - Field type.
+	 * @return
+	 * @throws Exception
+	 */
+	public static Object getQuotedString(final Object value, final Field fd)
+			throws Exception {
+		if (fd.getType().equals(String.class))
+			return "'" + value.toString() + "'";
+		return value;
 	}
 
 	/**

@@ -44,6 +44,8 @@
 							</element>
 							<element name="temp" type="md:directory" minOccurs="0">
 							</element>
+							<element name="cache" type="md:cache" minOccurs="0"
+								maxOccurs="1"></element>
 						</sequence>
 					</complexType>
 				</element>
@@ -63,7 +65,9 @@
 	</element>
 
 
-
+	<complexType name="cache">
+		<attribute name="config" type="string"></attribute>
+	</complexType>
 	<complexType name="package">
 		<attribute name="jar" type="string"></attribute>
 		<attribute name="package" type="string" use="required"></attribute>
@@ -151,7 +155,8 @@
 			<element name="packages" maxOccurs="unbounded" minOccurs="0">
 				<complexType>
 					<sequence>
-						<element name="jar" type="md:package" maxOccurs="unbounded" minOccurs="0"></element>
+						<element name="jar" type="md:package" maxOccurs="unbounded"
+							minOccurs="0"></element>
 					</sequence>
 				</complexType>
 			</element>

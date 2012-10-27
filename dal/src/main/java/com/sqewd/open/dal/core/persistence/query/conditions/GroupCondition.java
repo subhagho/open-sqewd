@@ -20,6 +20,9 @@
  */
 package com.sqewd.open.dal.core.persistence.query.conditions;
 
+import com.sqewd.open.dal.api.persistence.query.Condition;
+import com.sqewd.open.dal.api.persistence.query.QueryCondition;
+
 /**
  * Represents a condition group.
  * 

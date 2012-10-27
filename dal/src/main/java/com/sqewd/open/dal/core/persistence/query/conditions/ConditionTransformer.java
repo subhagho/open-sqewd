@@ -20,6 +20,8 @@
  */
 package com.sqewd.open.dal.core.persistence.query.conditions;
 
+import com.sqewd.open.dal.api.persistence.query.QueryCondition;
+
 /**
  * A utility class which can be used to transform the Conditions to any target
  * implementation.

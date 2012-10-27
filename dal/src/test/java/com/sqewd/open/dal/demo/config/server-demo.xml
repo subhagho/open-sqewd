@@ -5,6 +5,7 @@
 	<env>
 		<work directory="/tmp/sqewd/work/" />
 		<temp directory="/tmp/sqewd/temp/" />
+		<cache config="/work/projects/open-sqewd/dal/src/test/java/com/sqewd/open/dal/demo/config/reference-cache.xml" />
 	</env>
 	<server port="8080" numthreads="5" home="/tmp/sqewd/work/jetty"
 		type="ALL">

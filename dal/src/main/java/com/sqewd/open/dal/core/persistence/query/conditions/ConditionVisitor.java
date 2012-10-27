@@ -20,6 +20,8 @@
  */
 package com.sqewd.open.dal.core.persistence.query.conditions;
 
+import com.sqewd.open.dal.api.persistence.query.Condition;
+
 /**
  * Condition Visitor, To implement the visitor pattern for transformers.
  * 

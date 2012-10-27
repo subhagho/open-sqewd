@@ -33,10 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
-import com.sqewd.open.dal.api.persistence.EnumJoinType;
 import com.sqewd.open.dal.api.persistence.ReflectionUtils;
 import com.sqewd.open.dal.api.persistence.StructAttributeReflect;
 import com.sqewd.open.dal.api.persistence.StructEntityReflect;
+import com.sqewd.open.dal.api.persistence.query.EnumJoinType;
 import com.sqewd.open.dal.api.utils.KeyValuePair;
 import com.sqewd.open.dal.core.persistence.db.AbstractJoinGraph;
 import com.sqewd.open.dal.core.persistence.db.EntityHelper;

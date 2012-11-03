@@ -48,6 +48,8 @@ public abstract class BasePlanGenerator implements PlanGenerator {
 		if (cache.isKeyInCache(entity.getClass().getCanonicalName()))
 			return (PlanContext) cache
 					.get(entity.getClass().getCanonicalName()).getObjectValue();
+
+		// Not found in cache. Create new Plan
 		PlanContext ctx = new PlanContext();
 
 		process(ctx, entity);

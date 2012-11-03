@@ -78,7 +78,7 @@ public class DataCache implements InitializedHandle {
 	 * @param config
 	 * @throws Exception
 	 */
-	public void createCache(final String name, final CacheConfiguration config)
+	public Cache createCache(final String name, final CacheConfiguration config)
 			throws Exception {
 		if (state != EnumInstanceState.Running)
 			throw new Exception(
@@ -92,6 +92,8 @@ public class DataCache implements InitializedHandle {
 		cache.setName(name);
 
 		dataCacheManager.addCache(cache);
+
+		return cache;
 	}
 
 	/*

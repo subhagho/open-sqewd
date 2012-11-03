@@ -16,7 +16,7 @@ package com.sqewd.open.dal.test;
 
 import java.io.File;
 
-import com.sqewd.open.dal.api.ReferenceCache;
+import com.sqewd.open.dal.api.DataCache;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.utils.FileUtils;
 import com.sqewd.open.dal.core.Env;
@@ -76,6 +76,6 @@ public class EnvSetup {
 	}
 
 	public static void setupCacheOnly() throws Exception {
-		ReferenceCache.get(_CACHE_SETUP_);
+		DataCache.create(_CACHE_SETUP_);
 	}
 }

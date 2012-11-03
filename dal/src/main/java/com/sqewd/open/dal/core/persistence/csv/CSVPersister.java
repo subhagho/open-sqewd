@@ -23,9 +23,11 @@ import java.util.Date;
 import java.util.List;
 
 import net.sf.ehcache.Cache;
+import net.sf.ehcache.Element;
+import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +35,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 import com.sqewd.open.dal.api.DataCache;
 import com.sqewd.open.dal.api.EnumInstanceState;
+import com.sqewd.open.dal.api.ReferenceCache;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.CursorContext;
@@ -53,6 +56,7 @@ import com.sqewd.open.dal.api.utils.LogUtils;
 import com.sqewd.open.dal.api.utils.ValueParam;
 import com.sqewd.open.dal.core.persistence.DataManager;
 import com.sqewd.open.dal.core.persistence.model.EntityModelHelper;
+import com.sqewd.open.dal.core.persistence.query.parser.ConditionParser;
 import com.sqewd.open.dal.core.persistence.query.sql.SQLUtils;
 
 /**
@@ -63,11 +67,25 @@ public class CSVPersister extends AbstractPersister {
 	private static final Logger log = LoggerFactory
 			.getLogger(CSVPersister.class);
 	public static final String _PARAM_DATADIR_ = "datadir";
+	public static final String _PARAM_USE_CACHE_ = "cache";
+	public static final String _PARAM_CACHE_SCHEMA_SIZE_ = "cache.schema.size";
+	public static final String _PARAM_CACHE_DATA_SIZE_ = "cache.data.size";
+
+	public static final String _CACHE_SCHEMA_KEY_ = "csv.persister.schema";
+	public static final String _CACHE_DATA_KEY_ = "csv.persister.data";
+
+	private static final long _CACHE_ALL_MAX_DISK_ = 1024 * 1024 * 1024 * 5; // 5GB
 
 	private String datadir;
-	private Cache cache = null;
+	private Cache datacache = null;
+	private Cache schemacache = null;
+
+	private String cacheSchemaSize = "32M";
+	private String cacheDataSize = "236M";
 
 	private EnumImportFormat format = EnumImportFormat.CSV;
+
+	private PlanGenerator planner = null;
 
 	public CSVPersister() {
 		key = this.getClass().getCanonicalName();
@@ -83,9 +101,17 @@ public class CSVPersister extends AbstractPersister {
 	 * @see com.wookler.core.InitializedHandle#dispose()
 	 */
 	public void dispose() {
-		if (cache != null) {
+		if (datacache != null) {
 			try {
-				DataCache.instance().remove(cache.getName());
+				DataCache.instance().remove(datacache.getName());
+			} catch (Exception e) {
+				LogUtils.stacktrace(log, e);
+				log.error(e.getLocalizedMessage());
+			}
+		}
+		if (schemacache != null) {
+			try {
+				DataCache.instance().remove(schemacache.getName());
 			} catch (Exception e) {
 				LogUtils.stacktrace(log, e);
 				log.error(e.getLocalizedMessage());
@@ -101,8 +127,7 @@ public class CSVPersister extends AbstractPersister {
 	 */
 	@Override
 	public PlanGenerator getPlanGenerator() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		return planner;
 	}
 
 	/*
@@ -113,9 +138,37 @@ public class CSVPersister extends AbstractPersister {
 	 * java.lang.String)
 	 */
 	@Override
-	public SchemaObject getSchemaObject(final String name) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public SchemaObject getSchemaObject(final EntityDef entity)
+			throws Exception {
+		String name = entity.getName();
+		if (schemacache.isKeyInCache(name)) {
+			Element elm = schemacache.get(name);
+			if (elm.getObjectValue() instanceof SchemaObject)
+				return (SchemaObject) elm.getObjectValue();
+			else
+				throw new Exception("Invalid Cached Object : Type ["
+						+ elm.getObjectValue().getClass().getCanonicalName()
+						+ "]");
+		} else {
+			synchronized (schemacache) {
+				if (schemacache.isKeyInCache(name)) {
+					Element elm = schemacache.get(name);
+					if (elm.getObjectValue() instanceof SchemaObject)
+						return (SchemaObject) elm.getObjectValue();
+					else
+						throw new Exception("Invalid Cached Object : Type ["
+								+ elm.getObjectValue().getClass()
+										.getCanonicalName() + "]");
+				} else {
+					SchemaObject so = loadSchema(entity);
+					Element elm = new Element(name, so);
+					schemacache.put(elm);
+
+					return so;
+				}
+			}
+
+		}
 	}
 
 	/*
@@ -126,6 +179,8 @@ public class CSVPersister extends AbstractPersister {
 	@Override
 	public void init(final ListParam param) throws Exception {
 		try {
+			planner = new CSVPlanGenerator(this);
+
 			AbstractParam pkey = param.get(_PARAM_KEY_);
 			if (pkey == null)
 				throw new Exception(
@@ -154,6 +209,51 @@ public class CSVPersister extends AbstractPersister {
 				throw new Exception("Invalid Configuration : Param ["
 						+ _PARAM_DATADIR_ + "] is NULL or empty.");
 
+			AbstractParam pch = param.get(_PARAM_USE_CACHE_);
+			if (!(pch instanceof ValueParam))
+				throw new Exception(
+						"Invalid Configuration : Invalid Parameter type for ["
+								+ _PARAM_USE_CACHE_ + "]");
+			boolean useCache = Boolean.parseBoolean(((ValueParam) pch)
+					.getValue());
+			if (useCache) {
+				AbstractParam pcs = param.get(_PARAM_CACHE_SCHEMA_SIZE_);
+				if (!(pcs instanceof ValueParam))
+					throw new Exception(
+							"Invalid Configuration : Invalid Parameter type for ["
+									+ _PARAM_CACHE_SCHEMA_SIZE_ + "]");
+				String value = ((ValueParam) pcs).getValue();
+				if (value != null && !value.isEmpty()) {
+					cacheSchemaSize = value;
+				}
+
+				// Create Schema Cache.
+				CacheConfiguration config = new CacheConfiguration();
+				config.setName(_CACHE_SCHEMA_KEY_);
+				config.setMaxBytesLocalHeap(cacheSchemaSize);
+				schemacache = DataCache.instance().createCache(
+						_CACHE_SCHEMA_KEY_, config);
+
+				// Create Data Cache.
+				pcs = param.get(_PARAM_CACHE_DATA_SIZE_);
+				if (!(pcs instanceof ValueParam))
+					throw new Exception(
+							"Invalid Configuration : Invalid Parameter type for ["
+									+ _PARAM_CACHE_DATA_SIZE_ + "]");
+				value = ((ValueParam) pcs).getValue();
+				if (value != null && !value.isEmpty()) {
+					cacheDataSize = value;
+				}
+				config = new CacheConfiguration();
+				config.setName(_CACHE_DATA_KEY_);
+				config.setMaxBytesLocalHeap(cacheDataSize);
+				PersistenceConfiguration pc = new PersistenceConfiguration();
+				pc.strategy(PersistenceConfiguration.Strategy.LOCALTEMPSWAP);
+				config.addPersistence(pc);
+				config.setMaxBytesLocalDisk(_CACHE_ALL_MAX_DISK_);
+				datacache = DataCache.instance().createCache(_CACHE_DATA_KEY_,
+						config);
+			}
 			state = EnumInstanceState.Running;
 		} catch (Exception e) {
 			state = EnumInstanceState.Exception;
@@ -166,8 +266,8 @@ public class CSVPersister extends AbstractPersister {
 		if (!type.isAnnotationPresent(Entity.class))
 			throw new Exception("Class [" + type.getCanonicalName()
 					+ "] has not been annotated as an Entity.");
-		synchronized (cache) {
-			if (cache.containsKey(type.getCanonicalName()))
+		synchronized (datacache) {
+			if (datacache.isKeyInCache(type.getCanonicalName()))
 				return;
 
 			Entity eann = type.getAnnotation(Entity.class);
@@ -205,9 +305,16 @@ public class CSVPersister extends AbstractPersister {
 				}
 				entities.add(record);
 			}
-			cache.put(type.getCanonicalName(), entities);
+			Element elm = new Element(type.getCanonicalName(), entities);
+			datacache.put(elm);
 			reader.close();
 		}
+	}
+
+	private SchemaObject loadSchema(final EntityDef entity) throws Exception {
+		String filename = datadir + "/" + entity.getName() + ".csv";
+		SchemaObject so = new CSVFile(filename, entity, this);
+		return so;
 	}
 
 	protected AbstractEntity parseRecord(final Class<?> type,
@@ -266,35 +373,6 @@ public class CSVPersister extends AbstractPersister {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.wookler.core.persistence.AbstractPersister#read(java.util.List)
-	 */
-	@Override
-	public List<AbstractEntity> read(final String query, final Class<?> type,
-			final int limit) throws Exception {
-		List<AbstractEntity> result = null;
-		String cname = type.getCanonicalName();
-		if (!cache.containsKey(cname)) {
-			load(type);
-		}
-
-		// Make sure the type for the class is available.
-		ReflectionUtils.get().getEntityMetadata(type);
-
-		List<AbstractEntity> records = cache.get(cname);
-		if (query != null && !query.isEmpty()) {
-			SimpleFilterQuery filter = new SimpleFilterQuery();
-
-			filter.parse(new Class<?>[] { type }, query);
-			result = filter.select(records);
-		} else {
-			result = records;
-		}
-		return result;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see
 	 * com.sqewd.open.dal.api.persistence.AbstractPersister#read(java.lang.String
 	 * , java.lang.Class, int, boolean)
@@ -302,8 +380,40 @@ public class CSVPersister extends AbstractPersister {
 	@Override
 	public List<AbstractEntity> read(final String query, final Class<?> type,
 			final int limit, final boolean debug) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		List<AbstractEntity> result = null;
+		String cname = type.getCanonicalName();
+		if (!datacache.isKeyInCache(cname)) {
+			load(type, debug);
+		}
+
+		// Make sure the type for the class is available.
+		ReferenceCache.get().getEntityDef(type);
+
+		Element elm = datacache.get(cname);
+		if (!(elm.getObjectValue() instanceof List<?>))
+			throw new Exception(
+					"Invalid Cache state : Cached records are invalid.");
+
+		if (query != null && !query.isEmpty()) {
+			ConditionParser parser = new ConditionParser(query);
+
+		} else {
+			List<?> records = (List<?>) elm.getObjectValue();
+			if (records != null && records.size() > 0) {
+				result = new ArrayList<AbstractEntity>();
+				for (Object obj : records) {
+					if (obj instanceof AbstractEntity) {
+						result.add((AbstractEntity) obj);
+					} else
+						throw new Exception(
+								"Invalid Cache State : Result type mis-match ["
+										+ type.getCanonicalName() + " != "
+										+ obj.getClass().getCanonicalName()
+										+ "]");
+				}
+			}
+		}
+		return result;
 	}
 
 	/*

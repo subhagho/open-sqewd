@@ -20,10 +20,15 @@
  */
 package com.sqewd.open.dal.core.persistence.csv;
 
+import com.sqewd.open.dal.api.ReferenceCache;
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
 import com.sqewd.open.dal.api.persistence.AbstractPersister;
 import com.sqewd.open.dal.api.persistence.query.PlanContext;
 import com.sqewd.open.dal.api.persistence.query.PlanNode;
+import com.sqewd.open.dal.api.reflect.AttributeDef;
+import com.sqewd.open.dal.api.reflect.AttributeReferenceDef;
+import com.sqewd.open.dal.api.reflect.EntityDef;
+import com.sqewd.open.dal.api.reflect.SchemaObject;
 import com.sqewd.open.dal.core.persistence.query.BasePlanGenerator;
 
 /**
@@ -70,8 +75,31 @@ public class CSVPlanGenerator extends BasePlanGenerator {
 	@Override
 	protected PlanNode process(final PlanContext ctx,
 			final AbstractEntity entity) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		EntityDef ed = ReferenceCache.get().getEntityDef(entity.getClass());
+		AbstractPersister pers = ed.getPersister();
+		if (!(pers instanceof CSVPersister))
+			throw new Exception("Entity of type ["
+					+ entity.getClass().getCanonicalName() + "] not supported.");
+		SchemaObject so = pers.getSchemaObject(ed);
+
+		CSVPlanNode node = new CSVPlanNode(null, ctx, so);
+		for (AttributeDef attr : ed.getAttributes()) {
+			processAttribute(attr, ed, so, node);
+		}
+		return node;
 	}
 
+	private void processAttribute(final AttributeDef attr, final EntityDef ed,
+			final SchemaObject so, final CSVPlanNode parent) throws Exception {
+		if (attr.isRefrenceAttr()) {
+			AttributeReferenceDef ard = (AttributeReferenceDef) attr.getType();
+			AbstractPersister rp = ard.getReference().getPersister();
+			// Reference node is managed by this CSV persister.
+			if (rp.equals(ed.getPersister())) {
+
+			} else {
+
+			}
+		}
+	}
 }

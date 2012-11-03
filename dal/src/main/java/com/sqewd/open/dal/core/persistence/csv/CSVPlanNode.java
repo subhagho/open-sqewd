@@ -39,9 +39,10 @@ public class CSVPlanNode extends PlanNode {
 	 * @param ctx
 	 * @throws Exception
 	 */
-	protected CSVPlanNode(final PlanNode parent, final PlanContext ctx)
-			throws Exception {
+	public CSVPlanNode(final PlanNode parent, final PlanContext ctx,
+			final SchemaObject object) throws Exception {
 		super(parent, ctx);
+		this.object = object;
 	}
 
 	/*

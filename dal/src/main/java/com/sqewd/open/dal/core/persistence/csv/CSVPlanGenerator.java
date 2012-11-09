@@ -60,6 +60,20 @@ public class CSVPlanGenerator extends BasePlanGenerator {
 	 */
 	public void addContext(final AbstractEntity entity, final PlanNode parent)
 			throws Exception {
+		EntityDef ed = ReferenceCache.get().getEntityDef(entity.getClass());
+		addContext(ed, parent);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sqewd.open.dal.api.persistence.query.PlanGenerator#addContext(com
+	 * .sqewd.open.dal.api.reflect.EntityDef,
+	 * com.sqewd.open.dal.api.persistence.query.PlanNode)
+	 */
+	public void addContext(final EntityDef entity, final PlanNode parent)
+			throws Exception {
 		// TODO Auto-generated method stub
 
 	}
@@ -94,12 +108,7 @@ public class CSVPlanGenerator extends BasePlanGenerator {
 		if (attr.isRefrenceAttr()) {
 			AttributeReferenceDef ard = (AttributeReferenceDef) attr.getType();
 			AbstractPersister rp = ard.getReference().getPersister();
-			// Reference node is managed by this CSV persister.
-			if (rp.equals(ed.getPersister())) {
-
-			} else {
-
-			}
+			rp.getPlanGenerator().addContext(ard.getReference(), parent);
 		}
 	}
 }

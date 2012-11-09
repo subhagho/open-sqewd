@@ -21,6 +21,7 @@
 package com.sqewd.open.dal.api.persistence.query;
 
 import com.sqewd.open.dal.api.persistence.AbstractEntity;
+import com.sqewd.open.dal.api.reflect.EntityDef;
 
 /**
  * Interface to Generate an execution plan.
@@ -40,6 +41,17 @@ public interface PlanGenerator {
 	 */
 	public void addContext(AbstractEntity entity, PlanNode parent)
 			throws Exception;
+
+	/**
+	 * Add the entity as a node to the specified plan.
+	 * 
+	 * @param entity
+	 *            - Entity to generate plan for.
+	 * @param parent
+	 *            - Parent plan node.
+	 * @throws Exception
+	 */
+	public void addContext(EntityDef entity, PlanNode parent) throws Exception;
 
 	/**
 	 * Create a execution plan for the specified entity.
